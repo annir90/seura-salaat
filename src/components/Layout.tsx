@@ -56,6 +56,9 @@ const Layout = () => {
               calculationMethod === "Makkah" ? "Makkah" : "Standard"})
           </span>
         </div>
+        <div className="text-center text-xs text-muted-foreground mb-2">
+          <span className="text-xs font-medium">Data from Rabita.fi</span>
+        </div>
         <Outlet />
       </main>
       <BottomNavbar />
@@ -64,4 +67,3 @@ const Layout = () => {
 };
 
 export default Layout;
-

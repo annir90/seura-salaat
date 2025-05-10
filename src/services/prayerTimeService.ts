@@ -1,4 +1,6 @@
+
 import { getSelectedLocation } from "./locationService";
+import { fetchRabitaPrayerTimes } from "./rabitaService";
 
 // Prayer time service using basic calculations
 export interface PrayerTime {
@@ -22,8 +24,45 @@ const getCalculationMethod = (): string => {
   return localStorage.getItem('prayerapp-calculation-method') || 'ISNA';
 };
 
+// Cache for prayer times
+let prayerTimesCache: {
+  date: string;
+  times: PrayerTime[];
+} | null = null;
+
 // Function to calculate prayer times for a specific date
-export const getPrayerTimes = (date: Date = new Date()): PrayerTime[] => {
+export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTime[]> => {
+  const today = new Date().toDateString();
+  const requestedDate = date.toDateString();
+  
+  // If date is today and we have cached data, return it
+  if (requestedDate === today && prayerTimesCache && prayerTimesCache.date === today) {
+    return prayerTimesCache.times;
+  }
+  
+  // Try to fetch from Rabita.fi first
+  try {
+    if (requestedDate === today) { // Only use Rabita for today's times
+      const rabitaTimes = await fetchRabitaPrayerTimes();
+      if (rabitaTimes && rabitaTimes.length > 0) {
+        // Cache the results
+        prayerTimesCache = {
+          date: today,
+          times: rabitaTimes
+        };
+        return rabitaTimes;
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching from Rabita, falling back to calculations:", error);
+  }
+  
+  // Fall back to calculations if Rabita.fi is unavailable or we're looking for a different date
+  return calculatePrayerTimes(date);
+};
+
+// Function to calculate prayer times based on calculations
+const calculatePrayerTimes = (date: Date): PrayerTime[] => {
   // Get current location
   const selectedLocation = getSelectedLocation();
   const LATITUDE = selectedLocation.latitude;
@@ -179,7 +218,8 @@ export const getPrayerTimes = (date: Date = new Date()): PrayerTime[] => {
   }));
 };
 
-export const getDateForHeader = () => {
+// Make this function return a promise for consistency
+export const getDateForHeader = async () => {
   const now = new Date();
   const options: Intl.DateTimeFormatOptions = { 
     weekday: 'long', 
