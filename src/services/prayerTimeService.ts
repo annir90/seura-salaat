@@ -1,15 +1,13 @@
 
-// Prayer time service using basic calculations for Espoo, Finland
+import { getSelectedLocation } from "./locationService";
+
+// Prayer time service using basic calculations
 export interface PrayerTime {
   id: string;
   name: string;
   time: string;
   isNext: boolean;
 }
-
-// Coordinates for Espoo, Finland
-const ESPOO_LATITUDE = 60.2055;
-const ESPOO_LONGITUDE = 24.6559;
 
 // Helper function to format time as HH:MM
 const formatTime = (date: Date): string => {
@@ -22,6 +20,11 @@ const formatTime = (date: Date): string => {
 
 // Function to calculate prayer times for a specific date
 export const getPrayerTimes = (date: Date = new Date()): PrayerTime[] => {
+  // Get current location
+  const selectedLocation = getSelectedLocation();
+  const LATITUDE = selectedLocation.latitude;
+  const LONGITUDE = selectedLocation.longitude;
+
   // Adjust date hours for calculation purposes
   const calculationDate = new Date(date);
   calculationDate.setHours(0, 0, 0, 0);
@@ -31,7 +34,7 @@ export const getPrayerTimes = (date: Date = new Date()): PrayerTime[] => {
   const diff = (date.getTime() - start.getTime()) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
   const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
   
-  // Calculate prayer times for Espoo, Finland
+  // Calculate prayer times using the selected location
   // These calculations are simplified but more realistic than static times
   
   // Calculate Fajr (dawn)
@@ -109,15 +112,17 @@ export const getDateForHeader = () => {
 };
 
 export const getQiblaDirection = () => {
-  // Calculate Qibla direction for Espoo, Finland
-  // Formula: atan2(sin(Ka'ba_long - Espoo_long), cos(Espoo_lat) * tan(Ka'ba_lat) - sin(Espoo_lat) * cos(Ka'ba_long - Espoo_long))
+  // Get current location
+  const selectedLocation = getSelectedLocation();
+  const LATITUDE = selectedLocation.latitude;
+  const LONGITUDE = selectedLocation.longitude;
   
   // Ka'ba coordinates
   const KAABA_LATITUDE = 21.4225;
   const KAABA_LONGITUDE = 39.8262;
   
-  const latEspoo = ESPOO_LATITUDE * (Math.PI / 180);
-  const longEspoo = ESPOO_LONGITUDE * (Math.PI / 180);
+  const latEspoo = LATITUDE * (Math.PI / 180);
+  const longEspoo = LONGITUDE * (Math.PI / 180);
   const latKaaba = KAABA_LATITUDE * (Math.PI / 180);
   const longKaaba = KAABA_LONGITUDE * (Math.PI / 180);
   
