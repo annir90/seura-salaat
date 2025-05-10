@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import BottomNavbar from "./BottomNavbar";
 import { getSelectedLocation, Location } from "../services/locationService";
+import { toast } from "@/components/ui/use-toast";
 
 const Layout = () => {
   const [location, setLocation] = useState<Location | null>(null);
   const [calculationMethod, setCalculationMethod] = useState<string>("ISNA");
+  const [dataSource, setDataSource] = useState<string>("Calculated");
   
   // Listen for location changes
   useEffect(() => {
@@ -17,6 +19,12 @@ const Layout = () => {
     const savedMethod = localStorage.getItem('prayerapp-calculation-method');
     if (savedMethod) {
       setCalculationMethod(savedMethod);
+    }
+
+    // Listen for data source changes
+    const storedDataSource = localStorage.getItem('prayerapp-data-source');
+    if (storedDataSource) {
+      setDataSource(storedDataSource);
     }
     
     // Listen for storage changes from other tabs/windows
@@ -33,6 +41,10 @@ const Layout = () => {
       } else if (e.key === 'prayerapp-calculation-method') {
         if (e.newValue) {
           setCalculationMethod(e.newValue);
+        }
+      } else if (e.key === 'prayerapp-data-source') {
+        if (e.newValue) {
+          setDataSource(e.newValue);
         }
       }
     };
@@ -57,7 +69,7 @@ const Layout = () => {
           </span>
         </div>
         <div className="text-center text-xs text-muted-foreground mb-2">
-          <span className="text-xs font-medium">Data from Rabita.fi</span>
+          <span className="text-xs font-medium">Data source: {dataSource === "Rabita" ? "Rabita.fi" : "Calculated"}</span>
         </div>
         <Outlet />
       </main>

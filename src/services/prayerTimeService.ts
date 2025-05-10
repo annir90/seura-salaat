@@ -1,6 +1,7 @@
 
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
+import { toast } from "@/components/ui/use-toast";
 
 // Prayer time service using basic calculations
 export interface PrayerTime {
@@ -22,6 +23,11 @@ const formatTime = (date: Date): string => {
 // Get the current calculation method from localStorage
 const getCalculationMethod = (): string => {
   return localStorage.getItem('prayerapp-calculation-method') || 'ISNA';
+};
+
+// Set the current data source in localStorage
+const setDataSource = (source: string): void => {
+  localStorage.setItem('prayerapp-data-source', source);
 };
 
 // Cache for prayer times
@@ -50,14 +56,21 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
           date: today,
           times: rabitaTimes
         };
+        setDataSource('Rabita');
         return rabitaTimes;
       }
     }
   } catch (error) {
     console.error("Error fetching from Rabita, falling back to calculations:", error);
+    toast({
+      title: "Network Issue",
+      description: "Could not connect to Rabita.fi, using calculated times instead.",
+      variant: "destructive"
+    });
   }
   
   // Fall back to calculations if Rabita.fi is unavailable or we're looking for a different date
+  setDataSource('Calculated');
   return calculatePrayerTimes(date);
 };
 

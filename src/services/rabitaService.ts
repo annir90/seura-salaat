@@ -7,10 +7,18 @@ export interface RabitaPrayerTime {
   time: string;
 }
 
+// Interface for prayer times with temporary timeInMinutes property for calculation
+interface PrayerTimeWithMinutes extends PrayerTime {
+  timeInMinutes?: number;
+}
+
 // Function to fetch prayer times from rabita.fi
 export const fetchRabitaPrayerTimes = async (): Promise<PrayerTime[]> => {
   try {
-    const response = await fetch("https://rabita.fi/wp-content/themes/rabita-v3/prayer-times.php");
+    // Use a CORS proxy to avoid cross-origin issues
+    const proxyUrl = "https://corsproxy.io/?";
+    const targetUrl = "https://rabita.fi/wp-content/themes/rabita-v3/prayer-times.php";
+    const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch prayer times: ${response.status}`);
@@ -27,16 +35,13 @@ export const fetchRabitaPrayerTimes = async (): Promise<PrayerTime[]> => {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    // Process the prayer times
-    const prayerTimes: PrayerTime[] = [];
-    
     // Extract today's prayer times
     const todayData = data.length > 0 ? data[0] : null;
     if (todayData && todayData.prayer_times) {
       const times = todayData.prayer_times;
       
       // Create prayer times array
-      const mappedPrayers = times.map((time: string, index: number): PrayerTime => {
+      const mappedPrayers: PrayerTimeWithMinutes[] = times.map((time: string, index: number): PrayerTimeWithMinutes => {
         // Convert time string to minutes for comparison
         const [hours, minutes] = time.split(":").map(Number);
         const timeInMinutes = hours * 60 + minutes;
@@ -51,7 +56,8 @@ export const fetchRabitaPrayerTimes = async (): Promise<PrayerTime[]> => {
       });
       
       // Determine which prayer is next
-      let nextPrayerIndex = mappedPrayers.findIndex(prayer => prayer.timeInMinutes > currentTime);
+      let nextPrayerIndex = mappedPrayers.findIndex(prayer => 
+        prayer.timeInMinutes !== undefined && prayer.timeInMinutes > currentTime);
       if (nextPrayerIndex === -1) nextPrayerIndex = 0; // If past all prayers, first prayer of tomorrow is next
       
       // Set the isNext property
