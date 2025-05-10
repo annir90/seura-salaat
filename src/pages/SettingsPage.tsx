@@ -49,8 +49,20 @@ const SettingsPage = () => {
   
   const handleSave = () => {
     saveSelectedLocation(location);
+    
+    // Save calculation method to localStorage
+    localStorage.setItem('prayerapp-calculation-method', calculationMethod);
+    
     toast.success("Settings saved successfully");
   };
+  
+  // Load calculation method from localStorage
+  useEffect(() => {
+    const savedMethod = localStorage.getItem('prayerapp-calculation-method');
+    if (savedMethod) {
+      setCalculationMethod(savedMethod);
+    }
+  }, []);
   
   const handleAddCustomLocation = () => {
     try {
@@ -188,17 +200,21 @@ const SettingsPage = () => {
             
             <div className="grid gap-2">
               <Label htmlFor="calculation">Calculation Method</Label>
-              <select 
-                id="calculation"
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
+              <Select 
                 value={calculationMethod}
-                onChange={(e) => setCalculationMethod(e.target.value)}
+                onValueChange={setCalculationMethod}
               >
-                <option value="ISNA">ISNA (Islamic Society of North America)</option>
-                <option value="MWL">Muslim World League</option>
-                <option value="Egyptian">Egyptian General Authority</option>
-                <option value="Makkah">Umm al-Qura University, Makkah</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select calculation method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ISNA">ISNA (Islamic Society of North America)</SelectItem>
+                  <SelectItem value="MWL">Muslim World League</SelectItem>
+                  <SelectItem value="Egyptian">Egyptian General Authority</SelectItem>
+                  <SelectItem value="Makkah">Umm al-Qura University, Makkah</SelectItem>
+                  <SelectItem value="ICF">Islamic Center of Finland</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
