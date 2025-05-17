@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,24 +21,24 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Reduced to 3 high-quality, soft notification sounds
+// Updated with 3 new beautiful, soft notification sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
-    id: "gentle-chime",
-    name: "Gentle Chime",
-    url: "https://assets.mixkit.co/active_storage/sfx/2514/2514-preview.mp3",
-    icon: <Clock className="h-5 w-5" />,
-  },
-  {
-    id: "meditation-bell",
-    name: "Meditation Bell",
-    url: "https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3",
+    id: "soft-chimes",
+    name: "Soft Chimes",
+    url: "https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3",
     icon: <Bell className="h-5 w-5" />,
   },
   {
-    id: "subtle-ding",
-    name: "Subtle Ding",
-    url: "https://assets.mixkit.co/active_storage/sfx/2466/2466-preview.mp3",
+    id: "gentle-notification",
+    name: "Gentle Notification",
+    url: "https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3",
+    icon: <Clock className="h-5 w-5" />,
+  },
+  {
+    id: "peaceful-bell",
+    name: "Peaceful Bell",
+    url: "https://assets.mixkit.co/active_storage/sfx/1819/1819-preview.mp3",
     icon: <Bell className="h-5 w-5" />,
   }
 ];
