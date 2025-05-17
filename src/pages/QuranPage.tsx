@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchEntireQuran, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,13 +20,22 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const QuranPage = () => {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [allAyahs, setAllAyahs] = useState<Ayah[]>([]);
+  const [filteredAyahs, setFilteredAyahs] = useState<Ayah[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeSurah, setActiveSurah] = useState<number | null>(null);
+  const [selectedSurah, setSelectedSurah] = useState<string>("all");
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -39,6 +49,7 @@ const QuranPage = () => {
       // Load all ayahs
       const ayahsData = await fetchEntireQuran();
       setAllAyahs(ayahsData);
+      setFilteredAyahs(ayahsData);
       
       setLoading(false);
     };
@@ -46,11 +57,26 @@ const QuranPage = () => {
     loadQuranData();
   }, []);
 
+  // Filter ayahs when selectedSurah changes
+  useEffect(() => {
+    if (selectedSurah === "all") {
+      setFilteredAyahs(allAyahs);
+    } else {
+      const surahNumber = parseInt(selectedSurah);
+      const filtered = allAyahs.filter(ayah => ayah.surah === surahNumber);
+      setFilteredAyahs(filtered);
+    }
+    // Reset to first page when filter changes
+    setCurrentPage(1);
+    // Auto-expand the selected surah
+    setActiveSurah(selectedSurah === "all" ? null : parseInt(selectedSurah));
+  }, [selectedSurah, allAyahs]);
+
   // Get current items for pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentAyahs = allAyahs.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(allAyahs.length / itemsPerPage);
+  const currentAyahs = filteredAyahs.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredAyahs.length / itemsPerPage);
 
   // Handle pagination
   const paginate = (pageNumber: number) => {
@@ -108,7 +134,27 @@ const QuranPage = () => {
           <BookOpen className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-2xl font-bold">Noble Quran</h1>
-        <p className="text-muted-foreground">Complete Quran View</p>
+        <p className="text-muted-foreground mb-4">Complete Quran View</p>
+        
+        {/* Surah Selector */}
+        <div className="w-full max-w-xs mb-4">
+          <Select
+            value={selectedSurah}
+            onValueChange={setSelectedSurah}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Surah" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Surahs</SelectItem>
+              {surahs.map((surah) => (
+                <SelectItem key={surah.number} value={surah.number.toString()}>
+                  {surah.number}. {surah.englishName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Loading State */}
@@ -123,12 +169,16 @@ const QuranPage = () => {
         <>
           <Card className="mb-4">
             <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4">The Noble Quran</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                {selectedSurah === "all" 
+                  ? "The Noble Quran" 
+                  : `Surah ${selectedSurah}: ${getSurahName(parseInt(selectedSurah))}`}
+              </h2>
               <p className="text-muted-foreground mb-2">
                 Viewing page {currentPage} of {totalPages}
               </p>
               <p className="text-muted-foreground mb-4">
-                {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, allAyahs.length)} of {allAyahs.length} verses
+                {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredAyahs.length)} of {filteredAyahs.length} verses
               </p>
               
               <Table>
@@ -146,7 +196,7 @@ const QuranPage = () => {
                     
                     return (
                       <React.Fragment key={ayah.number}>
-                        {isNewSurah && (
+                        {isNewSurah && selectedSurah === "all" && (
                           <TableRow 
                             className="bg-prayer-primary/10 cursor-pointer hover:bg-prayer-primary/20"
                             onClick={() => toggleSurah(ayah.surah!)}
@@ -216,7 +266,7 @@ const QuranPage = () => {
       )}
 
       {/* Empty State - should never show if properly loaded */}
-      {!loading && allAyahs.length === 0 && (
+      {!loading && filteredAyahs.length === 0 && (
         <div className="text-center p-12 border border-dashed rounded-lg">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No Quran Data Available</h3>
