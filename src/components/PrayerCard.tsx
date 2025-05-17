@@ -1,13 +1,18 @@
 
+import React, { useState } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
 import { Bell } from "lucide-react";
+import AdhanSoundModal from "./AdhanSoundModal";
 
 interface PrayerCardProps {
   prayer: PrayerTime;
 }
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSound, setSelectedSound] = useState<string | undefined>(undefined);
+
   const isPast = () => {
     const now = new Date();
     const [hours, minutes] = prayer.time.split(":").map(Number);
@@ -17,6 +22,20 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   };
 
   const past = isPast() && !prayer.isNext;
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSelectSound = (soundId: string) => {
+    setSelectedSound(soundId);
+    // In a real app, this would also save to local storage or a backend
+    console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
+  };
 
   return (
     <div 
@@ -40,12 +59,21 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       <button 
         className={cn(
           "rounded-full p-2 transition-colors",
-          "hover:bg-prayer-light text-prayer-primary"
+          selectedSound ? "bg-prayer-light text-prayer-primary" : "hover:bg-prayer-light text-prayer-primary"
         )}
         aria-label={`Set notification for ${prayer.name}`}
+        onClick={handleOpenModal}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className={cn("h-5 w-5", selectedSound && "text-prayer-primary")} />
       </button>
+
+      <AdhanSoundModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        prayerName={prayer.name}
+        onSelect={handleSelectSound}
+        selectedSoundId={selectedSound}
+      />
     </div>
   );
 };
