@@ -32,7 +32,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://www.soundjay.com/button/sounds/button-2.mp3", // Short gentle tone more suitable for app notifications
+    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", // More reliable soft notification sound
     icon: <Volume size={20} />,
   }
 ];
