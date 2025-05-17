@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Play, Pause, Bell, Volume } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +33,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     id: "ringtone",
     name: "Soft Reminder",
     url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", // More reliable soft notification sound
-    icon: <Volume size={20} />,
+    icon: <Bell size={20} />,
   }
 ];
 
