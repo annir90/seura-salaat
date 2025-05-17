@@ -221,7 +221,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                       onClick={() => handleSelect(option.id)}
                       className={cn(
                         "text-xs px-3 h-8",
-                        isSelected && "bg-prayer-light text-prayer-primary border-prayer-primary"
+                        isSelected && "bg-prayer-light text-prayer-primary border-prayer-primary hover:bg-prayer-light/90"
                       )}
                     >
                       {isSelected ? "Selected" : "Select"}

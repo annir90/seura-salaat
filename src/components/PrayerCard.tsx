@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
-import { Bell } from "lucide-react";
+import { Bell, VolumeX } from "lucide-react";
 import AdhanSoundModal from "./AdhanSoundModal";
 
 interface PrayerCardProps {
@@ -48,6 +48,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
   };
 
+  const getNotificationIcon = () => {
+    if (selectedSound === "silent-notification") {
+      return <VolumeX size={20} className="text-prayer-primary" />;
+    }
+    return <Bell size={20} className={selectedSound ? "text-prayer-primary" : ""} />;
+  };
+
   return (
     <div 
       className={cn(
@@ -75,7 +82,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         aria-label={`Set notification for ${prayer.name}`}
         onClick={handleOpenModal}
       >
-        <Bell size={20} className={selectedSound ? "text-prayer-primary" : ""} />
+        {getNotificationIcon()}
       </button>
 
       <AdhanSoundModal
