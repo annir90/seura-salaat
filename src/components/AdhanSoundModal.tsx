@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,24 +21,24 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with new audio sources from provided URLs
+// Updated with working audio sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
-    icon: <Bell size={20} />, // Will remove this since we have the Bell on the left
+    url: "https://server8.mp3quran.net/afs/001.mp3", // More reliable source
+    icon: <Bell size={20} />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_9fb995283b.mp3?filename=ringtone-132673.mp3",
+    url: "https://cdn.pixabay.com/audio/2022/03/10/audio_9fb995283b.mp3", // Fixed URL without query parameters
     icon: <Volume2 size={20} />,
   },
   {
     id: "silent-notification",
     name: "Visual Only",
-    url: "https://islamic-audio.cdn.lovable.dev/gentle-ping.mp3", // Kept original for preview
+    url: "", // Empty string for no sound
     icon: <VolumeX size={20} />,
   }
 ];
@@ -103,49 +104,16 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
-
-    // For Visual Only option, we still want to play the preview sound, but explain it's just for preview
-    if (soundOption.id === "silent-notification") {
-      // Get or create the audio element
-      let audioEl = audioRefs.current[soundId];
-      if (!audioEl) {
-        audioEl = new Audio(soundOption.url);
-        audioRefs.current[soundId] = audioEl;
-        
-        // Set up event listeners that persist for the audio instance
-        audioEl.onended = () => {
-          setIsPlaying(null);
-          console.log(`Audio ${soundOption.name} playback completed`);
-        };
-        
-        audioEl.onerror = () => {
-          console.error(`Error loading audio for ${soundOption.name}`);
-          handlePlaybackError(soundId, soundOption.name);
-        };
-      }
-
-      // Play the preview sound
-      try {
-        audioEl.play()
-          .then(() => {
-            setIsPlaying(soundId);
-            toast({
-              title: "Preview Only",
-              description: "This is just a preview. When selected, Visual Only will not play any sound for actual notifications.",
-            });
-          })
-          .catch(error => {
-            console.error("Play failed:", error);
-            handlePlaybackError(soundId, soundOption.name);
-          });
-      } catch (error) {
-        handlePlaybackError(soundId, soundOption.name);
-      }
-      
+    
+    // If this is the visual-only option and it has an empty URL
+    if (soundOption.id === "silent-notification" && !soundOption.url) {
+      toast({
+        title: "Visual Only",
+        description: "This option will only show visual notifications, without any sound.",
+      });
       return;
     }
     
-    // Regular sound options
     // Get or create the audio element
     let audioEl = audioRefs.current[soundId];
     if (!audioEl) {
@@ -158,23 +126,34 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         console.log(`Audio ${soundOption.name} playback completed`);
       };
       
-      audioEl.onerror = () => {
-        console.error(`Error loading audio for ${soundOption.name}`);
+      audioEl.onerror = (e) => {
+        console.error(`Error loading audio for ${soundOption.name}`, e);
         handlePlaybackError(soundId, soundOption.name);
       };
     }
 
-    // Play the sound
+    // Force reload the audio source to ensure it's fresh
+    audioEl.src = soundOption.url;
+    audioEl.load();
+
+    // Play the sound with better error handling
+    setIsPlaying(soundId);
+    
     try {
-      audioEl.play()
-        .then(() => {
-          setIsPlaying(soundId);
-        })
-        .catch(error => {
-          console.error("Play failed:", error);
-          handlePlaybackError(soundId, soundOption.name);
-        });
+      const playPromise = audioEl.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`Playing ${soundOption.name}`);
+          })
+          .catch(error => {
+            console.error("Play failed:", error);
+            handlePlaybackError(soundId, soundOption.name);
+          });
+      }
     } catch (error) {
+      console.error("Play error:", error);
       handlePlaybackError(soundId, soundOption.name);
     }
   };
@@ -233,7 +212,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Bell size={20} className={isSelected ? "text-prayer-primary" : ""} />
-                    {/* Removed option.icon here to avoid duplicate icons */}
                     <span className="font-medium">{option.name}</span>
                     
                     {hasError && (
