@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Check, AlertTriangle, Play, Pause, Volume2, Bell, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface AdhanSoundOption {
   id: string;
@@ -21,18 +21,18 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more reliable open-source adhan sounds
+// Updated with more reliable audio sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://assets.mixkit.co/active_storage/sfx/212/212.wav",
+    url: "https://islamic-audio.cdn.lovable.dev/adhan-short.mp3",
     icon: <Bell size={20} />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869.mp3",
+    url: "https://islamic-audio.cdn.lovable.dev/gentle-notification.mp3",
     icon: <Volume2 size={20} />,
   },
   {
@@ -51,7 +51,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   selectedSoundId,
 }) => {
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
-  const [loadingSound, setLoadingSound] = useState<string | null>(null);
   const [loadErrors, setLoadErrors] = useState<{ [key: string]: boolean }>({});
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const { toast } = useToast();
@@ -97,16 +96,9 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       }
     });
     setIsPlaying(null);
-    setLoadingSound(null);
   };
 
-  const toggleSound = (soundId: string) => {
-    // If this sound is already playing, stop it
-    if (isPlaying === soundId) {
-      stopAllSounds();
-      return;
-    }
-    
+  const playSound = (soundId: string) => {
     // Stop any other playing sounds first
     stopAllSounds();
     
@@ -119,13 +111,10 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       return;
     }
     
-    // Set loading state
-    setLoadingSound(soundId);
-    
     // Get or create the audio element
     let audioEl = audioRefs.current[soundId];
     if (!audioEl) {
-      audioEl = new Audio();
+      audioEl = new Audio(soundOption.url);
       audioRefs.current[soundId] = audioEl;
       
       // Set up event listeners that persist for the audio instance
@@ -142,38 +131,22 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 
     // Play the sound
     try {
-      audioEl.src = soundOption.url;
-      
-      // Use a Promise to handle both successful and failed playback
-      audioEl.load();
-      
-      // Set a timeout to prevent waiting too long
-      const timeoutId = setTimeout(() => {
-        if (loadingSound === soundId) {
+      audioEl.play()
+        .then(() => {
+          setIsPlaying(soundId);
+        })
+        .catch(error => {
+          console.error("Play failed:", error);
           handlePlaybackError(soundId, soundOption.name);
-        }
-      }, 3000);
-      
-      audioEl.oncanplaythrough = () => {
-        clearTimeout(timeoutId);
-        audioEl?.play()
-          .then(() => {
-            setIsPlaying(soundId);
-            setLoadingSound(null);
-          })
-          .catch(error => {
-            console.error("Play failed:", error);
-            handlePlaybackError(soundId, soundOption.name);
-          });
-      };
+        });
     } catch (error) {
       handlePlaybackError(soundId, soundOption.name);
     }
   };
   
   const handlePlaybackError = (soundId: string, soundName: string) => {
-    setLoadingSound(null);
     setLoadErrors(prev => ({...prev, [soundId]: true}));
+    setIsPlaying(null);
     
     toast({
       title: "Audio Error",
@@ -188,6 +161,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       title: "Notification Sound Set",
       description: `${prayerName} notifications will use ${ADHAN_OPTIONS.find(o => o.id === soundId)?.name}`,
     });
+    onClose();
   };
 
   return (
@@ -201,63 +175,62 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          {ADHAN_OPTIONS.map((option) => (
-            <Card
-              key={option.id}
-              className={`p-4 cursor-pointer transition-all ${
-                selectedSoundId === option.id ? "border-prayer-primary border-2" : ""
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {option.icon}
-                  {selectedSoundId === option.id && (
-                    <Check className="h-4 w-4 text-prayer-primary" />
-                  )}
-                  <span className="font-medium">{option.name}</span>
-                  {loadErrors[option.id] && (
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                  )}
-                </div>
-                
-                <div className="flex gap-2">
-                  {option.id !== "silent-notification" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                      onClick={() => toggleSound(option.id)}
-                      disabled={loadingSound !== null && loadingSound !== option.id}
-                    >
-                      {isPlaying === option.id ? (
-                        <>
-                          <Pause className="h-4 w-4" />
-                          <span>Stop</span>
-                        </>
-                      ) : loadingSound === option.id ? (
-                        <>
-                          <span className="animate-pulse">Loading...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4" />
-                          <span>Play</span>
-                        </>
-                      )}
-                    </Button>
-                  )}
+          {ADHAN_OPTIONS.map((option) => {
+            const isSelected = selectedSoundId === option.id;
+            const hasError = loadErrors[option.id];
+            
+            return (
+              <div
+                key={option.id}
+                className={cn(
+                  "rounded-lg border p-4 transition-all",
+                  isSelected && "border-prayer-primary bg-prayer-light",
+                  !isSelected && "hover:bg-accent/50"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {option.icon}
+                    <span className="font-medium">{option.name}</span>
+                    
+                    {hasError && (
+                      <AlertTriangle size={16} className="text-destructive" />
+                    )}
+                    
+                    {isSelected && (
+                      <Check size={16} className="text-prayer-primary" />
+                    )}
+                  </div>
                   
-                  <Button
-                    size="sm"
-                    onClick={() => handleSelect(option.id)}
-                    disabled={selectedSoundId === option.id}
-                  >
-                    {selectedSoundId === option.id ? "Selected" : "Select"}
-                  </Button>
+                  <div className="flex gap-2">
+                    {option.id !== "silent-notification" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs px-3 h-8"
+                        onClick={() => playSound(option.id)}
+                        disabled={isPlaying === option.id}
+                      >
+                        {isPlaying === option.id ? 'Stop' : 'Play'}
+                      </Button>
+                    )}
+                    
+                    <Button
+                      size="sm"
+                      variant={isSelected ? "outline" : "default"}
+                      onClick={() => handleSelect(option.id)}
+                      className={cn(
+                        "text-xs px-3 h-8",
+                        isSelected && "bg-prayer-light text-prayer-primary border-prayer-primary"
+                      )}
+                    >
+                      {isSelected ? "Selected" : "Select"}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>
