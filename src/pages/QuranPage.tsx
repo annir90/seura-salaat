@@ -12,13 +12,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { 
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import {
   Select,
   SelectContent,
@@ -212,7 +205,7 @@ const QuranPage = () => {
       {/* Quran Content - Only show when a surah is selected */}
       {!loading && selectedSurah && filteredAyahs.length > 0 && (
         <>
-          <Card className="mb-4 overflow-hidden">
+          <Card className="mb-4">
             {/* Beautiful Surah Header */}
             <div className="bg-gradient-to-r from-prayer-light to-prayer-accent/30 p-6 border-b">
               <div className="text-center">
@@ -233,56 +226,40 @@ const QuranPage = () => {
               </div>
             </div>
             
-            <CardContent className="pt-6">
+            <CardContent className="p-6">
               <ScrollArea className="h-[calc(70vh-180px)]">
-                <Carousel
-                  opts={{
-                    loop: false,
-                    align: "start",
-                  }}
-                  className="w-full"
-                >
-                  <CarouselContent>
-                    {currentAyahs.map((ayah) => (
-                      <CarouselItem key={ayah.number} className="md:basis-1/2 lg:basis-1/3">
-                        <Card className="border shadow-sm h-full flex flex-col">
-                          <CardContent className="p-4 flex flex-col h-full">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-prayer-primary font-medium">
-                                {ayah.numberInSurah}
-                              </span>
-                              <div className="text-xs text-muted-foreground">
-                                <span>Page {ayah.page} · Juz {ayah.juz}</span>
-                              </div>
-                            </div>
-                            
-                            <div className="flex-1 space-y-3">
-                              {/* Arabic Text */}
-                              <div className="mb-3 flex-grow">
-                                <p dir="rtl" className="text-right text-xl font-arabic leading-loose">
-                                  {ayah.text}
-                                </p>
-                              </div>
-                              
-                              {/* Translation Text - conditionally rendered */}
-                              {showTranslation && ayah.translation && (
-                                <div className="mt-auto pt-3 border-t border-dashed border-muted">
-                                  <p className="text-muted-foreground text-sm leading-relaxed">
-                                    {ayah.translation}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <CarouselPrevious className="static" />
-                    <CarouselNext className="static" />
-                  </div>
-                </Carousel>
+                <div className="space-y-6">
+                  {currentAyahs.map((ayah) => (
+                    <div key={ayah.number} className="p-4 border rounded-lg bg-white shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full font-medium">
+                          {ayah.numberInSurah}
+                        </span>
+                        <div className="text-xs text-muted-foreground">
+                          <span>Page {ayah.page} · Juz {ayah.juz}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {/* Arabic Text */}
+                        <div className="mb-3">
+                          <p dir="rtl" className="text-right text-xl font-arabic leading-loose">
+                            {ayah.text}
+                          </p>
+                        </div>
+                        
+                        {/* Translation Text - conditionally rendered */}
+                        {showTranslation && ayah.translation && (
+                          <div className="pt-3 border-t border-dashed border-muted">
+                            <p className="text-muted-foreground text-sm leading-relaxed">
+                              {ayah.translation}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </ScrollArea>
             </CardContent>
           </Card>
