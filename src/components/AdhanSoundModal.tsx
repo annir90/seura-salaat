@@ -21,11 +21,11 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list - removed Gentle Notification and Visual Only
+// Updated options list - renamed from "Traditional Adhan" to just "Adhan"
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
-    name: "Traditional Adhan",
+    name: "Adhan",
     url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
     icon: <Bell size={20} />,
   }
