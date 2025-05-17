@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -248,39 +247,8 @@ const QuranPage = () => {
             </button>
           </div>
           
-          {/* Navigation Buttons - Now positioned below the header instead of at the bottom */}
-          {totalPages > 1 && (
-            <div className="sticky top-[73px] z-10 py-3 px-6 bg-background/95 backdrop-blur-sm border-b shadow-sm">
-              <div className="flex items-center justify-between max-w-4xl mx-auto">
-                <Button 
-                  variant="outline"
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Previous Page
-                </Button>
-                
-                <div className="text-sm font-medium">
-                  Page {currentPage} of {totalPages}
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center gap-2"
-                >
-                  Next Page
-                  <ArrowLeft className="h-4 w-4 transform rotate-180" />
-                </Button>
-              </div>
-            </div>
-          )}
-          
           {/* Quran Content - Fixed to ensure proper scrolling */}
-          <div className="flex-1 overflow-auto quran-content-area">
+          <div className="flex-1 overflow-auto quran-content-area pb-24">
             <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-8 lg:p-12">
               {currentAyahs.map((ayah) => (
                 <div key={ayah.number} className="p-4 md:p-6 bg-card border rounded-lg">
@@ -313,7 +281,7 @@ const QuranPage = () => {
               {/* Visual indicator for end of page */}
               <div className="text-center text-muted-foreground py-4">
                 {currentPage < totalPages ? (
-                  <p>Use navigation above for more verses</p>
+                  <p>Use navigation below for more verses</p>
                 ) : (
                   <p>End of Surah</p>
                 )}
@@ -321,7 +289,36 @@ const QuranPage = () => {
             </div>
           </div>
           
-          {/* Removed the fixed footer navigation since we moved it to the top */}
+          {/* Navigation Buttons - Moved back to bottom with improved visibility */}
+          {totalPages > 1 && (
+            <div className="fixed bottom-0 left-0 right-0 py-4 px-6 bg-prayer-primary/10 backdrop-blur-md border-t shadow-lg z-20">
+              <div className="flex items-center justify-between max-w-4xl mx-auto">
+                <Button 
+                  variant="secondary"
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 text-prayer-primary font-medium"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="text-sm font-medium">
+                  Page {currentPage} of {totalPages}
+                </div>
+                
+                <Button 
+                  variant="secondary"
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 text-prayer-primary font-medium"
+                >
+                  Next
+                  <ArrowLeft className="h-4 w-4 transform rotate-180" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
