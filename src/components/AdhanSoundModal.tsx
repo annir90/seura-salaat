@@ -38,7 +38,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "silent-notification",
     name: "Visual Only",
-    url: "",
+    url: "https://islamic-audio.cdn.lovable.dev/gentle-ping.mp3", // Added a gentle sound for preview
     icon: <VolumeX size={20} />,
   }
 ];
@@ -105,15 +105,48 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
 
-    // Skip loading for silent notification
+    // For Visual Only option, we still want to play the preview sound, but explain it's just for preview
     if (soundOption.id === "silent-notification") {
-      toast({
-        title: "Visual Only",
-        description: "This option provides visual notifications without sound.",
-      });
+      // Get or create the audio element
+      let audioEl = audioRefs.current[soundId];
+      if (!audioEl) {
+        audioEl = new Audio(soundOption.url);
+        audioRefs.current[soundId] = audioEl;
+        
+        // Set up event listeners that persist for the audio instance
+        audioEl.onended = () => {
+          setIsPlaying(null);
+          console.log(`Audio ${soundOption.name} playback completed`);
+        };
+        
+        audioEl.onerror = () => {
+          console.error(`Error loading audio for ${soundOption.name}`);
+          handlePlaybackError(soundId, soundOption.name);
+        };
+      }
+
+      // Play the preview sound
+      try {
+        audioEl.play()
+          .then(() => {
+            setIsPlaying(soundId);
+            toast({
+              title: "Preview Only",
+              description: "This is just a preview. When selected, Visual Only will not play any sound for actual notifications.",
+            });
+          })
+          .catch(error => {
+            console.error("Play failed:", error);
+            handlePlaybackError(soundId, soundOption.name);
+          });
+      } catch (error) {
+        handlePlaybackError(soundId, soundOption.name);
+      }
+      
       return;
     }
     
+    // Regular sound options
     // Get or create the audio element
     let audioEl = audioRefs.current[soundId];
     if (!audioEl) {
@@ -213,17 +246,15 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                   </div>
                   
                   <div className="flex gap-2">
-                    {option.id !== "silent-notification" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs px-3 h-8"
-                        onClick={() => playSound(option.id)}
-                        disabled={isPlaying === option.id}
-                      >
-                        {isPlaying === option.id ? 'Stop' : 'Play'}
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs px-3 h-8"
+                      onClick={() => playSound(option.id)}
+                      disabled={isPlaying === option.id}
+                    >
+                      {isPlaying === option.id ? 'Stop' : 'Play'}
+                    </Button>
                     
                     <Button
                       size="sm"
