@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertTriangle, Play, Pause, Bell, Clock, Music } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Volume2, Bell, Speaker } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
@@ -21,25 +21,25 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with working audio sources
+// Updated with reliable open-source adhan sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://cdn.pixabay.com/audio/2022/03/10/audio_9bea15384a.mp3",
+    url: "https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3",
     icon: <Bell className="h-5 w-5" />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869.wav",
-    icon: <Clock className="h-5 w-5" />,
+    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
+    icon: <Volume2 className="h-5 w-5" />,
   },
   {
-    id: "ringtone",
-    name: "Ringtone",
-    url: "https://cdn.pixabay.com/audio/2022/10/30/audio_23d59a963c.mp3",
-    icon: <Music className="h-5 w-5" />,
+    id: "short-adhan",
+    name: "Short Adhan",
+    url: "https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3",
+    icon: <Speaker className="h-5 w-5" />,
   }
 ];
 
@@ -56,25 +56,28 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const { toast } = useToast();
 
-  // Initialize audio objects when modal opens
+  // Reset state when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       stopAllSounds();
       return;
     }
-
+    
     // Reset errors when opening the modal
     setLoadErrors({});
     
-    // Pre-create audio elements for each option, but don't load audio yet
+    // Pre-load audio elements
     ADHAN_OPTIONS.forEach((option) => {
       if (!audioRefs.current[option.id]) {
         const audio = new Audio();
         
-        audio.onended = () => setIsPlaying(null);
+        audio.onended = () => {
+          setIsPlaying(null);
+          console.log(`Audio ${option.name} playback completed`);
+        };
         
-        audio.onerror = (e) => {
-          console.error(`Error loading audio for ${option.name}:`, e);
+        audio.onerror = () => {
+          console.error(`Error loading audio for ${option.name}`);
           setIsPlaying(null);
           setLoadingSound(null);
           setLoadErrors(prev => ({...prev, [option.id]: true}));
@@ -86,12 +89,13 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
           });
         };
         
+        // Don't preload to avoid network issues
         audioRefs.current[option.id] = audio;
       }
     });
 
     return () => {
-      // Clean up only when modal closes
+      // Clean up only when modal closes completely
       stopAllSounds();
     };
   }, [isOpen, toast]);
@@ -124,7 +128,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     setLoadingSound(null);
   };
 
-  const toggleSound = async (soundId: string) => {
+  const toggleSound = (soundId: string) => {
     // If this sound is already playing, stop it
     if (isPlaying === soundId) {
       stopAllSounds();
@@ -134,61 +138,57 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     // Stop any other playing sounds first
     stopAllSounds();
     
-    // Start loading and playing the selected sound
+    // Set loading state
     setLoadingSound(soundId);
     
-    const audioToPlay = audioRefs.current[soundId];
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
+    if (!soundOption) return;
+
+    // Get or create the audio element
+    let audioEl = audioRefs.current[soundId];
+    if (!audioEl) {
+      audioEl = new Audio();
+      audioRefs.current[soundId] = audioEl;
+    }
     
-    if (audioToPlay && soundOption) {
-      try {
-        // Reset any previous state
-        audioToPlay.pause();
-        
-        try {
-          audioToPlay.currentTime = 0;
-        } catch (e) {
-          // Ignore errors when setting currentTime on unloaded audio
-        }
-        
-        // Set source
-        audioToPlay.src = soundOption.url;
-        
-        // Start loading the audio
-        audioToPlay.load();
-        
-        try {
-          // Try to play immediately
-          await audioToPlay.play();
+    // Set up event listeners
+    const onCanPlay = () => {
+      console.log(`${soundOption.name} can play now`);
+      audioEl?.play()
+        .then(() => {
           setIsPlaying(soundId);
           setLoadingSound(null);
-        } catch (playError) {
-          // If immediate play fails, wait for canplaythrough event
-          audioToPlay.addEventListener('canplaythrough', async function onCanPlay() {
-            audioToPlay.removeEventListener('canplaythrough', onCanPlay);
-            try {
-              await audioToPlay.play();
-              setIsPlaying(soundId);
-              setLoadingSound(null);
-            } catch (error) {
-              console.error("Play failed after canplaythrough:", error);
-              handlePlaybackError(soundId, soundOption.name);
-            }
-          }, { once: true });
-          
-          // Set a timeout in case canplaythrough never fires
-          setTimeout(() => {
-            if (loadingSound === soundId) {
-              console.log("Timeout while loading audio");
-              handlePlaybackError(soundId, soundOption.name);
-            }
-          }, 5000);
-        }
-      } catch (error) {
-        console.error("Error in audio setup:", error);
+        })
+        .catch(error => {
+          console.error("Play failed:", error);
+          handlePlaybackError(soundId, soundOption.name);
+        });
+    };
+
+    const onError = () => {
+      console.error(`Error loading ${soundOption.name}`);
+      handlePlaybackError(soundId, soundOption.name);
+    };
+
+    // Clean up previous event listeners to avoid duplicates
+    audioEl.removeEventListener('canplaythrough', onCanPlay);
+    audioEl.removeEventListener('error', onError);
+    
+    // Add new event listeners
+    audioEl.addEventListener('canplaythrough', onCanPlay, { once: true });
+    audioEl.addEventListener('error', onError, { once: true });
+    
+    // Set source and load
+    audioEl.src = soundOption.url;
+    audioEl.load();
+    
+    // Set a timeout for loading
+    setTimeout(() => {
+      if (loadingSound === soundId) {
+        console.log("Timeout while loading audio");
         handlePlaybackError(soundId, soundOption.name);
       }
-    }
+    }, 5000);
   };
   
   const handlePlaybackError = (soundId: string, soundName: string) => {
