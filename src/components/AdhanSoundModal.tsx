@@ -39,7 +39,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "peaceful-bell",
     name: "Peaceful Bell",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_1fb1057e99.mp3?filename=bells-meditation-sound-112624.mp3",
+    url: "https://cdn.pixabay.com/download/audio/2022/02/07/audio_3dd33d572b.mp3?filename=ringtone-132673.mp3",
     icon: <Bell className="h-5 w-5" />,
   }
 ];
