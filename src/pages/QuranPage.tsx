@@ -94,14 +94,27 @@ const QuranPage = () => {
     }
   }, [selectedSurah, surahs]);
 
-  // Get current items for pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentAyahs = filteredAyahs.slice(indexOfFirstItem, indexOfLastItem);
+  // Get current items for pagination - FIXED: ensure proper calculation of items per page
+  const calculateItemsRange = () => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    
+    // Make sure indexOfLastItem does not exceed the array length
+    const adjustedLastIndex = Math.min(indexOfLastItem, filteredAyahs.length);
+    
+    return {
+      start: indexOfFirstItem,
+      end: adjustedLastIndex,
+      items: filteredAyahs.slice(indexOfFirstItem, adjustedLastIndex)
+    };
+  };
+
+  const { start, end, items: currentAyahs } = calculateItemsRange();
   const totalPages = Math.ceil(filteredAyahs.length / itemsPerPage);
 
   // Handle pagination
   const paginate = (pageNumber: number) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
     window.scrollTo(0, 0);
   };
@@ -234,7 +247,7 @@ const QuranPage = () => {
           
           {/* Quran Content */}
           <ScrollArea className="flex-1 p-4 md:p-8 lg:p-12">
-            <div className="max-w-4xl mx-auto space-y-8">
+            <div className="max-w-4xl mx-auto space-y-8 pb-20">
               {currentAyahs.map((ayah) => (
                 <div key={ayah.number} className="p-4 md:p-6 bg-card border rounded-lg">
                   <div className="flex items-center justify-between mb-3">
@@ -265,32 +278,34 @@ const QuranPage = () => {
             </div>
           </ScrollArea>
           
-          {/* Minimal Footer with Pagination */}
+          {/* Fixed Footer with Pagination */}
           {totalPages > 1 && (
-            <div className="p-4 border-t bg-background/95 backdrop-blur-sm">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => currentPage > 1 && paginate(currentPage - 1)} 
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                  
-                  <PaginationItem className="flex items-center">
-                    <span className="text-sm text-muted-foreground">
-                      {currentPage} of {totalPages}
-                    </span>
-                  </PaginationItem>
-                  
-                  <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+            <div className="fixed bottom-0 left-0 right-0 p-4 border-t bg-background/95 backdrop-blur-sm">
+              <div className="flex items-center justify-between max-w-4xl mx-auto">
+                <div className="text-sm text-muted-foreground">
+                  Showing verses {start + 1}-{end} of {filteredAyahs.length}
+                </div>
+                
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => paginate(currentPage - 1)} 
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    {getPaginationItems()}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => paginate(currentPage + 1)}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
           )}
         </div>
