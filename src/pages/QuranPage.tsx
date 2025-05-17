@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,13 +13,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import {
   Select,
   SelectContent,
@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/use-toast";
 
 const QuranPage = () => {
@@ -233,43 +234,56 @@ const QuranPage = () => {
             </div>
             
             <CardContent className="pt-6">
-              <Table className="border-collapse border border-muted rounded-md overflow-hidden">
-                <TableHeader className="bg-muted/30">
-                  <TableRow>
-                    <TableHead className="w-16 text-center">Verse</TableHead>
-                    <TableHead>Text</TableHead>
-                    <TableHead className="w-20 text-right">Page/Juz</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentAyahs.map((ayah) => (
-                    <TableRow key={ayah.number} className="border-b border-muted">
-                      <TableCell className="text-prayer-primary font-medium text-center">
-                        {ayah.numberInSurah}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-3">
-                          {/* Arabic Text */}
-                          <p dir="rtl" className="text-right text-xl font-arabic leading-loose mb-2">
-                            {ayah.text}
-                          </p>
-                          
-                          {/* Translation Text - conditionally rendered */}
-                          {showTranslation && ayah.translation && (
-                            <p className="text-muted-foreground text-sm leading-relaxed pt-2 border-t border-dashed border-muted">
-                              {ayah.translation}
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        <div className="text-xs">Page {ayah.page}</div>
-                        <div className="text-xs">Juz {ayah.juz}</div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ScrollArea className="h-[calc(70vh-180px)]">
+                <Carousel
+                  opts={{
+                    loop: false,
+                    align: "start",
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {currentAyahs.map((ayah) => (
+                      <CarouselItem key={ayah.number} className="md:basis-1/2 lg:basis-1/3">
+                        <Card className="border shadow-sm h-full flex flex-col">
+                          <CardContent className="p-4 flex flex-col h-full">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-prayer-primary font-medium">
+                                {ayah.numberInSurah}
+                              </span>
+                              <div className="text-xs text-muted-foreground">
+                                <span>Page {ayah.page} · Juz {ayah.juz}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex-1 space-y-3">
+                              {/* Arabic Text */}
+                              <div className="mb-3 flex-grow">
+                                <p dir="rtl" className="text-right text-xl font-arabic leading-loose">
+                                  {ayah.text}
+                                </p>
+                              </div>
+                              
+                              {/* Translation Text - conditionally rendered */}
+                              {showTranslation && ayah.translation && (
+                                <div className="mt-auto pt-3 border-t border-dashed border-muted">
+                                  <p className="text-muted-foreground text-sm leading-relaxed">
+                                    {ayah.translation}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <CarouselPrevious className="static" />
+                    <CarouselNext className="static" />
+                  </div>
+                </Carousel>
+              </ScrollArea>
             </CardContent>
           </Card>
           
