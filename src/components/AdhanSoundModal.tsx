@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertTriangle, Play, Pause, Volume2, Bell, Speaker } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Volume2, Bell, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
@@ -21,25 +21,25 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with reliable open-source adhan sounds
+// Updated with more reliable open-source adhan sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3",
+    url: "https://assets.mixkit.co/active_storage/sfx/212/212.wav",
     icon: <Bell className="h-5 w-5" />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
+    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869.mp3",
     icon: <Volume2 className="h-5 w-5" />,
   },
   {
-    id: "short-adhan",
-    name: "Short Adhan",
-    url: "https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3",
-    icon: <Speaker className="h-5 w-5" />,
+    id: "silent-notification",
+    name: "Silent Notification",
+    url: "",
+    icon: <VolumeX className="h-5 w-5" />,
   }
 ];
 
@@ -66,39 +66,11 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     // Reset errors when opening the modal
     setLoadErrors({});
     
-    // Pre-load audio elements
-    ADHAN_OPTIONS.forEach((option) => {
-      if (!audioRefs.current[option.id]) {
-        const audio = new Audio();
-        
-        audio.onended = () => {
-          setIsPlaying(null);
-          console.log(`Audio ${option.name} playback completed`);
-        };
-        
-        audio.onerror = () => {
-          console.error(`Error loading audio for ${option.name}`);
-          setIsPlaying(null);
-          setLoadingSound(null);
-          setLoadErrors(prev => ({...prev, [option.id]: true}));
-          
-          toast({
-            title: "Audio Error",
-            description: `Couldn't load the ${option.name} sound. Please try another option.`,
-            variant: "destructive",
-          });
-        };
-        
-        // Don't preload to avoid network issues
-        audioRefs.current[option.id] = audio;
-      }
-    });
-
     return () => {
-      // Clean up only when modal closes completely
+      // Clean up when modal closes completely
       stopAllSounds();
     };
-  }, [isOpen, toast]);
+  }, [isOpen]);
 
   // Clean up on component unmount
   useEffect(() => {
@@ -138,57 +110,65 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     // Stop any other playing sounds first
     stopAllSounds();
     
-    // Set loading state
-    setLoadingSound(soundId);
-    
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
 
+    // Skip loading for silent notification
+    if (soundOption.id === "silent-notification") {
+      setIsPlaying(soundId);
+      return;
+    }
+    
+    // Set loading state
+    setLoadingSound(soundId);
+    
     // Get or create the audio element
     let audioEl = audioRefs.current[soundId];
     if (!audioEl) {
       audioEl = new Audio();
       audioRefs.current[soundId] = audioEl;
-    }
-    
-    // Set up event listeners
-    const onCanPlay = () => {
-      console.log(`${soundOption.name} can play now`);
-      audioEl?.play()
-        .then(() => {
-          setIsPlaying(soundId);
-          setLoadingSound(null);
-        })
-        .catch(error => {
-          console.error("Play failed:", error);
-          handlePlaybackError(soundId, soundOption.name);
-        });
-    };
-
-    const onError = () => {
-      console.error(`Error loading ${soundOption.name}`);
-      handlePlaybackError(soundId, soundOption.name);
-    };
-
-    // Clean up previous event listeners to avoid duplicates
-    audioEl.removeEventListener('canplaythrough', onCanPlay);
-    audioEl.removeEventListener('error', onError);
-    
-    // Add new event listeners
-    audioEl.addEventListener('canplaythrough', onCanPlay, { once: true });
-    audioEl.addEventListener('error', onError, { once: true });
-    
-    // Set source and load
-    audioEl.src = soundOption.url;
-    audioEl.load();
-    
-    // Set a timeout for loading
-    setTimeout(() => {
-      if (loadingSound === soundId) {
-        console.log("Timeout while loading audio");
+      
+      // Set up event listeners that persist for the audio instance
+      audioEl.onended = () => {
+        setIsPlaying(null);
+        console.log(`Audio ${soundOption.name} playback completed`);
+      };
+      
+      audioEl.onerror = () => {
+        console.error(`Error loading audio for ${soundOption.name}`);
         handlePlaybackError(soundId, soundOption.name);
-      }
-    }, 5000);
+      };
+    }
+
+    // Play the sound
+    try {
+      audioEl.src = soundOption.url;
+      
+      // Use a Promise to handle both successful and failed playback
+      audioEl.load();
+      
+      // Set a timeout to prevent waiting too long
+      const timeoutId = setTimeout(() => {
+        if (loadingSound === soundId) {
+          handlePlaybackError(soundId, soundOption.name);
+        }
+      }, 3000);
+      
+      audioEl.oncanplaythrough = () => {
+        clearTimeout(timeoutId);
+        audioEl?.play()
+          .then(() => {
+            setIsPlaying(soundId);
+            setLoadingSound(null);
+          })
+          .catch(error => {
+            console.error("Play failed:", error);
+            handlePlaybackError(soundId, soundOption.name);
+          });
+      };
+    } catch (error) {
+      handlePlaybackError(soundId, soundOption.name);
+    }
   };
   
   const handlePlaybackError = (soundId: string, soundName: string) => {
@@ -241,29 +221,31 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    onClick={() => toggleSound(option.id)}
-                    disabled={loadingSound !== null && loadingSound !== option.id}
-                  >
-                    {isPlaying === option.id ? (
-                      <>
-                        <Pause className="h-4 w-4" />
-                        <span>Stop</span>
-                      </>
-                    ) : loadingSound === option.id ? (
-                      <>
-                        <span className="animate-pulse">Loading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4" />
-                        <span>Play</span>
-                      </>
-                    )}
-                  </Button>
+                  {option.id !== "silent-notification" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      onClick={() => toggleSound(option.id)}
+                      disabled={loadingSound !== null && loadingSound !== option.id}
+                    >
+                      {isPlaying === option.id ? (
+                        <>
+                          <Pause className="h-4 w-4" />
+                          <span>Stop</span>
+                        </>
+                      ) : loadingSound === option.id ? (
+                        <>
+                          <span className="animate-pulse">Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4" />
+                          <span>Play</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
                   
                   <Button
                     size="sm"
