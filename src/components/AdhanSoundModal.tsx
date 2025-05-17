@@ -37,7 +37,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   },
   {
     id: "silent-notification",
-    name: "Silent Notification",
+    name: "Visual Only",
     url: "",
     icon: <VolumeX size={20} />,
   }
@@ -107,7 +107,10 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 
     // Skip loading for silent notification
     if (soundOption.id === "silent-notification") {
-      setIsPlaying(soundId);
+      toast({
+        title: "Visual Only",
+        description: "This option provides visual notifications without sound.",
+      });
       return;
     }
     
@@ -157,10 +160,17 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 
   const handleSelect = (soundId: string) => {
     onSelect(soundId);
+    
+    const selectedOption = ADHAN_OPTIONS.find(o => o.id === soundId);
+    const notificationTypeMessage = soundId === "silent-notification" 
+      ? "Visual notifications only (no sound)"
+      : `${selectedOption?.name} notifications`;
+      
     toast({
-      title: "Notification Sound Set",
-      description: `${prayerName} notifications will use ${ADHAN_OPTIONS.find(o => o.id === soundId)?.name}`,
+      title: "Notification Setting Updated",
+      description: `${prayerName} will use ${notificationTypeMessage}`,
     });
+    
     onClose();
   };
 
