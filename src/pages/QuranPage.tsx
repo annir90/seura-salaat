@@ -229,7 +229,7 @@ const QuranPage = () => {
                 <div className="flex items-center justify-center gap-2 text-prayer-secondary/80">
                   <span className="text-lg font-medium">{getSurahTranslation(parseInt(selectedSurah))}</span>
                   <span className="inline-block w-2 h-2 rounded-full bg-prayer-secondary/50"></span>
-                  <span className="italic font-medium">{getSurahRevelationType(parseInt(selectedSurah))}</span>
+                  <span className="font-medium">{getSurahRevelationType(parseInt(selectedSurah))}</span>
                 </div>
                 
                 <div className="mt-3 text-prayer-primary/90 text-sm font-medium">
