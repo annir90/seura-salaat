@@ -26,7 +26,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     id: "traditional-adhan",
     name: "Traditional Adhan",
     url: "https://islamic-audio.cdn.lovable.dev/adhan-short.mp3",
-    icon: <Bell size={20} />,
+    icon: <Bell size={20} />, // Will remove this since we have the Bell on the left
   },
   {
     id: "gentle-notification",
@@ -233,7 +233,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Bell size={20} className={isSelected ? "text-prayer-primary" : ""} />
-                    {option.icon}
+                    {/* Removed option.icon here to avoid duplicate icons */}
                     <span className="font-medium">{option.name}</span>
                     
                     {hasError && (
