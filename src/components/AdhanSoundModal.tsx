@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Play, Pause, Bell } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell, Music } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -21,13 +20,19 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list - renamed from "Traditional Adhan" to just "Adhan"
+// Updated options list with new ringtone option
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
     url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
     icon: <Bell size={20} />,
+  },
+  {
+    id: "ringtone",
+    name: "Ringtone",
+    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_46ddebf945.mp3",
+    icon: <Music size={20} />,
   }
 ];
 
