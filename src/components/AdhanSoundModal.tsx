@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertTriangle, Play, Pause, Bell, Clock } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell, Clock, Music } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
@@ -37,11 +36,10 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     icon: <Clock className="h-5 w-5" />,
   },
   {
-    id: "peaceful-bell",
-    name: "Peaceful Bell",
-    // Using a different Pixabay audio file that should be more reliable
-    url: "https://cdn.pixabay.com/audio/2021/08/09/audio_9e6701a264.mp3",
-    icon: <Bell className="h-5 w-5" />,
+    id: "ringtone",
+    name: "Ringtone",
+    url: "https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c1087c.mp3",
+    icon: <Music className="h-5 w-5" />,
   }
 ];
 
