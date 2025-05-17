@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,24 +21,25 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more reliable hosted audio sources
+// Updated with completely new reliable audio sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://ia800304.us.archive.org/18/items/Adhan_M/Adhan_M.mp3", // More reliable source from archive.org
+    // Using a shorter, more reliably hosted mp3 file
+    url: "https://www.islamcan.com/audio/adhan/azan1.mp3", 
     icon: <Bell className="h-5 w-5" />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3",
+    url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=simple-notification-152054.mp3",
     icon: <Clock className="h-5 w-5" />,
   },
   {
     id: "peaceful-bell",
     name: "Peaceful Bell",
-    url: "https://assets.mixkit.co/active_storage/sfx/1819/1819-preview.mp3",
+    url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_1fb1057e99.mp3?filename=bells-meditation-sound-112624.mp3",
     icon: <Bell className="h-5 w-5" />,
   }
 ];
@@ -55,24 +57,30 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const { toast } = useToast();
 
-  // Create audio elements only once when component mounts
+  // Create audio elements only once when component mounts with improved initialization
   useEffect(() => {
     ADHAN_OPTIONS.forEach((option) => {
       // Only create if it doesn't exist yet
       if (!audioRefs.current[option.id]) {
         const audio = new Audio();
-        audio.preload = "none"; // Don't preload until needed
+        audio.preload = "metadata"; // Lighter preload option for better performance
         
         // Setup event handlers
         audio.onended = () => {
           setIsPlaying(null);
         };
         
-        audio.onerror = () => {
-          console.error("Error with audio:", option.name, audio.error);
+        audio.onerror = (e) => {
+          console.error("Audio error:", option.name, e);
           setIsPlaying(null);
           setLoadingSound(null);
           setLoadErrors(prev => ({...prev, [option.id]: true}));
+          
+          toast({
+            title: "Audio Error",
+            description: `Couldn't load the ${option.name} sound. Please try another option.`,
+            variant: "destructive",
+          });
         };
         
         audioRefs.current[option.id] = audio;
@@ -135,12 +143,16 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     
     if (audioToPlay && soundOption) {
+      // Reset any previous state
+      audioToPlay.pause();
+      audioToPlay.currentTime = 0;
+      
       // Set source and start loading
       audioToPlay.src = soundOption.url;
       audioToPlay.load();
       
-      // Small delay to ensure browser starts loading the audio
-      setTimeout(() => {
+      // Use a try-catch block to handle playback errors better
+      try {
         const playPromise = audioToPlay.play();
         
         if (playPromise !== undefined) {
@@ -161,7 +173,17 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
               });
             });
         }
-      }, 200);
+      } catch (error) {
+        console.error("Error attempting to play audio:", error);
+        setLoadingSound(null);
+        setLoadErrors(prev => ({...prev, [soundId]: true}));
+        
+        toast({
+          title: "Audio Error",
+          description: "There was a problem playing this sound.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
