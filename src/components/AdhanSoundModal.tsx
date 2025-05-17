@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list with new ringtone option
+// Updated options list with fixed ringtone URL
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
@@ -31,7 +32,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "ringtone",
     name: "Ringtone",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_46ddebf945.mp3",
+    url: "https://pixabay.com/sound-effects/download/ringtone-132673/",
     icon: <Music size={20} />,
   }
 ];
@@ -101,8 +102,8 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       const audioEl = audioRefs.current[soundId];
       if (audioEl) {
         audioEl.pause();
+        setIsPlaying(null);
       }
-      setIsPlaying(null);
     } else {
       // Stop any other playing sounds first
       stopAllSounds();
@@ -128,10 +129,8 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         }
 
         // Force reload the audio source to ensure it's fresh
-        if (!isPlaying) {
-          audioEl.src = soundOption.url;
-          audioEl.load();
-        }
+        audioEl.src = soundOption.url;
+        audioEl.load();
 
         // Play the sound with better error handling
         setIsPlaying(soundId);
