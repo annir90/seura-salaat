@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
-import { Loader2, Calendar } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState("");
@@ -70,19 +68,6 @@ const Index = () => {
             {prayerTimes.map((prayer) => (
               <PrayerCard key={prayer.id} prayer={prayer} />
             ))}
-          </div>
-          
-          <div className="flex justify-center mt-2 mb-8">
-            <Button 
-              variant="outline" 
-              className="bg-prayer-light hover:bg-prayer-light/80 text-prayer-primary border-prayer-light/60 flex items-center gap-2"
-              asChild
-            >
-              <Link to="/calendar">
-                <Calendar className="h-5 w-5" />
-                Prayer Calendar
-              </Link>
-            </Button>
           </div>
         </>
       )}
