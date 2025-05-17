@@ -17,6 +17,7 @@ export interface Ayah {
   juz: number;
   page: number;
   surah?: number; // Added to track which surah an ayah belongs to
+  translation?: string; // Added field for translation
 }
 
 export interface QuranData {
@@ -48,17 +49,28 @@ export const fetchSurahs = async (): Promise<Surah[]> => {
   }
 };
 
-// Fetch specific surah by number
+// Fetch specific surah by number with translation
 export const fetchSurah = async (surahNumber: number): Promise<Ayah[]> => {
   try {
-    const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`);
-    const data = await response.json();
+    // Fetch Arabic text
+    const arabicResponse = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`);
+    const arabicData = await arabicResponse.json();
     
-    if (data.code === 200 && data.status === 'OK') {
-      return data.data.ayahs.map((ayah: Ayah) => ({
+    // Fetch English translation (using Sahih International translation)
+    const translationResponse = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/en.sahih`);
+    const translationData = await translationResponse.json();
+    
+    if (arabicData.code === 200 && arabicData.status === 'OK' && 
+        translationData.code === 200 && translationData.status === 'OK') {
+      
+      // Combine Arabic text with translations
+      const combinedAyahs = arabicData.data.ayahs.map((ayah: Ayah, index: number) => ({
         ...ayah,
+        translation: translationData.data.ayahs[index].text,
         surah: surahNumber
       }));
+      
+      return combinedAyahs;
     } else {
       throw new Error(`Failed to fetch Surah #${surahNumber}`);
     }
@@ -66,40 +78,51 @@ export const fetchSurah = async (surahNumber: number): Promise<Ayah[]> => {
     console.error(`Error fetching Surah #${surahNumber}:`, error);
     toast({
       title: "Error",
-      description: "Failed to load Surah. Please try again later.",
+      description: "Failed to load Surah with translation. Please try again later.",
       variant: "destructive",
     });
     return [];
   }
 };
 
-// Fetch the entire Quran
+// Fetch the entire Quran with translations
 export const fetchEntireQuran = async (): Promise<Ayah[]> => {
   try {
-    const response = await fetch('https://api.alquran.cloud/v1/quran/quran-uthmani');
-    const data = await response.json();
+    // Fetch Arabic text
+    const arabicResponse = await fetch('https://api.alquran.cloud/v1/quran/quran-uthmani');
+    const arabicData = await arabicResponse.json();
     
-    if (data.code === 200 && data.status === 'OK') {
-      // Process the surahs and their ayahs
+    // Fetch English translation
+    const translationResponse = await fetch('https://api.alquran.cloud/v1/quran/en.sahih');
+    const translationData = await translationResponse.json();
+    
+    if (arabicData.code === 200 && arabicData.status === 'OK' &&
+        translationData.code === 200 && translationData.status === 'OK') {
+      
+      // Process the surahs and their ayahs with translations
       const allAyahs: Ayah[] = [];
       
-      data.data.surahs.forEach((surah: any) => {
-        const surahAyahs = surah.ayahs.map((ayah: any) => ({
-          ...ayah,
-          surah: surah.number
-        }));
-        allAyahs.push(...surahAyahs);
+      arabicData.data.surahs.forEach((surah: any, surahIndex: number) => {
+        const translationSurah = translationData.data.surahs[surahIndex];
+        
+        surah.ayahs.forEach((ayah: any, ayahIndex: number) => {
+          allAyahs.push({
+            ...ayah,
+            surah: surah.number,
+            translation: translationSurah.ayahs[ayahIndex].text
+          });
+        });
       });
       
       return allAyahs;
     } else {
-      throw new Error('Failed to fetch entire Quran');
+      throw new Error('Failed to fetch entire Quran with translations');
     }
   } catch (error) {
-    console.error('Error fetching entire Quran:', error);
+    console.error('Error fetching entire Quran with translations:', error);
     toast({
       title: "Error",
-      description: "Failed to load Quran data. Please try again later.",
+      description: "Failed to load Quran data with translations. Please try again later.",
       variant: "destructive",
     });
     return [];
