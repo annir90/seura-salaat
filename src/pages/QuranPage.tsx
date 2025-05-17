@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -142,13 +141,7 @@ const QuranPage = () => {
     return surah ? `${surah.englishName} (${surah.name})` : '';
   };
 
-  // Find surah revelation type by surah number
-  const getSurahRevelationType = (surahNumber: number) => {
-    const surah = surahs.find(s => s.number === surahNumber);
-    return surah ? surah.revelationType : '';
-  };
-
-  // Find surah English translation by surah number
+  // Find surah translation by surah number
   const getSurahTranslation = (surahNumber: number) => {
     const surah = surahs.find(s => s.number === surahNumber);
     return surah ? surah.englishNameTranslation : '';
@@ -228,8 +221,6 @@ const QuranPage = () => {
                 
                 <div className="flex items-center justify-center gap-2 text-prayer-secondary/80">
                   <span className="text-lg font-medium">{getSurahTranslation(parseInt(selectedSurah))}</span>
-                  <span className="inline-block w-2 h-2 rounded-full bg-prayer-secondary/50"></span>
-                  <span className="font-medium">{getSurahRevelationType(parseInt(selectedSurah))}</span>
                 </div>
                 
                 <div className="mt-3 text-prayer-primary/90 text-sm font-medium">
