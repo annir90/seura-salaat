@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages } from "lucide-react";
+import { Loader2, BookOpen, Languages, ArrowLeft } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 const QuranPage = () => {
   const [surahs, setSurahs] = useState<Surah[]>([]);
@@ -30,7 +31,8 @@ const QuranPage = () => {
   const [activeSurah, setActiveSurah] = useState<number | null>(null);
   const [selectedSurah, setSelectedSurah] = useState<string>("");
   const [showTranslation, setShowTranslation] = useState(true);
-  const itemsPerPage = 10; // Reduced for better readability with translations
+  const [readingMode, setReadingMode] = useState(false);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const loadSurahs = async () => {
@@ -65,6 +67,9 @@ const QuranPage = () => {
         
         // Reset to first page when filter changes
         setCurrentPage(1);
+        
+        // Set reading mode to true when a surah is selected
+        setReadingMode(true);
         
         // Success toast
         const surahName = surahs.find(s => s.number === surahNumber)?.englishName || '';
@@ -146,45 +151,42 @@ const QuranPage = () => {
     setShowTranslation(!showTranslation);
   };
 
+  // Exit reading mode
+  const exitReadingMode = () => {
+    setReadingMode(false);
+  };
+
   return (
     <div className="flex flex-col pb-20">
-      <div className="text-center mb-6 flex flex-col items-center">
-        <div className="bg-prayer-primary w-16 h-16 rounded-full flex items-center justify-center mb-4">
-          <BookOpen className="h-8 w-8 text-white" />
+      {/* Selection View - Only shown when not in reading mode */}
+      {!readingMode ? (
+        <div className="text-center mb-6 flex flex-col items-center">
+          <div className="bg-prayer-primary w-16 h-16 rounded-full flex items-center justify-center mb-4">
+            <BookOpen className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold">Noble Quran</h1>
+          <p className="text-muted-foreground mb-4">Select a Surah to begin reading</p>
+          
+          {/* Surah Selector */}
+          <div className="w-full max-w-xs mb-4">
+            <Select
+              value={selectedSurah}
+              onValueChange={setSelectedSurah}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Surah" />
+              </SelectTrigger>
+              <SelectContent>
+                {surahs.map((surah) => (
+                  <SelectItem key={surah.number} value={surah.number.toString()}>
+                    {surah.number}. {surah.englishName} - {surah.englishNameTranslation}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold">Noble Quran</h1>
-        <p className="text-muted-foreground mb-4">Select a Surah to begin reading</p>
-        
-        {/* Surah Selector */}
-        <div className="w-full max-w-xs mb-4">
-          <Select
-            value={selectedSurah}
-            onValueChange={setSelectedSurah}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Surah" />
-            </SelectTrigger>
-            <SelectContent>
-              {surahs.map((surah) => (
-                <SelectItem key={surah.number} value={surah.number.toString()}>
-                  {surah.number}. {surah.englishName} - {surah.englishNameTranslation}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Translation toggle button - only show when a surah is selected */}
-        {selectedSurah && (
-          <button 
-            onClick={toggleTranslation}
-            className="flex items-center gap-2 text-prayer-primary hover:text-prayer-secondary transition-colors mb-4"
-          >
-            <Languages size={18} />
-            {showTranslation ? "Hide Translation" : "Show Translation"}
-          </button>
-        )}
-      </div>
+      ) : null}
 
       {/* Loading State */}
       {loading && (
@@ -194,7 +196,7 @@ const QuranPage = () => {
       )}
 
       {/* Empty State - When no surah is selected */}
-      {!loading && !selectedSurah && (
+      {!loading && !selectedSurah && !readingMode && (
         <div className="text-center p-12 border border-dashed rounded-lg mx-auto max-w-3xl">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">Please Select a Surah</h3>
@@ -202,95 +204,100 @@ const QuranPage = () => {
         </div>
       )}
 
-      {/* Quran Content - Only show when a surah is selected */}
-      {!loading && selectedSurah && filteredAyahs.length > 0 && (
-        <>
-          <Card className="mb-4">
-            {/* Beautiful Surah Header */}
-            <div className="bg-gradient-to-r from-prayer-light to-prayer-accent/30 p-6 border-b">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-prayer-secondary mb-1">
-                  Surah {selectedSurah}: {getSurahName(parseInt(selectedSurah))}
-                </h2>
-                
-                <div className="flex items-center justify-center gap-2 text-prayer-secondary/80">
-                  <span className="text-lg font-medium">{getSurahTranslation(parseInt(selectedSurah))}</span>
-                </div>
-                
-                <div className="mt-3 text-prayer-primary/90 text-sm font-medium">
-                  Page {currentPage} of {totalPages} 
-                  <span className="ml-2">
-                    ({indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredAyahs.length)} of {filteredAyahs.length} verses)
-                  </span>
-                </div>
-              </div>
+      {/* Reading Mode - Full Screen Quran View */}
+      {readingMode && !loading && selectedSurah && filteredAyahs.length > 0 && (
+        <div className="fixed inset-0 bg-background z-50 overflow-hidden flex flex-col">
+          {/* Minimal Header */}
+          <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2" 
+              onClick={exitReadingMode}
+            >
+              <ArrowLeft size={16} />
+              Back
+            </Button>
+            
+            <div className="text-center flex-1">
+              <h2 className="text-lg font-medium">
+                {getSurahName(parseInt(selectedSurah))}
+              </h2>
             </div>
             
-            <CardContent className="p-6">
-              <ScrollArea className="h-[calc(70vh-180px)]">
-                <div className="space-y-6">
-                  {currentAyahs.map((ayah) => (
-                    <div key={ayah.number} className="p-4 border rounded-lg bg-white shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full font-medium">
-                          {ayah.numberInSurah}
-                        </span>
-                        <div className="text-xs text-muted-foreground">
-                          <span>Page {ayah.page} · Juz {ayah.juz}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        {/* Arabic Text */}
-                        <div className="mb-3">
-                          <p dir="rtl" className="text-right text-xl font-arabic leading-loose">
-                            {ayah.text}
-                          </p>
-                        </div>
-                        
-                        {/* Translation Text - conditionally rendered */}
-                        {showTranslation && ayah.translation && (
-                          <div className="pt-3 border-t border-dashed border-muted">
-                            <p className="text-muted-foreground text-sm leading-relaxed">
-                              {ayah.translation}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+            <button 
+              onClick={toggleTranslation}
+              className="p-2 rounded-full hover:bg-muted"
+            >
+              <Languages size={18} className="text-prayer-primary" />
+            </button>
+          </div>
           
-          {/* Pagination - Only show when there are results */}
+          {/* Quran Content */}
+          <ScrollArea className="flex-1 p-4 md:p-8 lg:p-12">
+            <div className="max-w-4xl mx-auto space-y-8">
+              {currentAyahs.map((ayah) => (
+                <div key={ayah.number} className="p-4 md:p-6 bg-card border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full font-medium">
+                      {ayah.numberInSurah}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Arabic Text */}
+                    <div>
+                      <p dir="rtl" className="text-right text-2xl font-arabic leading-loose">
+                        {ayah.text}
+                      </p>
+                    </div>
+                    
+                    {/* Translation Text - conditionally rendered */}
+                    {showTranslation && ayah.translation && (
+                      <div className="pt-3 border-t border-dashed border-muted">
+                        <p className="text-muted-foreground text-base leading-relaxed">
+                          {ayah.translation}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+          
+          {/* Minimal Footer with Pagination */}
           {totalPages > 1 && (
-            <Pagination className="my-6">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => currentPage > 1 && paginate(currentPage - 1)} 
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-                
-                {getPaginationItems()}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <div className="p-4 border-t bg-background/95 backdrop-blur-sm">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => currentPage > 1 && paginate(currentPage - 1)} 
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  <PaginationItem className="flex items-center">
+                    <span className="text-sm text-muted-foreground">
+                      {currentPage} of {totalPages}
+                    </span>
+                  </PaginationItem>
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
-        </>
+        </div>
       )}
 
       {/* No results state */}
-      {!loading && selectedSurah && filteredAyahs.length === 0 && (
+      {!loading && selectedSurah && filteredAyahs.length === 0 && !readingMode && (
         <div className="text-center p-12 border border-dashed rounded-lg">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No Verses Available</h3>
