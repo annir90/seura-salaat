@@ -168,9 +168,9 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Choose {prayerName} Notification Sound</DialogTitle>
+          <DialogTitle>Choose Notification Sound</DialogTitle>
           <DialogDescription>
-            Select a sound for {prayerName} prayer notifications. You can preview each option before selecting.
+            Select a sound for prayer notifications. You can preview each option before selecting.
           </DialogDescription>
         </DialogHeader>
         
