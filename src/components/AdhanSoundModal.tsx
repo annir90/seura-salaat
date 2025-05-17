@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list with working audio URLs
+// Updated options list with reliable audio URLs
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
@@ -31,7 +32,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "ringtone",
     name: "Ringtone",
-    url: "https://cdn.pixabay.com/audio/2022/09/10/audio_67aeeb8372.mp3",
+    url: "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav", // More widely supported format
     icon: <Music size={20} />,
   }
 ];
