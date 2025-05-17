@@ -20,24 +20,24 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more reliable audio sources
+// Updated with new audio sources from provided URLs
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://islamic-audio.cdn.lovable.dev/adhan-short.mp3",
+    url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
     icon: <Bell size={20} />, // Will remove this since we have the Bell on the left
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://islamic-audio.cdn.lovable.dev/gentle-notification.mp3",
+    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_9fb995283b.mp3?filename=ringtone-132673.mp3",
     icon: <Volume2 size={20} />,
   },
   {
     id: "silent-notification",
     name: "Visual Only",
-    url: "https://islamic-audio.cdn.lovable.dev/gentle-ping.mp3", // Added a gentle sound for preview
+    url: "https://islamic-audio.cdn.lovable.dev/gentle-ping.mp3", // Kept original for preview
     icon: <VolumeX size={20} />,
   }
 ];
