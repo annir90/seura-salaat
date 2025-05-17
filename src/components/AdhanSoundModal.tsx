@@ -32,7 +32,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "ringtone",
     name: "Ringtone",
-    url: "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav", // More widely supported format
+    url: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg", // Simple, reliable alarm sound
     icon: <Music size={20} />,
   }
 ];
