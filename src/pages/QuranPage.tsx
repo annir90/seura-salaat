@@ -35,7 +35,7 @@ const QuranPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeSurah, setActiveSurah] = useState<number | null>(null);
-  const [selectedSurah, setSelectedSurah] = useState<string>("all");
+  const [selectedSurah, setSelectedSurah] = useState<string>("");
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -49,7 +49,6 @@ const QuranPage = () => {
       // Load all ayahs
       const ayahsData = await fetchEntireQuran();
       setAllAyahs(ayahsData);
-      setFilteredAyahs(ayahsData);
       
       setLoading(false);
     };
@@ -59,7 +58,10 @@ const QuranPage = () => {
 
   // Filter ayahs when selectedSurah changes
   useEffect(() => {
-    if (selectedSurah === "all") {
+    if (!selectedSurah) {
+      // No surah selected, don't show any
+      setFilteredAyahs([]);
+    } else if (selectedSurah === "all") {
       setFilteredAyahs(allAyahs);
     } else {
       const surahNumber = parseInt(selectedSurah);
@@ -69,7 +71,7 @@ const QuranPage = () => {
     // Reset to first page when filter changes
     setCurrentPage(1);
     // Auto-expand the selected surah
-    setActiveSurah(selectedSurah === "all" ? null : parseInt(selectedSurah));
+    setActiveSurah(selectedSurah === "all" ? null : selectedSurah ? parseInt(selectedSurah) : null);
   }, [selectedSurah, allAyahs]);
 
   // Get current items for pagination
@@ -134,7 +136,7 @@ const QuranPage = () => {
           <BookOpen className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-2xl font-bold">Noble Quran</h1>
-        <p className="text-muted-foreground mb-4">Complete Quran View</p>
+        <p className="text-muted-foreground mb-4">Select a Surah to begin reading</p>
         
         {/* Surah Selector */}
         <div className="w-full max-w-xs mb-4">
@@ -164,8 +166,17 @@ const QuranPage = () => {
         </div>
       )}
 
-      {/* Quran Content */}
-      {!loading && (
+      {/* Empty State - When no surah is selected */}
+      {!loading && !selectedSurah && (
+        <div className="text-center p-12 border border-dashed rounded-lg mx-auto max-w-3xl">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">Please Select a Surah</h3>
+          <p className="text-muted-foreground">Choose a Surah from the dropdown above to start reading</p>
+        </div>
+      )}
+
+      {/* Quran Content - Only show when a surah is selected */}
+      {!loading && selectedSurah && filteredAyahs.length > 0 && (
         <>
           <Card className="mb-4">
             <CardContent className="pt-6">
@@ -242,35 +253,37 @@ const QuranPage = () => {
             </CardContent>
           </Card>
           
-          {/* Pagination */}
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => currentPage > 1 && paginate(currentPage - 1)} 
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-              
-              {getPaginationItems()}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          {/* Pagination - Only show when there are results */}
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => currentPage > 1 && paginate(currentPage - 1)} 
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {getPaginationItems()}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </>
       )}
 
-      {/* Empty State - should never show if properly loaded */}
-      {!loading && filteredAyahs.length === 0 && (
+      {/* No results state */}
+      {!loading && selectedSurah && filteredAyahs.length === 0 && (
         <div className="text-center p-12 border border-dashed rounded-lg">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Quran Data Available</h3>
-          <p className="text-muted-foreground">There was a problem loading the Quran. Please try again later.</p>
+          <h3 className="text-lg font-medium mb-2">No Verses Available</h3>
+          <p className="text-muted-foreground">There was a problem loading the Quran data. Please try again later.</p>
         </div>
       )}
     </div>
