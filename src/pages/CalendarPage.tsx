@@ -1,33 +1,11 @@
 
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { getPrayerTimes, PrayerTime } from "@/services/prayerTimeService";
-import PrayerCard from "@/components/PrayerCard";
-import { Loader2, CalendarDays } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const loadPrayerTimes = async (date: Date) => {
-    try {
-      setLoading(true);
-      const times = await getPrayerTimes(date);
-      setPrayerTimes(times);
-    } catch (error) {
-      console.error("Error loading prayer times:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    if (selectedDate) {
-      loadPrayerTimes(selectedDate);
-    }
-  }, [selectedDate]);
   
   const handleDateChange = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -59,18 +37,6 @@ const CalendarPage = () => {
           <p className="text-muted-foreground">Friday prayer (Salat al-Jumaa): <span className="font-medium text-foreground">13:30</span></p>
         </div>
       )}
-      
-      <div className="mb-6">
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-prayer-primary" />
-          </div>
-        ) : (
-          prayerTimes.map((prayer) => (
-            <PrayerCard key={prayer.id} prayer={prayer} />
-          ))
-        )}
-      </div>
     </div>
   );
 };
