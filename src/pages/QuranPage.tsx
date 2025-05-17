@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Translate } from "lucide-react";
+import { Loader2, BookOpen, Languages } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -181,7 +180,7 @@ const QuranPage = () => {
             onClick={toggleTranslation}
             className="flex items-center gap-2 text-prayer-primary hover:text-prayer-secondary transition-colors mb-4"
           >
-            <Translate size={18} />
+            <Languages size={18} />
             {showTranslation ? "Hide Translation" : "Show Translation"}
           </button>
         )}
