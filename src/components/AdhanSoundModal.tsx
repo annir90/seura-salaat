@@ -27,19 +27,19 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     id: "traditional-adhan",
     name: "Traditional Adhan",
     url: "https://assets.mixkit.co/active_storage/sfx/212/212.wav",
-    icon: <Bell className="h-5 w-5" />,
+    icon: <Bell size={20} />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
     url: "https://assets.mixkit.co/active_storage/sfx/2869/2869.mp3",
-    icon: <Volume2 className="h-5 w-5" />,
+    icon: <Volume2 size={20} />,
   },
   {
     id: "silent-notification",
     name: "Silent Notification",
     url: "",
-    icon: <VolumeX className="h-5 w-5" />,
+    icon: <VolumeX size={20} />,
   }
 ];
 

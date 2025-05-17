@@ -75,7 +75,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         aria-label={`Set notification for ${prayer.name}`}
         onClick={handleOpenModal}
       >
-        <Bell className={cn("h-5 w-5", selectedSound && "text-prayer-primary")} />
+        <Bell size={20} className={cn("h-5 w-5", selectedSound && "text-prayer-primary")} />
       </button>
 
       <AdhanSoundModal
