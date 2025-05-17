@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -141,6 +142,18 @@ const QuranPage = () => {
     return surah ? `${surah.englishName} (${surah.name})` : '';
   };
 
+  // Find surah revelation type by surah number
+  const getSurahRevelationType = (surahNumber: number) => {
+    const surah = surahs.find(s => s.number === surahNumber);
+    return surah ? surah.revelationType : '';
+  };
+
+  // Find surah English translation by surah number
+  const getSurahTranslation = (surahNumber: number) => {
+    const surah = surahs.find(s => s.number === surahNumber);
+    return surah ? surah.englishNameTranslation : '';
+  };
+
   // Toggle translation visibility
   const toggleTranslation = () => {
     setShowTranslation(!showTranslation);
@@ -205,30 +218,30 @@ const QuranPage = () => {
       {/* Quran Content - Only show when a surah is selected */}
       {!loading && selectedSurah && filteredAyahs.length > 0 && (
         <>
-          <Card className="mb-4">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    Surah {selectedSurah}: {getSurahName(parseInt(selectedSurah))}
-                  </h2>
-                  
-                  {/* Surah info */}
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {surahs.find(s => s.number === parseInt(selectedSurah))?.englishNameTranslation} • {
-                      surahs.find(s => s.number === parseInt(selectedSurah))?.revelationType
-                    }
-                  </div>
+          <Card className="mb-4 overflow-hidden">
+            {/* Beautiful Surah Header */}
+            <div className="bg-gradient-to-r from-prayer-light to-prayer-accent/30 p-6 border-b">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-prayer-secondary mb-1">
+                  Surah {selectedSurah}: {getSurahName(parseInt(selectedSurah))}
+                </h2>
+                
+                <div className="flex items-center justify-center gap-2 text-prayer-secondary/80">
+                  <span className="text-lg font-medium">{getSurahTranslation(parseInt(selectedSurah))}</span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-prayer-secondary/50"></span>
+                  <span className="italic font-medium">{getSurahRevelationType(parseInt(selectedSurah))}</span>
                 </div>
                 
-                <p className="text-muted-foreground mt-2 md:mt-0">
+                <div className="mt-3 text-prayer-primary/90 text-sm font-medium">
                   Page {currentPage} of {totalPages} 
                   <span className="ml-2">
                     ({indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredAyahs.length)} of {filteredAyahs.length} verses)
                   </span>
-                </p>
+                </div>
               </div>
-              
+            </div>
+            
+            <CardContent className="pt-6">
               <Table className="border-collapse border border-muted rounded-md overflow-hidden">
                 <TableHeader className="bg-muted/30">
                   <TableRow>
