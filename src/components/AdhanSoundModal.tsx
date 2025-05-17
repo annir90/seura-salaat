@@ -20,13 +20,13 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with completely reliable audio sources
+// Updated with more reliable audio sources for all options
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    // Updated to a more reliable source
-    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_9bea15384a.mp3?filename=islamic-call-to-prayer-adhanmuslim-call-to-prayer-28528.mp3",
+    // Switched back to Mixkit source which was working previously
+    url: "https://assets.mixkit.co/active_storage/sfx/212/212.mp3",
     icon: <Bell className="h-5 w-5" />,
   },
   {
@@ -38,7 +38,8 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "ringtone",
     name: "Ringtone",
-    url: "https://cdn.pixabay.com/download/audio/2022/10/30/audio_23d59a963c.mp3?filename=ringtone-132673.mp3",
+    // Switched back to Mixkit source which was working previously
+    url: "https://assets.mixkit.co/active_storage/sfx/2912/2912.wav",
     icon: <Music className="h-5 w-5" />,
   }
 ];
@@ -147,20 +148,15 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         // Set source and load
         audioToPlay.src = soundOption.url;
         
-        // Improved audio loading with preload
-        audioToPlay.preload = "auto";
-        
         // Wait for audio to load before playing
         audioToPlay.addEventListener('canplaythrough', async function onCanPlay() {
           try {
             audioToPlay.removeEventListener('canplaythrough', onCanPlay);
-            console.log(`Attempting to play: ${soundOption.name}`);
             const playResult = await audioToPlay.play();
             
             // Play was successful
             setIsPlaying(soundId);
             setLoadingSound(null);
-            console.log(`Successfully playing: ${soundOption.name}`);
           } catch (playError) {
             console.error("Play failed:", playError);
             handlePlaybackError(soundId, soundOption.name);
