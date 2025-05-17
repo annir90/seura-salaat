@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Play, Pause, Bell, Music } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell, Volume } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +31,9 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   },
   {
     id: "ringtone",
-    name: "Ringtone",
-    url: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg", // Simple, reliable alarm sound
-    icon: <Music size={20} />,
+    name: "Soft Reminder",
+    url: "https://www.soundjay.com/button/sounds/button-2.mp3", // Short gentle tone more suitable for app notifications
+    icon: <Volume size={20} />,
   }
 ];
 
