@@ -40,11 +40,6 @@ const Index = () => {
   
   return (
     <div className="flex flex-col">
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-1">PrayConnect</h1>
-        <p className="text-muted-foreground">{currentDate}</p>
-      </div>
-      
       {loading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-prayer-primary" />
