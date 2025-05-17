@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -233,6 +232,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <Bell size={20} className={isSelected ? "text-prayer-primary" : ""} />
                     {option.icon}
                     <span className="font-medium">{option.name}</span>
                     
