@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,12 +20,12 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more reliable audio sources
+// Updated with more reliable hosted audio sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://www.islamcan.com/audio/adhan/adhan.mp3", // More reliable source
+    url: "https://ia800304.us.archive.org/18/items/Adhan_M/Adhan_M.mp3", // More reliable source from archive.org
     icon: <Bell className="h-5 w-5" />,
   },
   {
@@ -56,60 +55,54 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const { toast } = useToast();
 
-  // Preload audio elements when component mounts, not just when modal opens
+  // Create audio elements only once when component mounts
   useEffect(() => {
-    const newAudioRefs: { [key: string]: HTMLAudioElement } = {};
-    
     ADHAN_OPTIONS.forEach((option) => {
-      const audio = new Audio();
-      audio.preload = "metadata"; // Only load metadata initially, not full file
-      audio.src = option.url;
-      
-      audio.onended = () => {
-        setIsPlaying(null);
-      };
-      
-      audio.onerror = () => {
-        console.error("Error with audio:", option.name);
-        setIsPlaying(null);
-        setLoadingSound(null);
+      // Only create if it doesn't exist yet
+      if (!audioRefs.current[option.id]) {
+        const audio = new Audio();
+        audio.preload = "none"; // Don't preload until needed
         
-        // Update load errors
-        setLoadErrors(prev => ({...prev, [option.id]: true}));
-      };
-      
-      newAudioRefs[option.id] = audio;
+        // Setup event handlers
+        audio.onended = () => {
+          setIsPlaying(null);
+        };
+        
+        audio.onerror = () => {
+          console.error("Error with audio:", option.name, audio.error);
+          setIsPlaying(null);
+          setLoadingSound(null);
+          setLoadErrors(prev => ({...prev, [option.id]: true}));
+        };
+        
+        audioRefs.current[option.id] = audio;
+      }
     });
     
-    audioRefs.current = newAudioRefs;
-    
+    // Clean up on component unmount
     return () => {
-      // Clean up audio elements when component unmounts
       stopAllSounds();
-      Object.values(newAudioRefs).forEach(audio => {
+      Object.values(audioRefs.current).forEach(audio => {
         if (audio) {
           audio.pause();
           audio.src = "";
+          audio.load();
         }
       });
     };
-  }, []); // Only run on component mount
+  }, []);
 
-  // Handle modal open/close
+  // Handle modal state changes
   useEffect(() => {
     if (!isOpen) {
-      // Stop all sounds when modal closes
       stopAllSounds();
       return;
     }
     
-    // Reset errors when modal opens
     setLoadErrors({});
-    
   }, [isOpen]);
 
   const stopAllSounds = () => {
-    // Stop any playing sounds
     Object.values(audioRefs.current).forEach(audio => {
       if (audio) {
         audio.pause();
@@ -139,35 +132,36 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     setLoadingSound(soundId);
     
     const audioToPlay = audioRefs.current[soundId];
-    if (audioToPlay) {
-      // Make sure it's loaded with the current source
-      const option = ADHAN_OPTIONS.find(o => o.id === soundId);
-      if (option && audioToPlay.src !== option.url) {
-        audioToPlay.src = option.url;
-        audioToPlay.load(); // Force reload if source changed
-      }
+    const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
+    
+    if (audioToPlay && soundOption) {
+      // Set source and start loading
+      audioToPlay.src = soundOption.url;
+      audioToPlay.load();
       
-      // Use timeout to give a better chance of loading audio
+      // Small delay to ensure browser starts loading the audio
       setTimeout(() => {
-        audioToPlay.play()
-          .then(() => {
-            setIsPlaying(soundId);
-            setLoadingSound(null);
-          })
-          .catch((error) => {
-            console.error("Error playing audio:", error);
-            setLoadingSound(null);
-            
-            // Update load errors
-            setLoadErrors(prev => ({...prev, [soundId]: true}));
-            
-            toast({
-              title: "Playback Error",
-              description: "Failed to play the audio. Please try another sound or check your device settings.",
-              variant: "destructive",
+        const playPromise = audioToPlay.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(soundId);
+              setLoadingSound(null);
+            })
+            .catch((error) => {
+              console.error("Error playing audio:", error);
+              setLoadingSound(null);
+              setLoadErrors(prev => ({...prev, [soundId]: true}));
+              
+              toast({
+                title: "Playback Error",
+                description: "Failed to play the audio. Please try another sound.",
+                variant: "destructive",
+              });
             });
-          });
-      }, 100);
+        }
+      }, 200);
     }
   };
 
