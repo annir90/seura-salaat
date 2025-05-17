@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list with fixed ringtone URL
+// Updated options list with working audio URLs
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
@@ -32,7 +31,7 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "ringtone",
     name: "Ringtone",
-    url: "https://pixabay.com/sound-effects/download/ringtone-132673/",
+    url: "https://cdn.pixabay.com/audio/2022/09/10/audio_67aeeb8372.mp3",
     icon: <Music size={20} />,
   }
 ];
