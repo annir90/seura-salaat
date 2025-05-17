@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
 import { Bell } from "lucide-react";
@@ -9,9 +9,19 @@ interface PrayerCardProps {
   prayer: PrayerTime;
 }
 
+const STORAGE_KEY_PREFIX = "prayer_adhan_";
+
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSound, setSelectedSound] = useState<string | undefined>(undefined);
+
+  // Load saved sound preference from localStorage on component mount
+  useEffect(() => {
+    const savedSound = localStorage.getItem(`${STORAGE_KEY_PREFIX}${prayer.id}`);
+    if (savedSound) {
+      setSelectedSound(savedSound);
+    }
+  }, [prayer.id]);
 
   const isPast = () => {
     const now = new Date();
@@ -33,14 +43,15 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
 
   const handleSelectSound = (soundId: string) => {
     setSelectedSound(soundId);
-    // In a real app, this would also save to local storage or a backend
+    // Save to localStorage for persistence
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}${prayer.id}`, soundId);
     console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
   };
 
   return (
     <div 
       className={cn(
-        "prayer-card flex justify-between items-center mb-3 animate-fade-in",
+        "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in",
         prayer.isNext && "border-l-4 border-prayer-primary bg-gradient-light",
         past && "opacity-70"
       )}
@@ -50,7 +61,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         <div className="flex items-center mb-1">
           <h3 className="font-semibold text-base">{prayer.name}</h3>
           {prayer.isNext && (
-            <span className="prayer-badge ml-2 animate-pulse-gentle">Next</span>
+            <span className="prayer-badge ml-2 animate-pulse-gentle bg-prayer-light text-prayer-primary px-2 py-0.5 rounded-full text-xs">Next</span>
           )}
         </div>
         <p className="prayer-time">{prayer.time}</p>

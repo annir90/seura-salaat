@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Volume2, Check } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Volume2, Check, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
   id: string;
@@ -20,16 +20,17 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
+// Updated with more reliable audio sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "makkah",
     name: "Adhan Makkah",
-    url: "https://islamic-audio.vercel.app/audio/adhan_makkah.mp3",
+    url: "https://www.islamcan.com/audio/adhan/makkah.mp3",
   },
   {
     id: "madinah",
     name: "Adhan Madinah",
-    url: "https://islamic-audio.vercel.app/audio/adhan_madinah.mp3",
+    url: "https://www.islamcan.com/audio/adhan/madinah.mp3",
   },
 ];
 
@@ -42,22 +43,34 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 }) => {
   const [audioElements, setAudioElements] = useState<{ [key: string]: HTMLAudioElement | null }>({});
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
+  const [loadingSound, setLoadingSound] = useState<string | null>(null);
+  const [loadErrors, setLoadErrors] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
-  // Initialize audio elements
+  // Initialize audio elements when modal opens
   useEffect(() => {
+    if (!isOpen) return;
+    
     const elements: { [key: string]: HTMLAudioElement } = {};
+    const errors: { [key: string]: boolean } = {};
     
     ADHAN_OPTIONS.forEach((option) => {
-      const audio = new Audio(option.url);
-      audio.preload = "none"; // Only load when play is pressed
+      const audio = new Audio();
+      
+      // Only set source when needed to prevent unnecessary preloading
+      audio.preload = "none";
       
       audio.onended = () => {
         setIsPlaying(null);
       };
       
       audio.onerror = () => {
+        console.error("Error playing audio:", option.name);
         setIsPlaying(null);
+        setLoadingSound(null);
+        errors[option.id] = true;
+        setLoadErrors({...errors});
+        
         toast({
           title: "Error playing sound",
           description: `Could not play ${option.name}. Please try again.`,
@@ -69,6 +82,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     });
     
     setAudioElements(elements);
+    setLoadErrors({});
     
     // Cleanup function to stop and remove audio elements
     return () => {
@@ -79,7 +93,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         }
       });
     };
-  }, [toast]);
+  }, [isOpen, toast]);
 
   const playSound = (soundId: string) => {
     // Stop any currently playing audio
@@ -90,21 +104,35 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       }
     });
     
+    setLoadingSound(soundId);
+    
     const audioToPlay = audioElements[soundId];
     if (audioToPlay) {
-      audioToPlay.currentTime = 0;
-      audioToPlay.play()
-        .then(() => {
-          setIsPlaying(soundId);
-        })
-        .catch((error) => {
-          console.error("Error playing audio:", error);
-          toast({
-            title: "Playback Error",
-            description: "Failed to play the audio. Please try again.",
-            variant: "destructive",
+      // Set source only when playing to prevent unnecessary preloading
+      const option = ADHAN_OPTIONS.find(o => o.id === soundId);
+      if (option) {
+        audioToPlay.src = option.url;
+        audioToPlay.load();
+        
+        audioToPlay.play()
+          .then(() => {
+            setIsPlaying(soundId);
+            setLoadingSound(null);
+          })
+          .catch((error) => {
+            console.error("Error playing audio:", error);
+            setLoadingSound(null);
+            
+            // Update load errors
+            setLoadErrors(prev => ({...prev, [soundId]: true}));
+            
+            toast({
+              title: "Playback Error",
+              description: "Failed to play the audio. Please try again.",
+              variant: "destructive",
+            });
           });
-        });
+      }
     }
   };
 
@@ -121,6 +149,9 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Choose {prayerName} Notification Sound</DialogTitle>
+          <DialogDescription>
+            Select a sound for {prayerName} prayer notifications. You can preview each option before selecting.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
@@ -137,6 +168,9 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                     <Check className="h-4 w-4 text-prayer-primary" />
                   )}
                   <span className="font-medium">{option.name}</span>
+                  {loadErrors[option.id] && (
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                  )}
                 </div>
                 
                 <div className="flex gap-2">
@@ -145,10 +179,11 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                     size="sm"
                     className="flex items-center gap-2"
                     onClick={() => playSound(option.id)}
-                    disabled={isPlaying === option.id}
+                    disabled={isPlaying === option.id || loadingSound === option.id}
                   >
                     <Volume2 className="h-4 w-4" />
-                    {isPlaying === option.id ? "Playing..." : "Listen"}
+                    {loadingSound === option.id ? "Loading..." : 
+                     isPlaying === option.id ? "Playing..." : "Listen"}
                   </Button>
                   
                   <Button
