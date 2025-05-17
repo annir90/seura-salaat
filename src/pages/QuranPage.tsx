@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages, ArrowLeft } from "lucide-react";
+import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -31,6 +32,9 @@ const QuranPage = () => {
   const [selectedSurah, setSelectedSurah] = useState<string>("");
   const [showTranslation, setShowTranslation] = useState(true);
   const [readingMode, setReadingMode] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isScrolledUp, setIsScrolledUp] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
   // Increased the number of items per page to show more verses
   const itemsPerPage = 20;
 
@@ -44,6 +48,55 @@ const QuranPage = () => {
     
     loadSurahs();
   }, []);
+
+  // Handle scroll to show/hide scroll button and change its direction
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!contentRef.current) return;
+      
+      const scrollPosition = contentRef.current.scrollTop;
+      const scrollHeight = contentRef.current.scrollHeight;
+      const clientHeight = contentRef.current.clientHeight;
+      
+      // Show button when scrolled a bit (100px)
+      setShowScrollButton(scrollPosition > 100);
+      
+      // If we're close to the bottom, change to arrow up for "scroll to top"
+      const isNearBottom = scrollPosition + clientHeight > scrollHeight - 200;
+      setIsScrolledUp(!isNearBottom);
+    };
+    
+    const contentElement = contentRef.current;
+    if (contentElement) {
+      contentElement.addEventListener('scroll', handleScroll);
+      
+      // Initialize scroll state
+      handleScroll();
+      
+      return () => {
+        contentElement.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [readingMode]);
+
+  // Scroll handler function
+  const handleScrollClick = () => {
+    if (!contentRef.current) return;
+    
+    if (isScrolledUp) {
+      // Scroll down to bottom
+      contentRef.current.scrollTo({
+        top: contentRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      // Scroll up to top
+      contentRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Load ayahs when selectedSurah changes
   useEffect(() => {
@@ -114,7 +167,7 @@ const QuranPage = () => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
     // Scroll to top of the content area
-    document.querySelector('.quran-content-area')?.scrollTo(0, 0);
+    contentRef.current?.scrollTo(0, 0);
   };
 
   // Generate pagination items
@@ -248,7 +301,7 @@ const QuranPage = () => {
           </div>
           
           {/* Quran Content - Fixed to ensure proper scrolling */}
-          <div className="flex-1 overflow-auto quran-content-area pb-24">
+          <div ref={contentRef} className="flex-1 overflow-auto quran-content-area pb-24">
             <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-8 lg:p-12">
               {currentAyahs.map((ayah) => (
                 <div key={ayah.number} className="p-4 md:p-6 bg-card border rounded-lg">
@@ -343,6 +396,21 @@ const QuranPage = () => {
                 </Button>
               </div>
             </div>
+          )}
+          
+          {/* Scroll button - Show conditionally based on scroll position */}
+          {showScrollButton && readingMode && (
+            <button 
+              className="fixed right-4 bottom-24 p-3 bg-prayer-primary text-white rounded-full shadow-lg z-30 hover:bg-prayer-secondary transition-all"
+              onClick={handleScrollClick}
+              aria-label={isScrolledUp ? "Scroll to bottom" : "Scroll to top"}
+            >
+              {isScrolledUp ? (
+                <ArrowDown className="h-5 w-5" />
+              ) : (
+                <ArrowUp className="h-5 w-5" />
+              )}
+            </button>
           )}
         </div>
       )}
