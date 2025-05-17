@@ -26,13 +26,13 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://server8.mp3quran.net/afs/001.mp3", // More reliable source
+    url: "https://www.islamcan.com/audio/adhan/azan6.mp3", // Updated to use the islamcan.com source
     icon: <Bell size={20} />,
   },
   {
     id: "gentle-notification",
     name: "Gentle Notification",
-    url: "https://cdn.pixabay.com/audio/2022/03/10/audio_9fb995283b.mp3", // Fixed URL without query parameters
+    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_9fb995283b.mp3", // Fixed URL for pixabay source
     icon: <Volume2 size={20} />,
   },
   {
@@ -105,8 +105,11 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
     
-    // If this is the visual-only option and it has an empty URL
-    if (soundOption.id === "silent-notification" && !soundOption.url) {
+    // If this is the visual-only option, show toast and don't try to play audio
+    if (soundId === "silent-notification") {
+      setIsPlaying(soundId); // Set as "playing" briefly for UI feedback
+      setTimeout(() => setIsPlaying(null), 1000); // Reset after a short delay
+      
       toast({
         title: "Visual Only",
         description: "This option will only show visual notifications, without any sound.",
@@ -114,47 +117,50 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       return;
     }
     
-    // Get or create the audio element
-    let audioEl = audioRefs.current[soundId];
-    if (!audioEl) {
-      audioEl = new Audio(soundOption.url);
-      audioRefs.current[soundId] = audioEl;
-      
-      // Set up event listeners that persist for the audio instance
-      audioEl.onended = () => {
-        setIsPlaying(null);
-        console.log(`Audio ${soundOption.name} playback completed`);
-      };
-      
-      audioEl.onerror = (e) => {
-        console.error(`Error loading audio for ${soundOption.name}`, e);
-        handlePlaybackError(soundId, soundOption.name);
-      };
-    }
-
-    // Force reload the audio source to ensure it's fresh
-    audioEl.src = soundOption.url;
-    audioEl.load();
-
-    // Play the sound with better error handling
-    setIsPlaying(soundId);
-    
-    try {
-      const playPromise = audioEl.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log(`Playing ${soundOption.name}`);
-          })
-          .catch(error => {
-            console.error("Play failed:", error);
-            handlePlaybackError(soundId, soundOption.name);
-          });
+    // Handle regular audio options
+    if (soundOption.url) {
+      // Get or create the audio element
+      let audioEl = audioRefs.current[soundId];
+      if (!audioEl) {
+        audioEl = new Audio(soundOption.url);
+        audioRefs.current[soundId] = audioEl;
+        
+        // Set up event listeners that persist for the audio instance
+        audioEl.onended = () => {
+          setIsPlaying(null);
+          console.log(`Audio ${soundOption.name} playback completed`);
+        };
+        
+        audioEl.onerror = (e) => {
+          console.error(`Error loading audio for ${soundOption.name}`, e);
+          handlePlaybackError(soundId, soundOption.name);
+        };
       }
-    } catch (error) {
-      console.error("Play error:", error);
-      handlePlaybackError(soundId, soundOption.name);
+
+      // Force reload the audio source to ensure it's fresh
+      audioEl.src = soundOption.url;
+      audioEl.load();
+
+      // Play the sound with better error handling
+      setIsPlaying(soundId);
+      
+      try {
+        const playPromise = audioEl.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log(`Playing ${soundOption.name}`);
+            })
+            .catch(error => {
+              console.error("Play failed:", error);
+              handlePlaybackError(soundId, soundOption.name);
+            });
+        }
+      } catch (error) {
+        console.error("Play error:", error);
+        handlePlaybackError(soundId, soundOption.name);
+      }
     }
   };
   
@@ -199,6 +205,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
           {ADHAN_OPTIONS.map((option) => {
             const isSelected = selectedSoundId === option.id;
             const hasError = loadErrors[option.id];
+            const isCurrentlyPlaying = isPlaying === option.id;
             
             return (
               <div
@@ -211,7 +218,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Bell size={20} className={isSelected ? "text-prayer-primary" : ""} />
+                    {option.icon}
                     <span className="font-medium">{option.name}</span>
                     
                     {hasError && (
@@ -229,9 +236,10 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                       size="sm"
                       className="text-xs px-3 h-8"
                       onClick={() => playSound(option.id)}
-                      disabled={isPlaying === option.id}
+                      disabled={isCurrentlyPlaying}
                     >
-                      {isPlaying === option.id ? 'Stop' : 'Play'}
+                      {isCurrentlyPlaying ? <Pause size={16} /> : <Play size={16} />}
+                      {isCurrentlyPlaying ? ' Stop' : ' Play'}
                     </Button>
                     
                     <Button
