@@ -21,12 +21,12 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with 3 new beautiful, soft notification sounds
+// Updated with new adhan sound and two soft notification sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
-    id: "soft-chimes",
-    name: "Soft Chimes",
-    url: "https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3",
+    id: "traditional-adhan",
+    name: "Traditional Adhan",
+    url: "https://media.sd.ma/assabile/adhan_3435370/cb27ce6f088b.mp3",
     icon: <Bell className="h-5 w-5" />,
   },
   {
