@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,7 @@ const STORAGE_KEY_PREFIX = "prayer_adhan_";
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSound, setSelectedSound] = useState<string | undefined>(undefined);
+  const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan"); // Default to traditional adhan
 
   // Load saved sound preference from localStorage on component mount
   useEffect(() => {

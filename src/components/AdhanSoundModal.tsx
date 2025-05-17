@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Play, Pause, Volume2, Bell, VolumeX } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -21,25 +21,13 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with working audio sources
+// Updated options list - removed Gentle Notification and Visual Only
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://www.islamcan.com/audio/adhan/azan6.mp3", // Updated to use the islamcan.com source
+    url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
     icon: <Bell size={20} />,
-  },
-  {
-    id: "gentle-notification",
-    name: "Gentle Notification",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_9fb995283b.mp3", // Fixed URL for pixabay source
-    icon: <Volume2 size={20} />,
-  },
-  {
-    id: "silent-notification",
-    name: "Visual Only",
-    url: "", // Empty string for no sound
-    icon: <VolumeX size={20} />,
   }
 ];
 
@@ -105,18 +93,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
     
-    // If this is the visual-only option, show toast and don't try to play audio
-    if (soundId === "silent-notification") {
-      setIsPlaying(soundId); // Set as "playing" briefly for UI feedback
-      setTimeout(() => setIsPlaying(null), 1000); // Reset after a short delay
-      
-      toast({
-        title: "Visual Only",
-        description: "This option will only show visual notifications, without any sound.",
-      });
-      return;
-    }
-    
     // Handle regular audio options
     if (soundOption.url) {
       // Get or create the audio element
@@ -170,7 +146,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     toast({
       title: "Audio Error",
-      description: `Failed to play ${soundName}. Please try another sound.`,
+      description: `Failed to play ${soundName}. Please try again.`,
       variant: "destructive",
     });
   };
@@ -179,13 +155,9 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     onSelect(soundId);
     
     const selectedOption = ADHAN_OPTIONS.find(o => o.id === soundId);
-    const notificationTypeMessage = soundId === "silent-notification" 
-      ? "Visual notifications only (no sound)"
-      : `${selectedOption?.name} notifications`;
-      
     toast({
       title: "Notification Setting Updated",
-      description: `${prayerName} will use ${notificationTypeMessage}`,
+      description: `${prayerName} will use ${selectedOption?.name} notifications`,
     });
     
     onClose();
@@ -197,7 +169,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         <DialogHeader>
           <DialogTitle>Choose Notification Sound</DialogTitle>
           <DialogDescription>
-            Select a sound for prayer notifications. You can preview each option before selecting.
+            Select a sound for prayer notifications. You can preview the option before selecting.
           </DialogDescription>
         </DialogHeader>
         
