@@ -278,10 +278,35 @@ const QuranPage = () => {
                 </div>
               ))}
               
-              {/* Visual indicator for end of page */}
-              <div className="text-center text-muted-foreground py-4">
+              {/* Visual indicator for end of page with navigation buttons */}
+              <div className="text-center text-muted-foreground py-4 space-y-4">
+                {/* Added navigation buttons here */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-4 py-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-2 border-prayer-primary/30 hover:bg-prayer-primary/5"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center gap-2 border-prayer-primary/30 hover:bg-prayer-primary/5"
+                    >
+                      Next
+                      <ArrowLeft className="h-4 w-4 transform rotate-180" />
+                    </Button>
+                  </div>
+                )}
+                
                 {currentPage < totalPages ? (
-                  <p>Use navigation below for more verses</p>
+                  <p>End of page {currentPage}</p>
                 ) : (
                   <p>End of Surah</p>
                 )}
@@ -289,7 +314,7 @@ const QuranPage = () => {
             </div>
           </div>
           
-          {/* Navigation Buttons - Moved back to bottom with improved visibility */}
+          {/* Keep the fixed bottom navigation as well */}
           {totalPages > 1 && (
             <div className="fixed bottom-0 left-0 right-0 py-4 px-6 bg-prayer-primary/10 backdrop-blur-md border-t shadow-lg z-20">
               <div className="flex items-center justify-between max-w-4xl mx-auto">
