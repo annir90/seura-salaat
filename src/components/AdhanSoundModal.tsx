@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,20 +21,8 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more prayer-suitable notification sounds
+// Updated with softer, gentler notification sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
-  {
-    id: "simple-beep",
-    name: "Simple Beep",
-    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
-    icon: <Bell className="h-5 w-5" />,
-  },
-  {
-    id: "notification",
-    name: "Notification Sound",
-    url: "https://assets.mixkit.co/active_storage/sfx/1513/1513-preview.mp3",
-    icon: <BellRing className="h-5 w-5" />,
-  },
   {
     id: "gentle-chime",
     name: "Gentle Chime",
@@ -41,22 +30,34 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     icon: <Clock className="h-5 w-5" />,
   },
   {
-    id: "calm-bell",
-    name: "Calm Bell",
+    id: "soft-bell",
+    name: "Soft Bell",
     url: "https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3",
     icon: <AlarmClock className="h-5 w-5" />,
   },
   {
-    id: "soft-alert",
-    name: "Soft Alert",
-    url: "https://assets.mixkit.co/active_storage/sfx/1860/1860-preview.mp3",
+    id: "subtle-ding",
+    name: "Subtle Ding",
+    url: "https://assets.mixkit.co/active_storage/sfx/2466/2466-preview.mp3",
     icon: <Bell className="h-5 w-5" />,
   },
   {
-    id: "minimal-tone",
-    name: "Minimal Tone",
-    url: "https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3",
+    id: "light-chime",
+    name: "Light Chime",
+    url: "https://assets.mixkit.co/active_storage/sfx/1860/1860-preview.mp3",
     icon: <BellRing className="h-5 w-5" />,
+  },
+  {
+    id: "calm-tone",
+    name: "Calm Tone",
+    url: "https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3",
+    icon: <Clock className="h-5 w-5" />,
+  },
+  {
+    id: "meditation-bell",
+    name: "Meditation Bell",
+    url: "https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3",
+    icon: <Bell className="h-5 w-5" />,
   },
 ];
 
