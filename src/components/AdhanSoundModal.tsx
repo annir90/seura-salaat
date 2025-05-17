@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertTriangle, Play, Pause, Bell, BellRing } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell, BellRing, Clock, AlarmClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
@@ -21,7 +20,7 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with simpler notification sounds
+// Updated with more prayer-suitable notification sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "simple-beep",
@@ -33,6 +32,30 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     id: "notification",
     name: "Notification Sound",
     url: "https://assets.mixkit.co/active_storage/sfx/1513/1513-preview.mp3",
+    icon: <BellRing className="h-5 w-5" />,
+  },
+  {
+    id: "gentle-chime",
+    name: "Gentle Chime",
+    url: "https://assets.mixkit.co/active_storage/sfx/2514/2514-preview.mp3",
+    icon: <Clock className="h-5 w-5" />,
+  },
+  {
+    id: "calm-bell",
+    name: "Calm Bell",
+    url: "https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3",
+    icon: <AlarmClock className="h-5 w-5" />,
+  },
+  {
+    id: "soft-alert",
+    name: "Soft Alert",
+    url: "https://assets.mixkit.co/active_storage/sfx/1860/1860-preview.mp3",
+    icon: <Bell className="h-5 w-5" />,
+  },
+  {
+    id: "minimal-tone",
+    name: "Minimal Tone",
+    url: "https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3",
     icon: <BellRing className="h-5 w-5" />,
   },
 ];
