@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -289,20 +290,20 @@ const QuranPage = () => {
             </div>
           </div>
           
-          {/* Fixed Footer with Pagination - Made more visible and improved */}
+          {/* Fixed Footer with Pagination - Made more clearly visible */}
           {totalPages > 1 && (
-            <div className="sticky bottom-0 left-0 right-0 p-4 border-t bg-background shadow-md">
-              <div className="flex flex-col sm:flex-row items-center justify-between max-w-4xl mx-auto gap-2">
-                <div className="text-sm text-muted-foreground order-2 sm:order-1">
+            <div className="fixed bottom-0 left-0 right-0 p-6 border-t bg-background/95 backdrop-blur-sm shadow-lg">
+              <div className="flex flex-col sm:flex-row items-center justify-between max-w-4xl mx-auto gap-4">
+                <div className="text-sm text-muted-foreground order-2 sm:order-1 mb-2 sm:mb-0">
                   Showing verses {start + 1}-{end} of {filteredAyahs.length}
                 </div>
                 
                 <Pagination className="order-1 sm:order-2">
-                  <PaginationContent>
+                  <PaginationContent className="flex-wrap gap-2">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => paginate(currentPage - 1)} 
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        className={`${currentPage === 1 ? "pointer-events-none opacity-50" : ""} bg-muted/50 hover:bg-muted`}
                       />
                     </PaginationItem>
                     
@@ -311,7 +312,7 @@ const QuranPage = () => {
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => paginate(currentPage + 1)}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                        className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : ""} bg-muted/50 hover:bg-muted`}
                       />
                     </PaginationItem>
                   </PaginationContent>
