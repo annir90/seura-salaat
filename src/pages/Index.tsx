@@ -63,19 +63,6 @@ const Index = () => {
                 </div>
               ))}
             </div>
-            
-            <div className="mt-3 flex justify-center">
-              <Button 
-                variant="outline" 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 flex items-center gap-2"
-                asChild
-              >
-                <Link to="/calendar">
-                  <Calendar className="h-4 w-4" />
-                  Prayer Calendar
-                </Link>
-              </Button>
-            </div>
           </div>
           
           <div className="mb-6">
@@ -83,6 +70,19 @@ const Index = () => {
             {prayerTimes.map((prayer) => (
               <PrayerCard key={prayer.id} prayer={prayer} />
             ))}
+          </div>
+          
+          <div className="flex justify-center mt-2 mb-8">
+            <Button 
+              variant="outline" 
+              className="bg-prayer-light hover:bg-prayer-light/80 text-prayer-primary border-prayer-light/60 flex items-center gap-2"
+              asChild
+            >
+              <Link to="/calendar">
+                <Calendar className="h-5 w-5" />
+                Prayer Calendar
+              </Link>
+            </Button>
           </div>
         </>
       )}
