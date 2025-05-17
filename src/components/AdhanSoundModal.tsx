@@ -3,13 +3,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Volume2, Check, AlertTriangle, Play, Pause } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell, BellRing } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
   id: string;
   name: string;
   url: string;
+  icon: React.ReactNode;
 }
 
 interface AdhanSoundModalProps {
@@ -20,17 +21,19 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more reliable audio sources
+// Updated with simpler notification sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
-    id: "makkah",
-    name: "Adhan Makkah",
-    url: "https://islamcan.com/audio/adhan/masjid-al-haram.mp3",
+    id: "simple-beep",
+    name: "Simple Beep",
+    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
+    icon: <Bell className="h-5 w-5" />,
   },
   {
-    id: "madinah",
-    name: "Adhan Madinah",
-    url: "https://islamcan.com/audio/adhan/masjid-al-nabawi.mp3",
+    id: "notification",
+    name: "Notification Sound",
+    url: "https://assets.mixkit.co/active_storage/sfx/1513/1513-preview.mp3",
+    icon: <BellRing className="h-5 w-5" />,
   },
 ];
 
@@ -193,6 +196,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  {option.icon}
                   {selectedSoundId === option.id && (
                     <Check className="h-4 w-4 text-prayer-primary" />
                   )}
