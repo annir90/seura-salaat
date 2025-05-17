@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
-import { Bell, VolumeX } from "lucide-react";
+import { Bell } from "lucide-react";
 import AdhanSoundModal from "./AdhanSoundModal";
 
 interface PrayerCardProps {
@@ -49,9 +48,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   };
 
   const getNotificationIcon = () => {
-    if (selectedSound === "silent-notification") {
-      return <VolumeX size={20} className="text-prayer-primary" />;
-    }
+    // Always use Bell icon, with different styling for selections
     return <Bell size={20} className={selectedSound ? "text-prayer-primary" : ""} />;
   };
 
