@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,7 +93,7 @@ const QuranPage = () => {
     }
   }, [selectedSurah, surahs]);
 
-  // Get current items for pagination - FIXED: ensure proper calculation of items per page
+  // Get current items for pagination - Ensure proper calculation of items per page
   const calculateItemsRange = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -219,9 +218,9 @@ const QuranPage = () => {
 
       {/* Reading Mode - Full Screen Quran View */}
       {readingMode && !loading && selectedSurah && filteredAyahs.length > 0 && (
-        <div className="fixed inset-0 bg-background z-50 overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-background z-50 overflow-auto flex flex-col">
           {/* Minimal Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
+          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
             <Button 
               variant="ghost" 
               className="flex items-center gap-2" 
@@ -245,9 +244,9 @@ const QuranPage = () => {
             </button>
           </div>
           
-          {/* Quran Content */}
-          <ScrollArea className="flex-1 p-4 md:p-8 lg:p-12">
-            <div className="max-w-4xl mx-auto space-y-8 pb-20">
+          {/* Quran Content - Changed from ScrollArea to div with overflow-auto for better scrolling */}
+          <div className="flex-1 p-4 md:p-8 lg:p-12 overflow-auto">
+            <div className="max-w-4xl mx-auto space-y-8 pb-24">
               {currentAyahs.map((ayah) => (
                 <div key={ayah.number} className="p-4 md:p-6 bg-card border rounded-lg">
                   <div className="flex items-center justify-between mb-3">
@@ -276,11 +275,11 @@ const QuranPage = () => {
                 </div>
               ))}
             </div>
-          </ScrollArea>
+          </div>
           
           {/* Fixed Footer with Pagination */}
           {totalPages > 1 && (
-            <div className="fixed bottom-0 left-0 right-0 p-4 border-t bg-background/95 backdrop-blur-sm">
+            <div className="sticky bottom-0 left-0 right-0 p-4 border-t bg-background/95 backdrop-blur-sm">
               <div className="flex items-center justify-between max-w-4xl mx-auto">
                 <div className="text-sm text-muted-foreground">
                   Showing verses {start + 1}-{end} of {filteredAyahs.length}
