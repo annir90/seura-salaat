@@ -87,55 +87,67 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   };
 
   const playSound = (soundId: string) => {
-    // Stop any other playing sounds first
-    stopAllSounds();
-    
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
     
-    // Handle regular audio options
-    if (soundOption.url) {
-      // Get or create the audio element
-      let audioEl = audioRefs.current[soundId];
-      if (!audioEl) {
-        audioEl = new Audio(soundOption.url);
-        audioRefs.current[soundId] = audioEl;
-        
-        // Set up event listeners that persist for the audio instance
-        audioEl.onended = () => {
-          setIsPlaying(null);
-          console.log(`Audio ${soundOption.name} playback completed`);
-        };
-        
-        audioEl.onerror = (e) => {
-          console.error(`Error loading audio for ${soundOption.name}`, e);
-          handlePlaybackError(soundId, soundOption.name);
-        };
+    // Check if the sound is already playing
+    if (isPlaying === soundId) {
+      // If playing, pause it
+      const audioEl = audioRefs.current[soundId];
+      if (audioEl) {
+        audioEl.pause();
       }
-
-      // Force reload the audio source to ensure it's fresh
-      audioEl.src = soundOption.url;
-      audioEl.load();
-
-      // Play the sound with better error handling
-      setIsPlaying(soundId);
+      setIsPlaying(null);
+    } else {
+      // Stop any other playing sounds first
+      stopAllSounds();
       
-      try {
-        const playPromise = audioEl.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log(`Playing ${soundOption.name}`);
-            })
-            .catch(error => {
-              console.error("Play failed:", error);
-              handlePlaybackError(soundId, soundOption.name);
-            });
+      // Handle regular audio options
+      if (soundOption.url) {
+        // Get or create the audio element
+        let audioEl = audioRefs.current[soundId];
+        if (!audioEl) {
+          audioEl = new Audio(soundOption.url);
+          audioRefs.current[soundId] = audioEl;
+          
+          // Set up event listeners that persist for the audio instance
+          audioEl.onended = () => {
+            setIsPlaying(null);
+            console.log(`Audio ${soundOption.name} playback completed`);
+          };
+          
+          audioEl.onerror = (e) => {
+            console.error(`Error loading audio for ${soundOption.name}`, e);
+            handlePlaybackError(soundId, soundOption.name);
+          };
         }
-      } catch (error) {
-        console.error("Play error:", error);
-        handlePlaybackError(soundId, soundOption.name);
+
+        // Force reload the audio source to ensure it's fresh
+        if (!isPlaying) {
+          audioEl.src = soundOption.url;
+          audioEl.load();
+        }
+
+        // Play the sound with better error handling
+        setIsPlaying(soundId);
+        
+        try {
+          const playPromise = audioEl.play();
+          
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log(`Playing ${soundOption.name}`);
+              })
+              .catch(error => {
+                console.error("Play failed:", error);
+                handlePlaybackError(soundId, soundOption.name);
+              });
+          }
+        } catch (error) {
+          console.error("Play error:", error);
+          handlePlaybackError(soundId, soundOption.name);
+        }
       }
     }
   };
@@ -208,7 +220,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                       size="sm"
                       className="text-xs px-3 h-8"
                       onClick={() => playSound(option.id)}
-                      disabled={isCurrentlyPlaying}
                     >
                       {isCurrentlyPlaying ? <Pause size={16} /> : <Play size={16} />}
                       {isCurrentlyPlaying ? ' Stop' : ' Play'}
