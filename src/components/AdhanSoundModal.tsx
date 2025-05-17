@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertTriangle, Play, Pause, Bell, BellRing, Clock, AlarmClock } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdhanSoundOption {
@@ -21,7 +20,7 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with softer, gentler notification sounds
+// Reduced to 3 high-quality, soft notification sounds
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "gentle-chime",
@@ -30,35 +29,17 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
     icon: <Clock className="h-5 w-5" />,
   },
   {
-    id: "soft-bell",
-    name: "Soft Bell",
-    url: "https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3",
-    icon: <AlarmClock className="h-5 w-5" />,
+    id: "meditation-bell",
+    name: "Meditation Bell",
+    url: "https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3",
+    icon: <Bell className="h-5 w-5" />,
   },
   {
     id: "subtle-ding",
     name: "Subtle Ding",
     url: "https://assets.mixkit.co/active_storage/sfx/2466/2466-preview.mp3",
     icon: <Bell className="h-5 w-5" />,
-  },
-  {
-    id: "light-chime",
-    name: "Light Chime",
-    url: "https://assets.mixkit.co/active_storage/sfx/1860/1860-preview.mp3",
-    icon: <BellRing className="h-5 w-5" />,
-  },
-  {
-    id: "calm-tone",
-    name: "Calm Tone",
-    url: "https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3",
-    icon: <Clock className="h-5 w-5" />,
-  },
-  {
-    id: "meditation-bell",
-    name: "Meditation Bell",
-    url: "https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3",
-    icon: <Bell className="h-5 w-5" />,
-  },
+  }
 ];
 
 const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
