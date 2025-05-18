@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,18 +20,18 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list with more reliable audio URLs
+// Updated options list with actual Adhan audio files
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3", // More reliable Islamic audio source
+    url: "https://islamcan.com/audio/adhan/adhan-makka.mp3", // Actual Adhan audio file
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2.mp3", // Another reliable source
+    url: "https://islamcan.com/audio/adhan/adhan-madina.mp3", // Another Adhan variation
     icon: <Bell size={20} />,
   }
 ];
