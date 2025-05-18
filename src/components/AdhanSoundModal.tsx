@@ -21,18 +21,19 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated sound options with more reliable audio sources
+// Use more reliable adhan sound sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://www.islamcan.com/audio/adhan/azan6.mp3", // Using the specified adhan sound
+    // Using a direct file URL instead of third-party service
+    url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg", // Keep the second option as is
+    url: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
     icon: <Bell size={20} />,
   }
 ];
@@ -93,112 +94,127 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     setIsPlaying(null);
   };
 
+  // Improved audio loading and playback function
   const playSound = (soundId: string) => {
     const soundOption = ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
     
-    // Check if the sound is already playing
+    // Stop if already playing this sound
     if (isPlaying === soundId) {
-      // If playing, pause it
       const audioEl = audioRefs.current[soundId];
       if (audioEl) {
         audioEl.pause();
         setIsPlaying(null);
       }
-    } else {
-      // Stop any other playing sounds first
-      stopAllSounds();
-      
-      if (soundOption.url) {
-        try {
-          // First remove any existing audio element for this sound to prevent conflicts
-          if (audioRefs.current[soundId]) {
-            const oldAudio = audioRefs.current[soundId];
-            if (oldAudio) {
-              oldAudio.pause();
-              oldAudio.src = "";
-            }
-            audioRefs.current[soundId] = null;
-          }
-          
-          // Create new audio element
-          const audioEl = new Audio();
-          
-          console.log(`Creating new audio element for ${soundOption.name}`);
-          
-          // Store the audio element first so we can reference it in callbacks
-          audioRefs.current[soundId] = audioEl;
-          
-          // Set up event listeners before setting source
-          audioEl.addEventListener('canplaythrough', () => {
-            console.log(`Audio ${soundOption.name} is ready to play`);
-          });
-          
-          audioEl.addEventListener('error', (e) => {
-            console.error(`Error loading audio for ${soundOption.name}:`, e);
-            handlePlaybackError(soundId, soundOption.name);
-          });
-          
-          audioEl.addEventListener('ended', () => {
-            console.log(`Audio ${soundOption.name} playback completed`);
-            setIsPlaying(null);
-          });
-          
-          audioEl.addEventListener('loadstart', () => {
-            console.log(`Started loading ${soundOption.name} audio`);
-          });
-          
-          // Try with and without crossOrigin to handle different server configurations
-          // Some servers might reject the request with crossOrigin set
-          if (soundOption.url.includes('islamcan.com')) {
-            // For islamcan.com, we don't set crossOrigin as it might cause issues
-            audioEl.preload = "auto";
-          } else {
-            // For other sources like Google, we use crossOrigin
-            audioEl.crossOrigin = "anonymous";
-            audioEl.preload = "auto";
-          }
-          
-          // Log URL before setting it
-          console.log(`Loading ${soundOption.name} from URL: ${soundOption.url}`);
-          audioEl.src = soundOption.url;
-          
-          // Begin loading
-          audioEl.load();
-          
-          // Set playing state
-          setIsPlaying(soundId);
-          
-          // Add a small delay before playing to ensure loading has started
-          setTimeout(() => {
-            if (audioRefs.current[soundId] === audioEl) {
-              console.log(`Attempting to play ${soundOption.name}`);
-              const playPromise = audioEl.play();
-              
-              if (playPromise !== undefined) {
-                playPromise
-                  .then(() => {
-                    console.log(`Successfully playing ${soundOption.name}`);
-                  })
-                  .catch(error => {
-                    console.error(`Play failed for ${soundOption.name}:`, error);
-                    // Try one more time without user interaction requirement
-                    setTimeout(() => {
-                      audioEl.play().catch(e => {
-                        console.error(`Second play attempt failed for ${soundOption.name}:`, e);
-                        handlePlaybackError(soundId, soundOption.name);
-                      });
-                    }, 100);
-                  });
-              }
-            }
-          }, 100);
-        } catch (error) {
-          console.error(`General error with ${soundOption.name}:`, error);
-          handlePlaybackError(soundId, soundOption.name);
+      return;
+    }
+    
+    // Stop any other playing sounds first
+    stopAllSounds();
+    
+    if (!soundOption.url) return;
+    
+    // Set playing state immediately to update UI
+    setIsPlaying(soundId);
+    
+    try {
+      // Clean up any existing audio element for this sound
+      if (audioRefs.current[soundId]) {
+        const oldAudio = audioRefs.current[soundId];
+        if (oldAudio) {
+          oldAudio.pause();
+          oldAudio.src = "";
+          oldAudio.load(); // Force unload
         }
       }
+      
+      // Create new audio element with optimized settings
+      const audioEl = new Audio();
+      
+      // For adhan sound specifically, we'll use these settings
+      if (soundOption.id === "traditional-adhan") {
+        // Don't set crossOrigin for Islamic audio sources as they may reject it
+        audioEl.preload = "auto";
+        audioEl.autoplay = false; // We'll manually play
+      } else {
+        // For other sources 
+        audioEl.crossOrigin = "anonymous";
+        audioEl.preload = "auto";
+      }
+      
+      // Store reference before setting up events
+      audioRefs.current[soundId] = audioEl;
+      
+      // Set up listeners
+      audioEl.addEventListener('canplaythrough', () => {
+        console.log(`Audio ${soundOption.name} is ready to play`);
+        if (audioRefs.current[soundId] === audioEl) {
+          playAudioElement(audioEl, soundId, soundOption.name);
+        }
+      });
+      
+      audioEl.addEventListener('ended', () => {
+        console.log(`Audio ${soundOption.name} playback completed`);
+        setIsPlaying(null);
+      });
+      
+      audioEl.addEventListener('error', (e) => {
+        console.error(`Error loading audio for ${soundOption.name}:`, e);
+        handlePlaybackError(soundId, soundOption.name);
+      });
+      
+      // Set source and begin loading
+      console.log(`Loading ${soundOption.name} from URL: ${soundOption.url}`);
+      audioEl.src = soundOption.url;
+      audioEl.load();
+      
+      // Try to play after a short delay to give time for initial loading
+      setTimeout(() => {
+        if (isPlaying === soundId && audioRefs.current[soundId] === audioEl) {
+          playAudioElement(audioEl, soundId, soundOption.name);
+        }
+      }, 200);
+      
+    } catch (error) {
+      console.error(`General error with ${soundOption.name}:`, error);
+      handlePlaybackError(soundId, soundOption.name);
     }
+  };
+  
+  // Helper function to play audio with fallbacks
+  const playAudioElement = (audioEl: HTMLAudioElement, soundId: string, soundName: string) => {
+    console.log(`Attempting to play ${soundName}`);
+    
+    const playPromise = audioEl.play();
+    if (!playPromise) {
+      console.warn(`Browser didn't return play promise for ${soundName}`);
+      return;
+    }
+    
+    playPromise.then(() => {
+      console.log(`Successfully playing ${soundName}`);
+    }).catch(error => {
+      console.error(`Play failed for ${soundName}:`, error);
+      
+      // Special handling for autoplay policy errors (common in browsers)
+      if (error.name === 'NotAllowedError') {
+        toast({
+          title: "Playback Blocked",
+          description: "Your browser may be blocking autoplay. Please try again.",
+        });
+      } else {
+        // For network or other errors, use the built-in retry
+        setTimeout(() => {
+          if (isPlaying === soundId) {
+            console.log(`Retrying play for ${soundName}`);
+            audioEl.play().catch(e => {
+              console.error(`Retry play failed for ${soundName}:`, e);
+              handlePlaybackError(soundId, soundName);
+            });
+          }
+        }, 300);
+      }
+    });
   };
   
   const handlePlaybackError = (soundId: string, soundName: string) => {
@@ -207,7 +223,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     toast({
       title: "Audio Error",
-      description: `Failed to play ${soundName}. Please try again or select a different sound.`,
+      description: `Unable to play ${soundName}. Please try again or select a different sound.`,
       variant: "destructive",
     });
   };
