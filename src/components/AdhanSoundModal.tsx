@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,18 +21,18 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list with actual Adhan audio files
+// Updated options with working audio URLs
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://islamcan.com/audio/adhan/adhan-makka.mp3", // Actual Adhan audio file
+    url: "https://cdn.islamic.network/adhans/128/al-afasy.mp3", // Using Islamic Network's reliable adhan audio
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://islamcan.com/audio/adhan/adhan-madina.mp3", // Another Adhan variation
+    url: "https://cdn.islamic.network/adhans/128/abdul-basit.mp3", // Another reliable adhan source
     icon: <Bell size={20} />,
   }
 ];
@@ -129,10 +130,22 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 
         // Force reload the audio source to ensure it's fresh
         audioEl.src = soundOption.url;
+        
+        // Log the audio URL for debugging
+        console.log(`Loading audio from: ${soundOption.url}`);
+        
         audioEl.load();
 
         // Add more debugging
         console.log(`Starting playback of ${soundOption.name} from ${soundOption.url}`);
+
+        // Set preload attribute
+        audioEl.preload = "auto";
+        
+        // Add event for when audio is ready to play
+        audioEl.oncanplaythrough = () => {
+          console.log(`Audio ${soundOption.name} is ready to play`);
+        };
 
         // Play the sound with better error handling
         try {
