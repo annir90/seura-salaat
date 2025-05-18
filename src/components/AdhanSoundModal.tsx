@@ -21,18 +21,18 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options list with reliable audio URLs
+// Updated options list with more reliable audio URLs
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://www.islamcan.com/audio/adhan/azan6.mp3",
+    url: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3", // More reliable Islamic audio source
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3", // More reliable soft notification sound
+    url: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2.mp3", // Another reliable source
     icon: <Bell size={20} />,
   }
 ];
@@ -113,7 +113,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         // Get or create the audio element
         let audioEl = audioRefs.current[soundId];
         if (!audioEl) {
-          audioEl = new Audio(soundOption.url);
+          audioEl = new Audio();
           audioRefs.current[soundId] = audioEl;
           
           // Set up event listeners that persist for the audio instance
@@ -132,16 +132,18 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         audioEl.src = soundOption.url;
         audioEl.load();
 
+        // Add more debugging
+        console.log(`Starting playback of ${soundOption.name} from ${soundOption.url}`);
+
         // Play the sound with better error handling
-        setIsPlaying(soundId);
-        
         try {
+          setIsPlaying(soundId);
           const playPromise = audioEl.play();
           
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
-                console.log(`Playing ${soundOption.name}`);
+                console.log(`Successfully playing ${soundOption.name}`);
               })
               .catch(error => {
                 console.error("Play failed:", error);
@@ -207,7 +209,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {option.icon}
-                    <span className="font-medium">Sound</span>
+                    <span className="font-medium">{option.name}</span>
                     
                     {hasError && (
                       <AlertTriangle size={16} className="text-destructive" />
