@@ -26,13 +26,13 @@ const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg", // Reliable source from Google
+    url: "https://www.islamcan.com/audio/adhan/azan6.mp3", // Using the specified adhan sound
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg", // Another reliable Google source
+    url: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg", // Keep the second option as is
     icon: <Bell size={20} />,
   }
 ];
@@ -111,10 +111,23 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       
       if (soundOption.url) {
         try {
-          // Create new audio element each time
+          // First remove any existing audio element for this sound to prevent conflicts
+          if (audioRefs.current[soundId]) {
+            const oldAudio = audioRefs.current[soundId];
+            if (oldAudio) {
+              oldAudio.pause();
+              oldAudio.src = "";
+            }
+            audioRefs.current[soundId] = null;
+          }
+          
+          // Create new audio element
           const audioEl = new Audio();
           
           console.log(`Creating new audio element for ${soundOption.name}`);
+          
+          // Store the audio element first so we can reference it in callbacks
+          audioRefs.current[soundId] = audioEl;
           
           // Set up event listeners before setting source
           audioEl.addEventListener('canplaythrough', () => {
@@ -135,12 +148,16 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
             console.log(`Started loading ${soundOption.name} audio`);
           });
           
-          // Store the audio element
-          audioRefs.current[soundId] = audioEl;
-          
-          // Set properties
-          audioEl.crossOrigin = "anonymous"; // Add cross-origin attribute
-          audioEl.preload = "auto";
+          // Try with and without crossOrigin to handle different server configurations
+          // Some servers might reject the request with crossOrigin set
+          if (soundOption.url.includes('islamcan.com')) {
+            // For islamcan.com, we don't set crossOrigin as it might cause issues
+            audioEl.preload = "auto";
+          } else {
+            // For other sources like Google, we use crossOrigin
+            audioEl.crossOrigin = "anonymous";
+            audioEl.preload = "auto";
+          }
           
           // Log URL before setting it
           console.log(`Loading ${soundOption.name} from URL: ${soundOption.url}`);
@@ -149,21 +166,33 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
           // Begin loading
           audioEl.load();
           
-          // Set playing state and play
+          // Set playing state
           setIsPlaying(soundId);
           
-          const playPromise = audioEl.play();
-          
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                console.log(`Successfully playing ${soundOption.name}`);
-              })
-              .catch(error => {
-                console.error(`Play failed for ${soundOption.name}:`, error);
-                handlePlaybackError(soundId, soundOption.name);
-              });
-          }
+          // Add a small delay before playing to ensure loading has started
+          setTimeout(() => {
+            if (audioRefs.current[soundId] === audioEl) {
+              console.log(`Attempting to play ${soundOption.name}`);
+              const playPromise = audioEl.play();
+              
+              if (playPromise !== undefined) {
+                playPromise
+                  .then(() => {
+                    console.log(`Successfully playing ${soundOption.name}`);
+                  })
+                  .catch(error => {
+                    console.error(`Play failed for ${soundOption.name}:`, error);
+                    // Try one more time without user interaction requirement
+                    setTimeout(() => {
+                      audioEl.play().catch(e => {
+                        console.error(`Second play attempt failed for ${soundOption.name}:`, e);
+                        handlePlaybackError(soundId, soundOption.name);
+                      });
+                    }, 100);
+                  });
+              }
+            }
+          }, 100);
         } catch (error) {
           console.error(`General error with ${soundOption.name}:`, error);
           handlePlaybackError(soundId, soundOption.name);
