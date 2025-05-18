@@ -21,24 +21,24 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated with more reliable and direct adhan sound sources
+// Updated with local audio files instead of remote URLs
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Traditional Adhan",
-    url: "https://www.islamcan.com/audio/adhan/azan6.mp3", // Added www for potentially better hosting
+    url: "/audio/traditional-adhan.mp3", // Local file
     icon: <Bell size={20} />,
   },
   {
     id: "adhan-makkah",
     name: "Makkah Adhan",
-    url: "https://www.islamcan.com/audio/adhan/azan2.mp3", // Added www for potentially better hosting
+    url: "/audio/makkah-adhan.mp3", // Local file
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://muslim-info-app-seo.appspot.com/audio/soft-notification.mp3", // Changed to a different audio source
+    url: "/audio/soft-notification.mp3", // Local file
     icon: <Bell size={20} />,
   }
 ];
@@ -103,10 +103,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 
       // Create new audio element with improved configuration
       const audio = new Audio();
-      
-      // Add cache-busting parameter to avoid browser caching issues
-      const cacheBuster = `?cb=${Date.now()}`;
-      audio.src = url + cacheBuster;
+      audio.src = url; // Using local path directly - no need for cache busting
       audio.preload = "auto";
       
       // Store reference
@@ -164,22 +161,16 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     setIsPlaying(soundId);
     
     try {
-      // Create a completely fresh audio instance for each play attempt
-      const audio = new Audio();
+      // Create a fresh audio instance
+      const audio = new Audio(soundOption.url);
       
-      // Set up event handlers before setting source
+      // Set up event handlers
       audio.addEventListener("play", () => {
         console.log(`${soundOption.name} playback started`);
       });
       
       audio.addEventListener("canplaythrough", () => {
         console.log(`${soundOption.name} is ready for playback`);
-        if (isPlaying === soundId) {
-          audio.play().catch(e => {
-            console.error(`Playback failed for ${soundOption.name}:`, e);
-            handlePlaybackError(soundId, soundOption.name);
-          });
-        }
       });
       
       audio.addEventListener("ended", () => {
@@ -192,96 +183,19 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         handlePlaybackError(soundId, soundOption.name);
       });
       
-      // Important: Set volume explicitly to ensure it's not muted
+      // Set explicit volume
       audio.volume = 1.0;
       
-      // Cache-busting for better reliability
-      const cacheBuster = `?cb=${Date.now() + Math.random()}`;
-      audio.src = soundOption.url + cacheBuster;
-      audio.preload = "auto";
-      
-      console.log(`Loading ${soundOption.name} from: ${audio.src}`);
-      
-      // Store reference to this audio element
+      // Store reference and start playing
       audioRefs.current[soundId] = audio;
       
-      // Manually load and attempt play
-      audio.load();
-      
-      // Add a slight delay before attempting to play
-      setTimeout(() => {
-        if (isPlaying === soundId && audioRefs.current[soundId] === audio) {
-          console.log(`Attempting delayed play of ${soundOption.name}`);
-          audio.play().catch(e => {
-            console.error(`Delayed play failed for ${soundOption.name}:`, e);
-            
-            // For Islamic audio, try one more approach
-            if (soundId.includes("adhan")) {
-              retryWithFallback(soundId, soundOption);
-            } else {
-              handlePlaybackError(soundId, soundOption.name);
-            }
-          });
-        }
-      }, 300);
+      // Play the audio
+      audio.play().catch(e => {
+        console.error(`Playback failed for ${soundOption.name}:`, e);
+        handlePlaybackError(soundId, soundOption.name);
+      });
     } catch (error) {
       console.error(`General error playing ${soundOption.name}:`, error);
-      handlePlaybackError(soundId, soundOption.name);
-    }
-  };
-  
-  const retryWithFallback = (soundId: string, soundOption: AdhanSoundOption) => {
-    console.log(`Retrying ${soundOption.name} with fallback approach`);
-    
-    try {
-      // Create an audio element directly in the DOM for better browser support
-      const audioElement = document.createElement('audio');
-      audioElement.id = `audio-${soundId}-${Date.now()}`;
-      audioElement.style.display = 'none';
-      audioElement.controls = true;
-      audioElement.volume = 1.0;
-      
-      // Add to DOM temporarily
-      document.body.appendChild(audioElement);
-      
-      // Set up source with cache busting
-      const source = document.createElement('source');
-      source.src = `${soundOption.url}?cb=${Date.now()}`;
-      source.type = 'audio/mpeg';
-      audioElement.appendChild(source);
-      
-      // Set up event handlers
-      audioElement.oncanplay = () => {
-        console.log(`DOM audio element for ${soundOption.name} can play`);
-        if (isPlaying === soundId) {
-          audioElement.play().catch(e => {
-            console.error(`DOM audio play failed for ${soundOption.name}:`, e);
-            handlePlaybackError(soundId, soundOption.name);
-          });
-        }
-      };
-      
-      audioElement.onended = () => {
-        console.log(`DOM audio for ${soundOption.name} ended`);
-        setIsPlaying(null);
-        // Clean up
-        document.body.removeChild(audioElement);
-      };
-      
-      audioElement.onerror = () => {
-        console.error(`DOM audio error for ${soundOption.name}`);
-        handlePlaybackError(soundId, soundOption.name);
-        // Clean up
-        document.body.removeChild(audioElement);
-      };
-      
-      // Store a reference so we can control it
-      audioRefs.current[soundId] = audioElement;
-      
-      // Load and play
-      audioElement.load();
-    } catch (e) {
-      console.error(`Fallback approach failed for ${soundOption.name}:`, e);
       handlePlaybackError(soundId, soundOption.name);
     }
   };
@@ -292,7 +206,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     toast({
       title: "Audio Playback Issue",
-      description: `Unable to play ${soundName}. Please try another sound.`,
+      description: `Unable to play ${soundName}. Please check if the audio file is available.`,
       variant: "destructive",
     });
   };
@@ -382,4 +296,3 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 };
 
 export default AdhanSoundModal;
-
