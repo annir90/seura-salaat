@@ -21,18 +21,18 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated sound options with working MP3 files in formats supported by browsers
+// Updated sound options with more reliable audio sources
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://www.islamcan.com/audio/adhan/adhan.mp3", // Simple MP3 adhan from IslamCan
+    url: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg", // Reliable source from Google
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://www.islamcan.com/audio/adhan/mishary-rashid-al-afasy-adhan.mp3", // Alternative adhan in MP3 format
+    url: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg", // Another reliable Google source
     icon: <Bell size={20} />,
   }
 ];
@@ -111,35 +111,47 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       
       if (soundOption.url) {
         try {
-          // Create new audio element each time to avoid caching issues
+          // Create new audio element each time
           const audioEl = new Audio();
-          audioRefs.current[soundId] = audioEl;
           
-          // Set up event listeners
-          audioEl.oncanplaythrough = () => {
+          console.log(`Creating new audio element for ${soundOption.name}`);
+          
+          // Set up event listeners before setting source
+          audioEl.addEventListener('canplaythrough', () => {
             console.log(`Audio ${soundOption.name} is ready to play`);
-          };
+          });
           
-          audioEl.onended = () => {
-            setIsPlaying(null);
-            console.log(`Audio ${soundOption.name} playback completed`);
-          };
-          
-          audioEl.onerror = (e) => {
+          audioEl.addEventListener('error', (e) => {
             console.error(`Error loading audio for ${soundOption.name}:`, e);
             handlePlaybackError(soundId, soundOption.name);
-          };
+          });
           
-          audioEl.onloadstart = () => console.log(`Started loading ${soundOption.name} audio`);
+          audioEl.addEventListener('ended', () => {
+            console.log(`Audio ${soundOption.name} playback completed`);
+            setIsPlaying(null);
+          });
           
-          // Set audio properties
+          audioEl.addEventListener('loadstart', () => {
+            console.log(`Started loading ${soundOption.name} audio`);
+          });
+          
+          // Store the audio element
+          audioRefs.current[soundId] = audioEl;
+          
+          // Set properties
+          audioEl.crossOrigin = "anonymous"; // Add cross-origin attribute
           audioEl.preload = "auto";
+          
+          // Log URL before setting it
+          console.log(`Loading ${soundOption.name} from URL: ${soundOption.url}`);
           audioEl.src = soundOption.url;
           
-          console.log(`Loading ${soundOption.name} from URL: ${soundOption.url}`);
+          // Begin loading
+          audioEl.load();
           
-          // Play the sound
+          // Set playing state and play
           setIsPlaying(soundId);
+          
           const playPromise = audioEl.play();
           
           if (playPromise !== undefined) {
