@@ -21,18 +21,18 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated options with working audio URLs
+// Updated sound options with working MP3 files in formats supported by browsers
 const ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
     name: "Adhan",
-    url: "https://cdn.islamic.network/adhans/128/al-afasy.mp3", // Using Islamic Network's reliable adhan audio
+    url: "https://www.islamcan.com/audio/adhan/adhan.mp3", // Simple MP3 adhan from IslamCan
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
     name: "Soft Reminder",
-    url: "https://cdn.islamic.network/adhans/128/abdul-basit.mp3", // Another reliable adhan source
+    url: "https://www.islamcan.com/audio/adhan/mishary-rashid-al-afasy-adhan.mp3", // Alternative adhan in MP3 format
     icon: <Bell size={20} />,
   }
 ];
@@ -68,6 +68,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   // Clean up on component unmount
   useEffect(() => {
     return () => {
+      stopAllSounds();
       Object.values(audioRefs.current).forEach(audio => {
         if (audio) {
           audio.pause();
@@ -108,47 +109,36 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       // Stop any other playing sounds first
       stopAllSounds();
       
-      // Handle regular audio options
       if (soundOption.url) {
-        // Get or create the audio element
-        let audioEl = audioRefs.current[soundId];
-        if (!audioEl) {
-          audioEl = new Audio();
+        try {
+          // Create new audio element each time to avoid caching issues
+          const audioEl = new Audio();
           audioRefs.current[soundId] = audioEl;
           
-          // Set up event listeners that persist for the audio instance
+          // Set up event listeners
+          audioEl.oncanplaythrough = () => {
+            console.log(`Audio ${soundOption.name} is ready to play`);
+          };
+          
           audioEl.onended = () => {
             setIsPlaying(null);
             console.log(`Audio ${soundOption.name} playback completed`);
           };
           
           audioEl.onerror = (e) => {
-            console.error(`Error loading audio for ${soundOption.name}`, e);
+            console.error(`Error loading audio for ${soundOption.name}:`, e);
             handlePlaybackError(soundId, soundOption.name);
           };
-        }
-
-        // Force reload the audio source to ensure it's fresh
-        audioEl.src = soundOption.url;
-        
-        // Log the audio URL for debugging
-        console.log(`Loading audio from: ${soundOption.url}`);
-        
-        audioEl.load();
-
-        // Add more debugging
-        console.log(`Starting playback of ${soundOption.name} from ${soundOption.url}`);
-
-        // Set preload attribute
-        audioEl.preload = "auto";
-        
-        // Add event for when audio is ready to play
-        audioEl.oncanplaythrough = () => {
-          console.log(`Audio ${soundOption.name} is ready to play`);
-        };
-
-        // Play the sound with better error handling
-        try {
+          
+          audioEl.onloadstart = () => console.log(`Started loading ${soundOption.name} audio`);
+          
+          // Set audio properties
+          audioEl.preload = "auto";
+          audioEl.src = soundOption.url;
+          
+          console.log(`Loading ${soundOption.name} from URL: ${soundOption.url}`);
+          
+          // Play the sound
           setIsPlaying(soundId);
           const playPromise = audioEl.play();
           
@@ -158,12 +148,12 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                 console.log(`Successfully playing ${soundOption.name}`);
               })
               .catch(error => {
-                console.error("Play failed:", error);
+                console.error(`Play failed for ${soundOption.name}:`, error);
                 handlePlaybackError(soundId, soundOption.name);
               });
           }
         } catch (error) {
-          console.error("Play error:", error);
+          console.error(`General error with ${soundOption.name}:`, error);
           handlePlaybackError(soundId, soundOption.name);
         }
       }
@@ -176,7 +166,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     toast({
       title: "Audio Error",
-      description: `Failed to play ${soundName}. Please try again.`,
+      description: `Failed to play ${soundName}. Please try again or select a different sound.`,
       variant: "destructive",
     });
   };
