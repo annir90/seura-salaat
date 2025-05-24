@@ -9,6 +9,24 @@ const Index = () => {
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Hadith collection with Arabic and English
+  const hadiths = [
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الصَّلَاةُ عِمَادُ الدِّينِ",
+      english: "The Prophet (peace be upon him) said: 'Prayer is the pillar of religion.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: أَوَّلُ مَا يُحَاسَبُ بِهِ الْعَبْدُ يَوْمَ الْقِيَامَةِ الصَّلَاةُ",
+      english: "The Prophet (peace be upon him) said: 'The first thing a person will be held accountable for on the Day of Judgment is prayer.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ حَافَظَ عَلَى الصَّلَوَاتِ الْخَمْسِ كَانَتْ لَهُ نُورًا وَبُرْهَانًا وَنَجَاةً يَوْمَ الْقِيَامَةِ",
+      english: "The Prophet (peace be upon him) said: 'Whoever maintains the five prayers, they will be a light, proof, and salvation for him on the Day of Judgment.'"
+    }
+  ];
+  
+  const [currentHadith, setCurrentHadith] = useState(0);
+  
   // Load prayer times
   const loadPrayerTimes = async () => {
     try {
@@ -38,6 +56,15 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Rotate hadith every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHadith((prev) => (prev + 1) % hadiths.length);
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Check if today is Friday
   const isFriday = () => {
     const today = new Date();
@@ -53,14 +80,26 @@ const Index = () => {
       ) : (
         <>
           <div className="bg-gradient-purple rounded-2xl p-6 text-white mb-6 shadow-lg">
-            <h2 className="font-medium text-lg mb-4">Today's Prayer Times</h2>
-            <div className="flex flex-wrap justify-between">
-              {prayerTimes.map((prayer) => (
-                <div key={prayer.id} className="mb-3 text-center w-1/3">
-                  <p className="text-xs opacity-80">{prayer.name}</p>
-                  <p className="font-semibold">{prayer.time}</p>
-                </div>
-              ))}
+            <h2 className="font-medium text-lg mb-4">Hadith of the Day</h2>
+            <div className="space-y-4">
+              <div>
+                <p dir="rtl" className="text-right text-xl font-arabic leading-loose mb-3">
+                  {hadiths[currentHadith].arabic}
+                </p>
+                <p className="text-sm opacity-90 leading-relaxed">
+                  {hadiths[currentHadith].english}
+                </p>
+              </div>
+              <div className="flex justify-center space-x-2 mt-4">
+                {hadiths.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentHadith ? 'bg-white' : 'bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
           
