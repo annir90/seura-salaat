@@ -25,13 +25,15 @@ const SettingsPage = () => {
   const [location, setLocation] = useState<Location>(getSelectedLocation());
   const [calculationMethod, setCalculationMethod] = useState("ISNA");
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
-  const [userEmail] = useState<string | null>(null); // Will be connected to auth later
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userStatus, setUserStatus] = useState<"visitor" | "signed-in">("visitor");
   const { theme, setTheme } = useTheme();
   
-  // Load available locations
+  // Load available locations and check user status
   useEffect(() => {
     setAvailableLocations(getAvailableLocations());
     autoDetectLocation();
+    checkUserStatus();
   }, []);
   
   // Load calculation method from localStorage
@@ -40,7 +42,27 @@ const SettingsPage = () => {
     if (savedMethod) {
       setCalculationMethod(savedMethod);
     }
+    
+    const savedNotifications = localStorage.getItem('prayer-notifications-enabled');
+    if (savedNotifications) {
+      setNotifications(savedNotifications === 'true');
+    }
   }, []);
+
+  // Check user authentication status
+  const checkUserStatus = () => {
+    // Check for stored user email or auth token
+    const storedEmail = localStorage.getItem('user-email');
+    const authToken = localStorage.getItem('auth-token');
+    
+    if (storedEmail || authToken) {
+      setUserEmail(storedEmail || "user@example.com");
+      setUserStatus("signed-in");
+    } else {
+      setUserEmail(null);
+      setUserStatus("visitor");
+    }
+  };
 
   // Auto-detect user location
   const autoDetectLocation = () => {
@@ -92,6 +114,11 @@ const SettingsPage = () => {
     localStorage.setItem('prayer-notifications-enabled', enabled.toString());
     toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
   };
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme as any);
+    toast.success(`Theme changed to ${newTheme}`);
+  };
   
   return (
     <div>
@@ -105,10 +132,10 @@ const SettingsPage = () => {
             <User className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="font-medium">
-                {userEmail ? userEmail : "Visitor"}
+                {userStatus === "signed-in" ? (userEmail || "Signed in user") : "Visitor"}
               </p>
               <p className="text-sm text-muted-foreground">
-                {userEmail ? "Signed in" : "Not signed in"}
+                {userStatus === "signed-in" ? "Signed in" : "Not signed in"}
               </p>
             </div>
           </div>
@@ -121,7 +148,7 @@ const SettingsPage = () => {
             <Label htmlFor="theme">Theme</Label>
             <RadioGroup
               value={theme}
-              onValueChange={(value) => setTheme(value as any)}
+              onValueChange={handleThemeChange}
               className="flex gap-4"
             >
               <div className="flex items-center space-x-2">
