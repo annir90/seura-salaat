@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
+import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown, Bookmark, BookmarkCheck } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,6 +22,7 @@ const QuranPage = () => {
   const [readingMode, setReadingMode] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isScrolledUp, setIsScrolledUp] = useState(true);
+  const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,6 +30,11 @@ const QuranPage = () => {
       setLoading(true);
       const surahsData = await fetchSurahs();
       setSurahs(surahsData);
+      
+      // Load saved bookmark
+      const savedBookmark = getBookmark();
+      setBookmark(savedBookmark);
+      
       setLoading(false);
     };
     
@@ -98,6 +104,13 @@ const QuranPage = () => {
           title: `Surah ${surahName} loaded`,
           description: `Successfully loaded all ${ayahsData.length} verses`,
         });
+
+        // Scroll to bookmarked verse if it's in this surah
+        if (bookmark && bookmark.surahNumber === surahNumber) {
+          setTimeout(() => {
+            scrollToBookmarkedVerse(bookmark.ayahNumber);
+          }, 500);
+        }
       } catch (error) {
         console.error("Error loading surah:", error);
         toast({
@@ -113,7 +126,33 @@ const QuranPage = () => {
     if (selectedSurah) {
       loadCompleteSurah();
     }
-  }, [selectedSurah, surahs]);
+  }, [selectedSurah, surahs, bookmark]);
+
+  // Function to scroll to bookmarked verse
+  const scrollToBookmarkedVerse = (ayahNumber: number) => {
+    const element = document.getElementById(`ayah-${ayahNumber}`);
+    if (element && contentRef.current) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  // Function to handle verse bookmarking
+  const handleBookmarkVerse = (ayahNumber: number) => {
+    const surahNumber = parseInt(selectedSurah);
+    saveBookmark(surahNumber, ayahNumber);
+    setBookmark({ surahNumber, ayahNumber, timestamp: Date.now() });
+    toast({
+      title: "Verse Bookmarked",
+      description: `Surah ${getSurahName(surahNumber)} - Verse ${ayahNumber}`,
+    });
+  };
+
+  // Check if a verse is bookmarked
+  const isVerseBookmarked = (ayahNumber: number) => {
+    return bookmark && 
+           bookmark.surahNumber === parseInt(selectedSurah) && 
+           bookmark.ayahNumber === ayahNumber;
+  };
 
   // Find surah name by surah number
   const getSurahName = (surahNumber: number) => {
@@ -143,6 +182,27 @@ const QuranPage = () => {
           </div>
           <h1 className="text-2xl font-bold">Noble Quran</h1>
           <p className="text-muted-foreground mb-4">Select a Surah to begin reading</p>
+          
+          {/* Show last read bookmark */}
+          {bookmark && (
+            <div className="bg-prayer-primary/10 dark:bg-prayer-primary/20 rounded-lg p-4 mb-4 border border-prayer-primary/20">
+              <div className="flex items-center gap-2 mb-2">
+                <BookmarkCheck className="h-4 w-4 text-prayer-primary" />
+                <span className="font-medium text-sm">Continue Reading</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {getSurahName(bookmark.surahNumber)} - Verse {bookmark.ayahNumber}
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+                onClick={() => setSelectedSurah(bookmark.surahNumber.toString())}
+              >
+                Continue Reading
+              </Button>
+            </div>
+          )}
           
           {/* Surah Selector */}
           <div className="w-full max-w-xs mb-4">
@@ -217,11 +277,30 @@ const QuranPage = () => {
           <div ref={contentRef} className="flex-1 overflow-auto quran-content-area">
             <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-8 lg:p-12">
               {allAyahs.map((ayah) => (
-                <div key={ayah.number} className="p-4 md:p-6 bg-card border rounded-lg">
+                <div 
+                  key={ayah.number} 
+                  id={`ayah-${ayah.numberInSurah}`}
+                  className={`p-4 md:p-6 bg-card border rounded-lg ${
+                    isVerseBookmarked(ayah.numberInSurah) 
+                      ? 'border-prayer-primary bg-prayer-primary/5' 
+                      : ''
+                  }`}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full font-medium">
                       {ayah.numberInSurah}
                     </span>
+                    <button
+                      onClick={() => handleBookmarkVerse(ayah.numberInSurah)}
+                      className="p-2 rounded-full hover:bg-muted transition-colors"
+                      title="Bookmark this verse"
+                    >
+                      {isVerseBookmarked(ayah.numberInSurah) ? (
+                        <BookmarkCheck className="h-4 w-4 text-prayer-primary" />
+                      ) : (
+                        <Bookmark className="h-4 w-4 text-muted-foreground hover:text-prayer-primary" />
+                      )}
+                    </button>
                   </div>
                   
                   <div className="space-y-4">

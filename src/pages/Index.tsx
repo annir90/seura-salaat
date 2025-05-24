@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
@@ -9,7 +8,7 @@ const Index = () => {
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Hadith collection with Arabic and English
+  // Expanded hadith collection with Arabic and English (20 hadiths)
   const hadiths = [
     {
       arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الصَّلَاةُ عِمَادُ الدِّينِ",
@@ -22,6 +21,74 @@ const Index = () => {
     {
       arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ حَافَظَ عَلَى الصَّلَوَاتِ الْخَمْسِ كَانَتْ لَهُ نُورًا وَبُرْهَانًا وَنَجَاةً يَوْمَ الْقِيَامَةِ",
       english: "The Prophet (peace be upon him) said: 'Whoever maintains the five prayers, they will be a light, proof, and salvation for him on the Day of Judgment.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      english: "The Prophet (peace be upon him) said: 'Actions are but by intention.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الْمُؤْمِنُ لِلْمُؤْمِنِ كَالْبُنْيَانِ يَشُدُّ بَعْضُهُ بَعْضًا",
+      english: "The Prophet (peace be upon him) said: 'The believer to another believer is like a building whose different parts enforce each other.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      english: "The Prophet (peace be upon him) said: 'Whoever believes in Allah and the Last Day should speak good or remain silent.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
+      english: "The Prophet (peace be upon him) said: 'None of you truly believes until he loves for his brother what he loves for himself.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الدُّنْيَا سِجْنُ الْمُؤْمِنِ وَجَنَّةُ الْكَافِرِ",
+      english: "The Prophet (peace be upon him) said: 'The world is a prison for the believer and paradise for the disbeliever.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ",
+      english: "The Prophet (peace be upon him) said: 'Be conscious of Allah wherever you are.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: خَيْرُ النَّاسِ مَنْ نَفَعَ النَّاسَ",
+      english: "The Prophet (peace be upon him) said: 'The best of people are those who benefit others.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
+      english: "The Prophet (peace be upon him) said: 'Seeking knowledge is obligatory upon every Muslim.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الْحَيَاءُ شُعْبَةٌ مِنَ الْإِيمَانِ",
+      english: "The Prophet (peace be upon him) said: 'Modesty is a branch of faith.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللَّهُ عَلَيْهِ بِهَا عَشْرًا",
+      english: "The Prophet (peace be upon him) said: 'Whoever sends blessings upon me once, Allah will send blessings upon him ten times.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الصَّبْرُ مِفْتَاحُ الْفَرَجِ",
+      english: "The Prophet (peace be upon him) said: 'Patience is the key to relief.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ تَوَاضَعَ لِلَّهِ رَفَعَهُ",
+      english: "The Prophet (peace be upon him) said: 'Whoever humbles himself for Allah, Allah will elevate him.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ",
+      english: "The Prophet (peace be upon him) said: 'A Muslim is one from whose tongue and hand other Muslims are safe.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الْجَنَّةُ تَحْتَ أَقْدَامِ الْأُمَّهَاتِ",
+      english: "The Prophet (peace be upon him) said: 'Paradise lies at the feet of mothers.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      english: "The Prophet (peace be upon him) said: 'O Allah, help me to remember You, thank You, and worship You in the best manner.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ قَالَ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ دَخَلَ الْجَنَّةَ",
+      english: "The Prophet (peace be upon him) said: 'Whoever says there is no god but Allah alone, with no partner, will enter Paradise.'"
+    },
+    {
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      english: "The Prophet (peace be upon him) said: 'The most beloved deeds to Allah are those that are most consistent, even if they are few.'"
     }
   ];
   
@@ -63,7 +130,7 @@ const Index = () => {
     }, 10000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [hadiths.length]);
 
   // Check if today is Friday
   const isFriday = () => {

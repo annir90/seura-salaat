@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { getPrayerTimes, PrayerTime } from "@/services/prayerTimeService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, CalendarDays } from "lucide-react";
 
 const CalendarPage = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -17,7 +17,10 @@ const CalendarPage = () => {
   // Load prayer times when date changes
   useEffect(() => {
     const loadPrayerTimes = async () => {
-      if (!selectedDate) return;
+      if (!selectedDate) {
+        setPrayerTimes([]);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -56,7 +59,15 @@ const CalendarPage = () => {
         />
       </div>
       
-      {selectedDate && (
+      {!selectedDate ? (
+        <Card className="bg-card text-card-foreground border border-border">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <CalendarDays className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Choose the day you want to know!</h3>
+            <p className="text-muted-foreground text-center">Select a date from the calendar above to view prayer times for that day.</p>
+          </CardContent>
+        </Card>
+      ) : (
         <Card className="bg-card text-card-foreground border border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
