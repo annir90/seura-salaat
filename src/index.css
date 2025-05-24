@@ -99,7 +99,7 @@
 }
 
 .prayer-card {
-  @apply bg-white rounded-2xl shadow-md p-4 transition-all hover:shadow-lg;
+  @apply bg-card text-card-foreground rounded-2xl shadow-md p-4 transition-all hover:shadow-lg border border-border;
 }
 
 .prayer-time {

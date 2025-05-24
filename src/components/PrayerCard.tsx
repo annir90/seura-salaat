@@ -13,7 +13,7 @@ const STORAGE_KEY_PREFIX = "prayer_adhan_";
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan"); // Default to traditional adhan
+  const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan");
 
   // Load saved sound preference from localStorage on component mount
   useEffect(() => {
@@ -43,28 +43,22 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
 
   const handleSelectSound = (soundId: string) => {
     setSelectedSound(soundId);
-    // Save to localStorage for persistence
     localStorage.setItem(`${STORAGE_KEY_PREFIX}${prayer.id}`, soundId);
     console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
-  };
-
-  const getNotificationIcon = () => {
-    // Always use Bell icon, with different styling for selections
-    return <Bell size={20} className={selectedSound ? "text-prayer-primary" : ""} />;
   };
 
   return (
     <div 
       className={cn(
         "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in",
-        prayer.isNext && "border-l-4 border-prayer-primary bg-gradient-light",
+        prayer.isNext && "border-l-4 border-prayer-primary bg-gradient-to-r from-prayer-light/30 to-transparent dark:from-prayer-light/10",
         past && "opacity-70"
       )}
       style={{ animationDelay: `${Number(prayer.id.charCodeAt(0)) % 5 * 0.1}s` }}
     >
       <div className="flex flex-col">
         <div className="flex items-center mb-1">
-          <h3 className="font-semibold text-base">{prayer.name}</h3>
+          <h3 className="font-semibold text-base text-foreground">{prayer.name}</h3>
           {prayer.isNext && (
             <span className="prayer-badge ml-2 animate-pulse-gentle bg-prayer-light text-prayer-primary px-2 py-0.5 rounded-full text-xs">Next</span>
           )}
@@ -74,13 +68,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       
       <button 
         className={cn(
-          "rounded-full p-2 transition-colors",
-          selectedSound ? "bg-prayer-light text-prayer-primary" : "hover:bg-prayer-light text-prayer-primary"
+          "rounded-full p-2 transition-colors hover:bg-accent",
+          selectedSound ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
         )}
         aria-label={`Set notification for ${prayer.name}`}
         onClick={handleOpenModal}
       >
-        {getNotificationIcon()}
+        <Bell size={20} className={selectedSound ? "text-prayer-primary" : ""} />
       </button>
 
       <AdhanSoundModal

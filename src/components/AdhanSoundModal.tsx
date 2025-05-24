@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -225,10 +224,10 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-card text-card-foreground border border-border">
         <DialogHeader>
-          <DialogTitle>Choose Notification Sound</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-foreground">Choose Notification Sound</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Select a sound for prayer notifications. Preview options before selecting.
           </DialogDescription>
         </DialogHeader>
@@ -243,15 +242,15 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
               <div
                 key={option.id}
                 className={cn(
-                  "rounded-lg border p-4 transition-all",
-                  isSelected && "border-prayer-primary bg-prayer-light",
+                  "rounded-lg border p-4 transition-all border-border",
+                  isSelected && "border-prayer-primary bg-prayer-light/10 dark:bg-prayer-light/5",
                   !isSelected && "hover:bg-accent/50"
                 )}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {option.icon}
-                    <span className="font-medium">{option.name}</span>
+                    <span className="text-foreground">{option.icon}</span>
+                    <span className="font-medium text-foreground">{option.name}</span>
                     
                     {hasError && (
                       <AlertTriangle size={16} className="text-destructive" />
@@ -279,7 +278,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                       onClick={() => handleSelect(option.id)}
                       className={cn(
                         "text-xs px-3 h-8",
-                        isSelected && "bg-prayer-light text-prayer-primary border-prayer-primary hover:bg-prayer-light/90"
+                        isSelected && "bg-prayer-light/10 text-prayer-primary border-prayer-primary hover:bg-prayer-light/20"
                       )}
                     >
                       {isSelected ? "Selected" : "Select"}

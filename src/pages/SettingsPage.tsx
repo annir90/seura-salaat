@@ -1,11 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { 
   Select,
   SelectContent,
@@ -13,21 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapPin, Save } from "lucide-react";
+import { Moon, Sun, Monitor, User } from "lucide-react";
+import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
   saveSelectedLocation, 
   getAvailableLocations, 
-  addCustomLocation,
   Location
 } from "@/services/locationService";
 
@@ -36,25 +25,14 @@ const SettingsPage = () => {
   const [location, setLocation] = useState<Location>(getSelectedLocation());
   const [calculationMethod, setCalculationMethod] = useState("ISNA");
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
-  
-  // For custom location dialog
-  const [customLocationName, setCustomLocationName] = useState("");
-  const [customLatitude, setCustomLatitude] = useState("");
-  const [customLongitude, setCustomLongitude] = useState("");
+  const [userEmail] = useState<string | null>(null); // Will be connected to auth later
+  const { theme, setTheme } = useTheme();
   
   // Load available locations
   useEffect(() => {
     setAvailableLocations(getAvailableLocations());
+    autoDetectLocation();
   }, []);
-  
-  const handleSave = () => {
-    saveSelectedLocation(location);
-    
-    // Save calculation method to localStorage
-    localStorage.setItem('prayerapp-calculation-method', calculationMethod);
-    
-    toast.success("Settings saved successfully");
-  };
   
   // Load calculation method from localStorage
   useEffect(() => {
@@ -63,40 +41,34 @@ const SettingsPage = () => {
       setCalculationMethod(savedMethod);
     }
   }, []);
-  
-  const handleAddCustomLocation = () => {
-    try {
-      const lat = parseFloat(customLatitude);
-      const lng = parseFloat(customLongitude);
-      
-      if (isNaN(lat) || isNaN(lng) || !customLocationName) {
-        toast.error("Please enter valid location details");
-        return;
-      }
-      
-      if (lat < -90 || lat > 90) {
-        toast.error("Latitude must be between -90 and 90");
-        return;
-      }
-      
-      if (lng < -180 || lng > 180) {
-        toast.error("Longitude must be between -180 and 180");
-        return;
-      }
-      
-      const newLocation = addCustomLocation(customLocationName, lat, lng);
-      setAvailableLocations([...availableLocations, newLocation]);
-      setLocation(newLocation);
-      saveSelectedLocation(newLocation);
-      
-      // Reset form
-      setCustomLocationName("");
-      setCustomLatitude("");
-      setCustomLongitude("");
-      
-      toast.success("Custom location added");
-    } catch (error) {
-      toast.error("Error adding custom location");
+
+  // Auto-detect user location
+  const autoDetectLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log(`Auto-detected location: ${latitude}, ${longitude}`);
+          
+          // Find closest location or create a custom one
+          const detectedLocation: Location = {
+            id: "auto-detected",
+            name: "Auto-detected Location",
+            latitude,
+            longitude
+          };
+          
+          setLocation(detectedLocation);
+          saveSelectedLocation(detectedLocation);
+          toast.success("Location auto-detected successfully");
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toast.error("Could not auto-detect location. Using default.");
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by this browser");
     }
   };
   
@@ -104,93 +76,106 @@ const SettingsPage = () => {
     const selectedLocation = availableLocations.find(l => l.id === locationId);
     if (selectedLocation) {
       setLocation(selectedLocation);
+      saveSelectedLocation(selectedLocation);
+      toast.success("Location updated");
     }
+  };
+
+  const handleCalculationMethodChange = (method: string) => {
+    setCalculationMethod(method);
+    localStorage.setItem('prayerapp-calculation-method', method);
+    toast.success("Calculation method updated");
+  };
+
+  const handleNotificationsChange = (enabled: boolean) => {
+    setNotifications(enabled);
+    localStorage.setItem('prayer-notifications-enabled', enabled.toString());
+    toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
   };
   
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6 text-foreground">Settings</h1>
       
       <div className="space-y-6">
-        <div className="bg-white rounded-2xl shadow-md p-4">
+        {/* User Status */}
+        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
+          <h2 className="font-semibold text-lg mb-4">User Status</h2>
+          <div className="flex items-center gap-3">
+            <User className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="font-medium">
+                {userEmail ? userEmail : "Visitor"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {userEmail ? "Signed in" : "Not signed in"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Theme Settings */}
+        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
+          <h2 className="font-semibold text-lg mb-4">Appearance</h2>
+          <div className="space-y-3">
+            <Label htmlFor="theme">Theme</Label>
+            <RadioGroup
+              value={theme}
+              onValueChange={(value) => setTheme(value as any)}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="light" id="light" />
+                <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer">
+                  <Sun className="h-4 w-4" />
+                  Light
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="dark" id="dark" />
+                <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer">
+                  <Moon className="h-4 w-4" />
+                  Dark
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="system" id="system" />
+                <Label htmlFor="system" className="flex items-center gap-2 cursor-pointer">
+                  <Monitor className="h-4 w-4" />
+                  System
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+
+        {/* Location Settings */}
+        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
           <h2 className="font-semibold text-lg mb-4">Location Settings</h2>
           
           <div className="space-y-3">
             <div className="grid gap-2">
               <Label htmlFor="location">Your Location</Label>
-              <div className="flex gap-2">
-                <Select 
-                  value={location.id} 
-                  onValueChange={handleLocationChange}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableLocations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>
-                        {loc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="shrink-0">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Custom Location</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Location Name</Label>
-                        <Input
-                          id="name"
-                          value={customLocationName}
-                          onChange={(e) => setCustomLocationName(e.target.value)}
-                          placeholder="E.g., My City, Country"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="latitude">Latitude</Label>
-                          <Input
-                            id="latitude"
-                            value={customLatitude}
-                            onChange={(e) => setCustomLatitude(e.target.value)}
-                            placeholder="E.g., 60.2055"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="longitude">Longitude</Label>
-                          <Input
-                            id="longitude"
-                            value={customLongitude}
-                            onChange={(e) => setCustomLongitude(e.target.value)}
-                            placeholder="E.g., 24.6559"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button onClick={handleAddCustomLocation}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Add Location
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+              <Select 
+                value={location.id} 
+                onValueChange={handleLocationChange}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableLocations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="pt-2">
               <div className="text-sm font-medium mb-2">Currently Selected:</div>
-              <div className="bg-gray-50 p-3 rounded-md">
+              <div className="bg-muted p-3 rounded-md">
                 <div className="font-medium">{location.name}</div>
                 <div className="text-sm text-muted-foreground">
                   Lat: {location.latitude.toFixed(4)}, Lng: {location.longitude.toFixed(4)}
@@ -202,7 +187,7 @@ const SettingsPage = () => {
               <Label htmlFor="calculation">Calculation Method</Label>
               <Select 
                 value={calculationMethod}
-                onValueChange={setCalculationMethod}
+                onValueChange={handleCalculationMethodChange}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select calculation method" />
@@ -219,7 +204,8 @@ const SettingsPage = () => {
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl shadow-md p-4">
+        {/* Notification Settings */}
+        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
           <h2 className="font-semibold text-lg mb-4">Notification Settings</h2>
           
           <div className="flex items-center justify-between">
@@ -230,18 +216,10 @@ const SettingsPage = () => {
             <Switch 
               id="notifications" 
               checked={notifications} 
-              onCheckedChange={setNotifications} 
+              onCheckedChange={handleNotificationsChange}
             />
           </div>
         </div>
-        
-        <Button 
-          className="w-full bg-prayer-primary hover:bg-prayer-secondary"
-          onClick={handleSave}
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save Settings
-        </Button>
         
         <div className="text-center text-sm text-muted-foreground pt-4">
           <p>PrayConnect v1.0</p>
