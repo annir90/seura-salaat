@@ -9,20 +9,6 @@ const Index = () => {
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Hadith of the day
-  const hadiths = [
-    "The Prophet (ﷺ) said: 'The five daily prayers and the Friday Prayer until the Friday Prayer are expiation for the sins committed in between, so long as major sins are avoided.' - Sahih Muslim",
-    "The Prophet (ﷺ) said: 'Prayer is the pillar of religion and whoever abandons it demolishes the pillar of religion.' - Bayhaqi",
-    "The Prophet (ﷺ) said: 'The first matter that the slave will be brought to account for on the Day of Judgment is the prayer.' - Tirmidhi",
-    "The Prophet (ﷺ) said: 'Between a person and disbelief is the abandonment of prayer.' - Sahih Muslim",
-    "The Prophet (ﷺ) said: 'Whoever maintains the prayers, they will be a light and a proof and a salvation for him on the Day of Resurrection.' - Ahmad"
-  ];
-  
-  const getTodaysHadith = () => {
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-    return hadiths[dayOfYear % hadiths.length];
-  };
-  
   // Load prayer times
   const loadPrayerTimes = async () => {
     try {
@@ -67,8 +53,15 @@ const Index = () => {
       ) : (
         <>
           <div className="bg-gradient-purple rounded-2xl p-6 text-white mb-6 shadow-lg">
-            <h2 className="font-medium text-lg mb-4">Hadith of the Day</h2>
-            <p className="text-sm leading-relaxed italic">{getTodaysHadith()}</p>
+            <h2 className="font-medium text-lg mb-4">Today's Prayer Times</h2>
+            <div className="flex flex-wrap justify-between">
+              {prayerTimes.map((prayer) => (
+                <div key={prayer.id} className="mb-3 text-center w-1/3">
+                  <p className="text-xs opacity-80">{prayer.name}</p>
+                  <p className="font-semibold">{prayer.time}</p>
+                </div>
+              ))}
+            </div>
           </div>
           
           <div className="mb-6">
