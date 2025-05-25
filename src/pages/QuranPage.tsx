@@ -226,7 +226,7 @@ const QuranPage = () => {
           <div className="bg-prayer-primary w-16 h-16 rounded-full flex items-center justify-center mb-4">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold">Noble Quran</h1>
+          <h1 className="text-2xl font-bold"></h1>
           <p className="text-muted-foreground mb-4">Select a Surah to begin reading</p>
           
           {/* Show last read bookmark */}
