@@ -243,40 +243,41 @@ const QuranPage = () => {
             </div>
           )}
           
-          {/* All Surahs Grid */}
+          {/* All Surahs - Single Column */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+            <div className="space-y-4 w-full">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full" />
+                <Skeleton key={i} className="h-20 w-full" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+            <div className="space-y-3 w-full">
               {surahs.map((surah) => (
                 <div
                   key={surah.number}
                   onClick={() => handleSurahClick(surah.number)}
-                  className="group bg-card hover:bg-muted/50 border border-border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:border-prayer-primary/30"
+                  className="group bg-card hover:bg-muted/50 border border-border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] hover:border-prayer-primary/30 flex items-center gap-4"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="bg-prayer-primary/15 text-prayer-primary px-3 py-1.5 rounded-full text-sm font-bold min-w-[40px] text-center">
-                      {surah.number}
-                    </div>
-                    <div className="text-right">
+                  <div className="bg-prayer-primary/15 text-prayer-primary px-3 py-2 rounded-full text-sm font-bold min-w-[50px] text-center">
+                    {surah.number}
+                  </div>
+                  
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-bold text-lg text-foreground group-hover:text-prayer-primary transition-colors">
+                        {surah.englishName}
+                      </h3>
                       <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                         {surah.numberOfAyahs} verses
                       </span>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-lg text-foreground group-hover:text-prayer-primary transition-colors">
-                      {surah.englishName}
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground">
                       {surah.englishNameTranslation}
                     </p>
-                    <p dir="rtl" className="text-right font-arabic text-xl text-prayer-primary/80 mt-3">
+                  </div>
+                  
+                  <div className="text-right">
+                    <p dir="rtl" className="font-arabic text-xl text-prayer-primary/80">
                       {surah.name}
                     </p>
                   </div>

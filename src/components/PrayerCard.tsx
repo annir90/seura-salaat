@@ -72,6 +72,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       <button 
         className={cn(
           "rounded-full p-2 transition-colors hover:bg-accent",
+          prayer.isNext && "border-2 border-orange-500",
           selectedSound ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
         )}
         aria-label={`Set notification for ${prayer.name}`}
