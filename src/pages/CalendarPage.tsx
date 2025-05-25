@@ -28,6 +28,7 @@ const CalendarPage = () => {
         setPrayerTimes(times);
       } catch (error) {
         console.error("Error loading prayer times for selected date:", error);
+        setPrayerTimes([]);
       } finally {
         setLoading(false);
       }
@@ -80,39 +81,26 @@ const CalendarPage = () => {
               <div className="flex justify-center items-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-prayer-primary" />
               </div>
-            ) : (
-              <div className="space-y-3">
+            ) : prayerTimes.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {prayerTimes.map((prayer) => (
                   <div 
                     key={prayer.id} 
-                    className={`flex items-center justify-between p-4 rounded-lg border ${
-                      prayer.isNext 
-                        ? 'bg-prayer-primary/10 border-prayer-primary/30 dark:bg-prayer-primary/20' 
-                        : 'bg-muted/30 border-border'
-                    }`}
+                    className="flex flex-col items-center p-4 bg-muted/20 rounded-lg border"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        prayer.isNext ? 'bg-prayer-primary' : 'bg-muted-foreground/50'
-                      }`} />
-                      <span className={`font-medium ${
-                        prayer.isNext ? 'text-prayer-primary' : 'text-foreground'
-                      }`}>
-                        {prayer.name}
-                      </span>
+                    <div className="text-sm font-medium text-muted-foreground mb-1">
+                      {prayer.name}
                     </div>
-                    <div className="text-right">
-                      <span className={`text-lg font-semibold ${
-                        prayer.isNext ? 'text-prayer-primary' : 'text-foreground'
-                      }`}>
-                        {prayer.time}
-                      </span>
-                      {prayer.isNext && (
-                        <p className="text-xs text-prayer-primary mt-0.5">Next Prayer</p>
-                      )}
+                    <div className="text-lg font-bold text-foreground">
+                      {prayer.time}
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No prayer times available for this date.</p>
               </div>
             )}
           </CardContent>

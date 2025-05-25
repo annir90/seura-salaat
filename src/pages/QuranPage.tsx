@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown, BookmarkCheck } from "lucide-react";
+import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -137,47 +137,36 @@ const QuranPage = () => {
     }
   };
 
-  // Function to handle verse bookmarking with scroll position tracking
-  const handleBookmarkVerse = (ayahNumber: number) => {
-    const surahNumber = parseInt(selectedSurah);
-    saveBookmark(surahNumber, ayahNumber);
-    setBookmark({ surahNumber, ayahNumber, timestamp: Date.now() });
-    toast({
-      title: "Reading Position Saved",
-      description: `Surah ${getSurahName(surahNumber)} - Verse ${ayahNumber}`,
-    });
-  };
-
-  // Auto-bookmark when user scrolls to a new verse
+  // Simplified auto-bookmark when user scrolls
   useEffect(() => {
     if (!readingMode || !selectedSurah || allAyahs.length === 0) return;
 
     const handleAutoBookmark = () => {
       if (!contentRef.current) return;
       
-      const scrollPosition = contentRef.current.scrollTop + contentRef.current.clientHeight / 2;
+      // Find which verse is currently in the center of the viewport
+      const viewportCenter = contentRef.current.scrollTop + contentRef.current.clientHeight / 2;
+      let currentVerse = null;
       
-      // Find which verse is currently in view
       for (let i = 0; i < allAyahs.length; i++) {
         const element = document.getElementById(`ayah-${allAyahs[i].numberInSurah}`);
         if (element) {
           const rect = element.getBoundingClientRect();
           const containerRect = contentRef.current!.getBoundingClientRect();
+          const elementTop = rect.top - containerRect.top + contentRef.current!.scrollTop;
           
-          if (rect.top >= containerRect.top && rect.top <= containerRect.top + containerRect.height / 2) {
-            const currentBookmark = getBookmark();
-            if (!currentBookmark || 
-                currentBookmark.surahNumber !== parseInt(selectedSurah) || 
-                currentBookmark.ayahNumber !== allAyahs[i].numberInSurah) {
-              
-              // Auto-save reading position
-              const surahNumber = parseInt(selectedSurah);
-              saveBookmark(surahNumber, allAyahs[i].numberInSurah);
-              setBookmark({ surahNumber, ayahNumber: allAyahs[i].numberInSurah, timestamp: Date.now() });
-            }
+          if (elementTop <= viewportCenter) {
+            currentVerse = allAyahs[i];
+          } else {
             break;
           }
         }
+      }
+      
+      if (currentVerse) {
+        const surahNumber = parseInt(selectedSurah);
+        saveBookmark(surahNumber, currentVerse.numberInSurah);
+        setBookmark({ surahNumber, ayahNumber: currentVerse.numberInSurah, timestamp: Date.now() });
       }
     };
 
@@ -187,7 +176,7 @@ const QuranPage = () => {
       let timeoutId: NodeJS.Timeout;
       const debouncedAutoBookmark = () => {
         clearTimeout(timeoutId);
-        timeoutId = setTimeout(handleAutoBookmark, 1000);
+        timeoutId = setTimeout(handleAutoBookmark, 2000);
       };
       
       contentElement.addEventListener('scroll', debouncedAutoBookmark);
@@ -198,13 +187,6 @@ const QuranPage = () => {
       };
     }
   }, [readingMode, selectedSurah, allAyahs]);
-
-  // Check if a verse is bookmarked
-  const isVerseBookmarked = (ayahNumber: number) => {
-    return bookmark && 
-           bookmark.surahNumber === parseInt(selectedSurah) && 
-           bookmark.ayahNumber === ayahNumber;
-  };
 
   // Find surah name by surah number
   const getSurahName = (surahNumber: number) => {
@@ -231,6 +213,11 @@ const QuranPage = () => {
     }
   };
 
+  // Handle surah card click
+  const handleSurahClick = (surahNumber: number) => {
+    setSelectedSurah(surahNumber.toString());
+  };
+
   return (
     <div className="flex flex-col pb-20">
       {/* Selection View - Only shown when not in reading mode */}
@@ -244,9 +231,9 @@ const QuranPage = () => {
           
           {/* Show last read bookmark */}
           {bookmark && (
-            <div className="bg-prayer-primary/10 dark:bg-prayer-primary/20 rounded-lg p-4 mb-4 border border-prayer-primary/20 w-full max-w-md">
+            <div className="bg-prayer-primary/10 dark:bg-prayer-primary/20 rounded-lg p-4 mb-6 border border-prayer-primary/20 w-full max-w-md">
               <div className="flex items-center gap-2 mb-2">
-                <BookmarkCheck className="h-4 w-4 text-prayer-primary" />
+                <BookOpen className="h-4 w-4 text-prayer-primary" />
                 <span className="font-medium text-sm">Continue Reading</span>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
@@ -263,42 +250,38 @@ const QuranPage = () => {
             </div>
           )}
           
-          {/* Surah Selector */}
-          <div className="w-full max-w-xs mb-4">
-            <Select
-              value={selectedSurah}
-              onValueChange={setSelectedSurah}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Surah" />
-              </SelectTrigger>
-              <SelectContent>
-                {surahs.map((surah) => (
-                  <SelectItem key={surah.number} value={surah.number.toString()}>
-                    {surah.number}. {surah.englishName} - {surah.englishNameTranslation}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* All Surahs Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+              {surahs.map((surah) => (
+                <div
+                  key={surah.number}
+                  onClick={() => handleSurahClick(surah.number)}
+                  className="bg-card hover:bg-muted/50 border rounded-lg p-4 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full text-sm font-medium">
+                      {surah.number}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {surah.numberOfAyahs} verses
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-lg mb-1">{surah.englishName}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{surah.englishNameTranslation}</p>
+                  <p dir="rtl" className="text-right font-arabic text-lg">{surah.name}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : null}
-
-      {/* Loading State */}
-      {loading && (
-        <div className="flex justify-center my-12">
-          <Loader2 className="h-8 w-8 animate-spin text-prayer-primary" />
-        </div>
-      )}
-
-      {/* Empty State - When no surah is selected */}
-      {!loading && !selectedSurah && !readingMode && (
-        <div className="text-center p-12 border border-dashed rounded-lg mx-auto max-w-3xl">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">Please Select a Surah</h3>
-          <p className="text-muted-foreground">Choose a Surah from the dropdown above to start reading</p>
-        </div>
-      )}
 
       {/* Reading Mode - Full Screen Quran View with Complete Surah */}
       {readingMode && !loading && selectedSurah && allAyahs.length > 0 && (
@@ -339,22 +322,12 @@ const QuranPage = () => {
                 <div 
                   key={ayah.number} 
                   id={`ayah-${ayah.numberInSurah}`}
-                  className={`p-4 md:p-6 bg-card border rounded-lg ${
-                    isVerseBookmarked(ayah.numberInSurah) 
-                      ? 'border-prayer-primary bg-prayer-primary/5' 
-                      : ''
-                  }`}
+                  className="p-4 md:p-6 bg-card border rounded-lg"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full font-medium">
                       {ayah.numberInSurah}
                     </span>
-                    {isVerseBookmarked(ayah.numberInSurah) && (
-                      <div className="flex items-center gap-1 text-prayer-primary text-xs">
-                        <BookmarkCheck className="h-3 w-3" />
-                        <span>Reading Position</span>
-                      </div>
-                    )}
                   </div>
                   
                   <div className="space-y-4">
@@ -407,12 +380,10 @@ const QuranPage = () => {
         </div>
       )}
 
-      {/* No results state */}
-      {!loading && selectedSurah && allAyahs.length === 0 && !readingMode && (
-        <div className="text-center p-12 border border-dashed rounded-lg">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Verses Available</h3>
-          <p className="text-muted-foreground">There was a problem loading the Quran data. Please try again later.</p>
+      {/* Loading State for reading mode */}
+      {loading && readingMode && (
+        <div className="flex justify-center my-12">
+          <Loader2 className="h-8 w-8 animate-spin text-prayer-primary" />
         </div>
       )}
     </div>
