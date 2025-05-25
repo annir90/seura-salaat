@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
@@ -123,11 +124,11 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Rotate hadith every 10 seconds
+  // Rotate hadith every 15 seconds for more consistent viewing
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHadith((prev) => (prev + 1) % hadiths.length);
-    }, 10000);
+    }, 15000);
     
     return () => clearInterval(interval);
   }, [hadiths.length]);
@@ -147,8 +148,7 @@ const Index = () => {
       ) : (
         <>
           <div className="bg-gradient-purple rounded-2xl p-6 text-white mb-6 shadow-lg">
-            <h2 className="font-medium text-lg mb-4">Hadith of the Day</h2>
-            <div className="space-y-4">
+            <div className="text-center space-y-4">
               <div>
                 <p dir="rtl" className="text-right text-xl font-arabic leading-loose mb-3">
                   {hadiths[currentHadith].arabic}

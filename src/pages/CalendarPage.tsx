@@ -81,29 +81,34 @@ const CalendarPage = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-prayer-primary" />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
                 {prayerTimes.map((prayer) => (
                   <div 
                     key={prayer.id} 
-                    className={`p-3 rounded-lg border ${
+                    className={`flex items-center justify-between p-4 rounded-lg border ${
                       prayer.isNext 
                         ? 'bg-prayer-primary/10 border-prayer-primary/30 dark:bg-prayer-primary/20' 
-                        : 'bg-muted/50 border-border'
+                        : 'bg-muted/30 border-border'
                     }`}
                   >
-                    <div className="text-center">
-                      <p className={`text-sm font-medium ${
-                        prayer.isNext ? 'text-prayer-primary' : 'text-muted-foreground'
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        prayer.isNext ? 'bg-prayer-primary' : 'bg-muted-foreground/50'
+                      }`} />
+                      <span className={`font-medium ${
+                        prayer.isNext ? 'text-prayer-primary' : 'text-foreground'
                       }`}>
                         {prayer.name}
-                      </p>
-                      <p className={`text-lg font-semibold ${
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-lg font-semibold ${
                         prayer.isNext ? 'text-prayer-primary' : 'text-foreground'
                       }`}>
                         {prayer.time}
-                      </p>
+                      </span>
                       {prayer.isNext && (
-                        <p className="text-xs text-prayer-primary mt-1">Next Prayer</p>
+                        <p className="text-xs text-prayer-primary mt-0.5">Next Prayer</p>
                       )}
                     </div>
                   </div>
