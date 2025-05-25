@@ -51,7 +51,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     <div 
       className={cn(
         "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in",
-        prayer.isNext && "border-l-4 border-orange-500 bg-gradient-to-r from-orange-50/30 to-transparent dark:from-orange-50/10",
+        prayer.isNext && "border-l-4 border-orange-500 bg-gradient-to-r from-orange-50/30 to-transparent dark:from-orange-900/20",
         past && "opacity-70"
       )}
       style={{ animationDelay: `${Number(prayer.id.charCodeAt(0)) % 5 * 0.1}s` }}
@@ -60,10 +60,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         <div className="flex items-center mb-1">
           <h3 className="font-semibold text-base text-foreground">{prayer.name}</h3>
           {prayer.isNext && (
-            <span className="prayer-badge ml-2 animate-pulse-gentle bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-0.5 rounded-full text-xs">Next</span>
+            <span className="ml-2 animate-pulse-gentle bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-0.5 rounded-full text-xs font-medium">Next</span>
           )}
         </div>
-        <p className="prayer-time">{prayer.time}</p>
+        <p className={cn(
+          "font-medium text-lg md:text-xl",
+          prayer.isNext ? "text-orange-600 dark:text-orange-400" : "text-prayer-primary"
+        )}>{prayer.time}</p>
       </div>
       
       <button 

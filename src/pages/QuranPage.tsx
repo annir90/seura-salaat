@@ -4,13 +4,6 @@ import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -226,24 +219,24 @@ const QuranPage = () => {
           <div className="bg-prayer-primary w-16 h-16 rounded-full flex items-center justify-center mb-4">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold"></h1>
-          <p className="text-muted-foreground mb-4">Select a Surah to begin reading</p>
+          <h1 className="text-2xl font-bold mb-4">Quran</h1>
+          <p className="text-muted-foreground mb-6">Select a Surah to begin reading</p>
           
           {/* Show last read bookmark */}
           {bookmark && (
-            <div className="bg-prayer-primary/10 dark:bg-prayer-primary/20 rounded-lg p-4 mb-6 border border-prayer-primary/20 w-full max-w-md">
-              <div className="flex items-center gap-2 mb-2">
-                <BookOpen className="h-4 w-4 text-prayer-primary" />
-                <span className="font-medium text-sm">Continue Reading</span>
+            <div className="bg-prayer-primary/10 dark:bg-prayer-primary/20 rounded-xl p-6 mb-6 border border-prayer-primary/20 w-full max-w-md shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-prayer-primary/20 rounded-full">
+                  <BookOpen className="h-5 w-5 text-prayer-primary" />
+                </div>
+                <span className="font-semibold text-foreground">Continue Reading</span>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-muted-foreground mb-4">
                 {getSurahName(bookmark.surahNumber)} - Verse {bookmark.ayahNumber}
               </p>
               <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
                 onClick={continueReading}
+                className="w-full bg-prayer-primary hover:bg-prayer-primary/90 text-white"
               >
                 Continue Reading
               </Button>
@@ -254,7 +247,7 @@ const QuranPage = () => {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-20 w-full" />
+                <Skeleton key={i} className="h-24 w-full" />
               ))}
             </div>
           ) : (
@@ -263,19 +256,30 @@ const QuranPage = () => {
                 <div
                   key={surah.number}
                   onClick={() => handleSurahClick(surah.number)}
-                  className="bg-card hover:bg-muted/50 border rounded-lg p-4 cursor-pointer transition-colors"
+                  className="group bg-card hover:bg-muted/50 border border-border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:border-prayer-primary/30"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="bg-prayer-primary/15 text-prayer-primary px-3 py-1.5 rounded-full text-sm font-bold min-w-[40px] text-center">
                       {surah.number}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {surah.numberOfAyahs} verses
-                    </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                        {surah.numberOfAyahs} verses
+                      </span>
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-lg mb-1">{surah.englishName}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{surah.englishNameTranslation}</p>
-                  <p dir="rtl" className="text-right font-arabic text-lg">{surah.name}</p>
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-lg text-foreground group-hover:text-prayer-primary transition-colors">
+                      {surah.englishName}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {surah.englishNameTranslation}
+                    </p>
+                    <p dir="rtl" className="text-right font-arabic text-xl text-prayer-primary/80 mt-3">
+                      {surah.name}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
