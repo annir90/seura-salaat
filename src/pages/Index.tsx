@@ -12,8 +12,8 @@ const Index = () => {
   // Expanded hadith collection with Arabic and English (20 hadiths)
   const hadiths = [
     {
-      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الصَّلَاةُ عِمَادُ الدِّينِ",
       english: "The Prophet (peace be upon him) said: 'Prayer is the pillar of religion.'"
+      arabic:           "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الصَّلَاةُ عِمَادُ الدِّينِ"
     },
     {
       arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: أَوَّلُ مَا يُحَاسَبُ بِهِ الْعَبْدُ يَوْمَ الْقِيَامَةِ الصَّلَاةُ",
