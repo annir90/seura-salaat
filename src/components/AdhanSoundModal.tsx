@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check, AlertTriangle, Play, Pause, Bell, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +54,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   const [loadErrors, setLoadErrors] = useState<{ [key: string]: boolean }>({});
   const [customSounds, setCustomSounds] = useState<AdhanSoundOption[]>([]);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Combine default and custom sounds
@@ -102,26 +103,30 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     }
   };
 
-  // Handle file upload
+  // Handle file upload with better local compatibility
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Check if it's an audio file
-    if (!file.type.startsWith('audio/')) {
+    // Check if it's an audio file with extended format support
+    const audioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/m4a'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    const supportedExtensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
+
+    if (!audioTypes.includes(file.type) && !supportedExtensions.includes(fileExtension || '')) {
       toast({
         title: "Invalid File",
-        description: "Please select an audio file (MP3, WAV, etc.)",
+        description: "Please select an audio file (MP3, WAV, OGG, AAC, M4A)",
         variant: "destructive",
       });
       return;
     }
 
-    // Check file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Check file size (max 15MB for better local file support)
+    if (file.size > 15 * 1024 * 1024) {
       toast({
         title: "File Too Large",
-        description: "Please select a file smaller than 10MB",
+        description: "Please select a file smaller than 15MB",
         variant: "destructive",
       });
       return;
@@ -142,7 +147,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       
       toast({
         title: "Audio Added",
-        description: `${newSound.name} has been added to your custom sounds`,
+        description: `${newSound.name} has been added successfully`,
       });
     };
 
@@ -208,7 +213,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     try {
       // Create a fresh audio instance
-      const audio = new Audio(soundOption.url);
+      const audio = new Audio();
       
       // Set up event handlers
       audio.addEventListener("ended", () => {
@@ -220,17 +225,21 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         handlePlaybackError(soundId, soundOption.name);
       });
       
+      audio.addEventListener("canplaythrough", () => {
+        audio.play().catch(e => {
+          console.error(`Playback failed for ${soundOption.name}:`, e);
+          handlePlaybackError(soundId, soundOption.name);
+        });
+      });
+      
       // Set explicit volume
       audio.volume = 1.0;
       
-      // Store reference and start playing
+      // Store reference and load audio
       audioRefs.current[soundId] = audio;
+      audio.src = soundOption.url;
+      audio.load();
       
-      // Play the audio
-      audio.play().catch(e => {
-        console.error(`Playback failed for ${soundOption.name}:`, e);
-        handlePlaybackError(soundId, soundOption.name);
-      });
     } catch (error) {
       console.error(`General error playing ${soundOption.name}:`, error);
       handlePlaybackError(soundId, soundOption.name);
@@ -243,7 +252,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     toast({
       title: "Audio Playback Issue",
-      description: `Unable to play ${soundName}. Please check if the audio file is available.`,
+      description: `Unable to play ${soundName}. Please check if the audio file is compatible.`,
       variant: "destructive",
     });
   };
@@ -253,8 +262,8 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     
     const selectedOption = allSounds.find(o => o.id === soundId);
     toast({
-      title: "Notification Setting Updated",
-      description: `${prayerName} will use ${selectedOption?.name} notifications`,
+      title: "Notification Updated",
+      description: `${prayerName} will use ${selectedOption?.name}`,
     });
     
     onClose();
@@ -264,10 +273,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md bg-card text-card-foreground border border-border max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Choose Notification Sound</DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Select a sound for prayer notifications. Preview options before selecting.
-          </DialogDescription>
+          <DialogTitle className="text-foreground">{prayerName} Notification</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
@@ -276,17 +282,21 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
             <div className="text-center">
               <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground mb-3">Add your own audio file</p>
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <Button variant="outline" size="sm" className="text-xs">
-                  Choose Audio File
-                </Button>
-              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*,.mp3,.wav,.ogg,.aac,.m4a"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Choose Audio File
+              </Button>
             </div>
           </div>
 

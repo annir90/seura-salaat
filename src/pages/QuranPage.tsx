@@ -18,6 +18,7 @@ const QuranPage = () => {
   const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const lastBookmarkedVerse = useRef<number | null>(null);
+  const bookmarkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const loadSurahs = async () => {
@@ -130,7 +131,22 @@ const QuranPage = () => {
     }
   };
 
-  // Optimized auto-bookmark to prevent excessive saves
+  // Silent bookmark save without affecting reading
+  const saveBookmarkSilently = (surahNumber: number, ayahNumber: number) => {
+    if (bookmarkTimeoutRef.current) {
+      clearTimeout(bookmarkTimeoutRef.current);
+    }
+    
+    bookmarkTimeoutRef.current = setTimeout(() => {
+      if (lastBookmarkedVerse.current !== ayahNumber) {
+        saveBookmark(surahNumber, ayahNumber);
+        setBookmark({ surahNumber, ayahNumber, timestamp: Date.now() });
+        lastBookmarkedVerse.current = ayahNumber;
+      }
+    }, 5000); // Save after 5 seconds of staying on a verse
+  };
+
+  // Optimized auto-bookmark without page reloading
   useEffect(() => {
     if (!readingMode || !selectedSurah || allAyahs.length === 0) return;
 
@@ -156,22 +172,19 @@ const QuranPage = () => {
         }
       }
       
-      // Only save bookmark if verse has changed
-      if (currentVerse && currentVerse.numberInSurah !== lastBookmarkedVerse.current) {
+      // Save bookmark silently without affecting reading experience
+      if (currentVerse) {
         const surahNumber = parseInt(selectedSurah);
-        saveBookmark(surahNumber, currentVerse.numberInSurah);
-        setBookmark({ surahNumber, ayahNumber: currentVerse.numberInSurah, timestamp: Date.now() });
-        lastBookmarkedVerse.current = currentVerse.numberInSurah;
+        saveBookmarkSilently(surahNumber, currentVerse.numberInSurah);
       }
     };
 
     const contentElement = contentRef.current;
     if (contentElement) {
-      // Increased debounce time to reduce frequency
       let timeoutId: NodeJS.Timeout;
       const debouncedAutoBookmark = () => {
         clearTimeout(timeoutId);
-        timeoutId = setTimeout(handleAutoBookmark, 3000); // Increased from 2000 to 3000
+        timeoutId = setTimeout(handleAutoBookmark, 1000); // Reduced debounce for better responsiveness
       };
       
       contentElement.addEventListener('scroll', debouncedAutoBookmark);
@@ -179,6 +192,9 @@ const QuranPage = () => {
       return () => {
         contentElement.removeEventListener('scroll', debouncedAutoBookmark);
         clearTimeout(timeoutId);
+        if (bookmarkTimeoutRef.current) {
+          clearTimeout(bookmarkTimeoutRef.current);
+        }
       };
     }
   }, [readingMode, selectedSurah, allAyahs]);
@@ -199,7 +215,10 @@ const QuranPage = () => {
     setReadingMode(false);
     setSelectedSurah("");
     setAllAyahs([]);
-    lastBookmarkedVerse.current = null; // Reset bookmark tracking
+    lastBookmarkedVerse.current = null;
+    if (bookmarkTimeoutRef.current) {
+      clearTimeout(bookmarkTimeoutRef.current);
+    }
   };
 
   // Continue reading from bookmark

@@ -50,7 +50,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   return (
     <div 
       className={cn(
-        "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in relative",
+        "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in relative overflow-hidden",
         prayer.isNext && "bg-gradient-to-r from-orange-50/30 to-transparent dark:from-orange-900/20",
         past && "opacity-70"
       )}
@@ -58,8 +58,10 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     >
       {prayer.isNext && (
         <>
-          <div className="absolute left-0 right-0 top-0 h-1 bg-orange-500 rounded-t-lg"></div>
-          <div className="absolute left-0 right-0 bottom-0 h-1 bg-orange-500 rounded-b-lg"></div>
+          <div className="absolute left-0 right-0 top-0 h-1 bg-orange-500"></div>
+          <div className="absolute left-0 right-0 bottom-0 h-1 bg-orange-500"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-1 bg-orange-500"></div>
         </>
       )}
       
