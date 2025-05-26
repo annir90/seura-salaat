@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
@@ -150,11 +149,11 @@ const Index = () => {
           <div className="bg-gradient-purple rounded-2xl p-6 text-white mb-6 shadow-lg">
             <div className="text-center space-y-4">
               <div>
-                <p dir="rtl" className="text-right text-xl font-arabic leading-loose mb-3">
-                  {hadiths[currentHadith].arabic}
-                </p>
-                <p className="text-sm opacity-90 leading-relaxed">
+                <p className="text-sm opacity-90 leading-relaxed mb-3">
                   {hadiths[currentHadith].english}
+                </p>
+                <p dir="rtl" className="text-right text-xl font-arabic leading-loose">
+                  {hadiths[currentHadith].arabic}
                 </p>
               </div>
               <div className="flex justify-center space-x-2 mt-4">

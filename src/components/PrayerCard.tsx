@@ -50,12 +50,16 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   return (
     <div 
       className={cn(
-        "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in",
-        prayer.isNext && "border-l-4 border-orange-500 bg-gradient-to-r from-orange-50/30 to-transparent dark:from-orange-900/20",
+        "prayer-card flex justify-between items-center mb-3 p-3 rounded-lg animate-fade-in relative",
+        prayer.isNext && "bg-gradient-to-r from-orange-50/30 to-transparent dark:from-orange-900/20",
         past && "opacity-70"
       )}
       style={{ animationDelay: `${Number(prayer.id.charCodeAt(0)) % 5 * 0.1}s` }}
     >
+      {prayer.isNext && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 rounded-l-lg"></div>
+      )}
+      
       <div className="flex flex-col">
         <div className="flex items-center mb-1">
           <h3 className="font-semibold text-base text-foreground">{prayer.name}</h3>
@@ -72,7 +76,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       <button 
         className={cn(
           "rounded-full p-2 transition-colors hover:bg-accent",
-          prayer.isNext && "border-2 border-orange-500",
           selectedSound ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
         )}
         aria-label={`Set notification for ${prayer.name}`}
