@@ -64,7 +64,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         <div className="flex items-center mb-1">
           <h3 className="font-semibold text-base text-foreground">{prayer.name}</h3>
           {prayer.isNext && (
-            <span className="ml-2 animate-pulse-gentle bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-0.5 rounded-full text-xs font-medium">Next</span>
+            <span className="ml-2 animate-pulse-gentle bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">Next</span>
           )}
         </div>
         <p className="font-medium text-lg md:text-xl text-prayer-primary">{prayer.time}</p>

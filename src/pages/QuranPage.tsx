@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
@@ -17,6 +16,7 @@ const QuranPage = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isScrolledUp, setIsScrolledUp] = useState(true);
   const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,38 +131,51 @@ const QuranPage = () => {
   };
 
   // Manual bookmark save function
-  const handleSaveBookmark = () => {
-    if (!readingMode || !selectedSurah || allAyahs.length === 0 || !contentRef.current) return;
+  const handleSaveBookmark = async () => {
+    if (!readingMode || !selectedSurah || allAyahs.length === 0 || !contentRef.current || isSaving) return;
     
-    // Find which verse is currently in the center of the viewport
-    const viewportCenter = contentRef.current.scrollTop + contentRef.current.clientHeight / 2;
-    let currentVerse = null;
+    setIsSaving(true);
     
-    for (let i = 0; i < allAyahs.length; i++) {
-      const element = document.getElementById(`ayah-${allAyahs[i].numberInSurah}`);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const containerRect = contentRef.current!.getBoundingClientRect();
-        const elementTop = rect.top - containerRect.top + contentRef.current!.scrollTop;
-        
-        if (elementTop <= viewportCenter) {
-          currentVerse = allAyahs[i];
-        } else {
-          break;
+    try {
+      // Find which verse is currently in the center of the viewport
+      const viewportCenter = contentRef.current.scrollTop + contentRef.current.clientHeight / 2;
+      let currentVerse = null;
+      
+      for (let i = 0; i < allAyahs.length; i++) {
+        const element = document.getElementById(`ayah-${allAyahs[i].numberInSurah}`);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const containerRect = contentRef.current!.getBoundingClientRect();
+          const elementTop = rect.top - containerRect.top + contentRef.current!.scrollTop;
+          
+          if (elementTop <= viewportCenter) {
+            currentVerse = allAyahs[i];
+          } else {
+            break;
+          }
         }
       }
-    }
-    
-    if (currentVerse) {
-      const surahNumber = parseInt(selectedSurah);
-      saveBookmark(surahNumber, currentVerse.numberInSurah);
-      setBookmark({ surahNumber, ayahNumber: currentVerse.numberInSurah, timestamp: Date.now() });
       
-      const surahName = getSurahName(surahNumber);
+      if (currentVerse) {
+        const surahNumber = parseInt(selectedSurah);
+        saveBookmark(surahNumber, currentVerse.numberInSurah);
+        setBookmark({ surahNumber, ayahNumber: currentVerse.numberInSurah, timestamp: Date.now() });
+        
+        const surahName = getSurahName(surahNumber);
+        toast({
+          title: "Bookmark saved",
+          description: `${surahName} - Verse ${currentVerse.numberInSurah}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error saving bookmark:", error);
       toast({
-        title: "Bookmark saved",
-        description: `${surahName} - Verse ${currentVerse.numberInSurah}`,
+        title: "Error",
+        description: "Failed to save bookmark",
+        variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -357,8 +370,9 @@ const QuranPage = () => {
           {showScrollButton && readingMode && (
             <div className="fixed right-4 bottom-8 flex flex-col gap-2 z-30">
               <button 
-                className="p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all"
+                className={`p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleSaveBookmark}
+                disabled={isSaving}
                 aria-label="Save bookmark"
                 title="Save current reading position"
               >
