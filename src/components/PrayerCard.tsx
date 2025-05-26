@@ -57,12 +57,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       style={{ animationDelay: `${Number(prayer.id.charCodeAt(0)) % 5 * 0.1}s` }}
     >
       {prayer.isNext && (
-        <>
-          <div className="absolute left-0 right-0 top-0 h-1 bg-orange-500"></div>
-          <div className="absolute left-0 right-0 bottom-0 h-1 bg-orange-500"></div>
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-1 bg-orange-500"></div>
-        </>
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500"></div>
       )}
       
       <div className="flex flex-col">

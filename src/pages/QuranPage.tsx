@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown, Save } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -17,8 +18,6 @@ const QuranPage = () => {
   const [isScrolledUp, setIsScrolledUp] = useState(true);
   const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const lastBookmarkedVerse = useRef<number | null>(null);
-  const bookmarkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const loadSurahs = async () => {
@@ -131,73 +130,41 @@ const QuranPage = () => {
     }
   };
 
-  // Silent bookmark save without affecting reading
-  const saveBookmarkSilently = (surahNumber: number, ayahNumber: number) => {
-    if (bookmarkTimeoutRef.current) {
-      clearTimeout(bookmarkTimeoutRef.current);
+  // Manual bookmark save function
+  const handleSaveBookmark = () => {
+    if (!readingMode || !selectedSurah || allAyahs.length === 0 || !contentRef.current) return;
+    
+    // Find which verse is currently in the center of the viewport
+    const viewportCenter = contentRef.current.scrollTop + contentRef.current.clientHeight / 2;
+    let currentVerse = null;
+    
+    for (let i = 0; i < allAyahs.length; i++) {
+      const element = document.getElementById(`ayah-${allAyahs[i].numberInSurah}`);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const containerRect = contentRef.current!.getBoundingClientRect();
+        const elementTop = rect.top - containerRect.top + contentRef.current!.scrollTop;
+        
+        if (elementTop <= viewportCenter) {
+          currentVerse = allAyahs[i];
+        } else {
+          break;
+        }
+      }
     }
     
-    bookmarkTimeoutRef.current = setTimeout(() => {
-      if (lastBookmarkedVerse.current !== ayahNumber) {
-        saveBookmark(surahNumber, ayahNumber);
-        setBookmark({ surahNumber, ayahNumber, timestamp: Date.now() });
-        lastBookmarkedVerse.current = ayahNumber;
-      }
-    }, 5000); // Save after 5 seconds of staying on a verse
-  };
-
-  // Optimized auto-bookmark without page reloading
-  useEffect(() => {
-    if (!readingMode || !selectedSurah || allAyahs.length === 0) return;
-
-    const handleAutoBookmark = () => {
-      if (!contentRef.current) return;
+    if (currentVerse) {
+      const surahNumber = parseInt(selectedSurah);
+      saveBookmark(surahNumber, currentVerse.numberInSurah);
+      setBookmark({ surahNumber, ayahNumber: currentVerse.numberInSurah, timestamp: Date.now() });
       
-      // Find which verse is currently in the center of the viewport
-      const viewportCenter = contentRef.current.scrollTop + contentRef.current.clientHeight / 2;
-      let currentVerse = null;
-      
-      for (let i = 0; i < allAyahs.length; i++) {
-        const element = document.getElementById(`ayah-${allAyahs[i].numberInSurah}`);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          const containerRect = contentRef.current!.getBoundingClientRect();
-          const elementTop = rect.top - containerRect.top + contentRef.current!.scrollTop;
-          
-          if (elementTop <= viewportCenter) {
-            currentVerse = allAyahs[i];
-          } else {
-            break;
-          }
-        }
-      }
-      
-      // Save bookmark silently without affecting reading experience
-      if (currentVerse) {
-        const surahNumber = parseInt(selectedSurah);
-        saveBookmarkSilently(surahNumber, currentVerse.numberInSurah);
-      }
-    };
-
-    const contentElement = contentRef.current;
-    if (contentElement) {
-      let timeoutId: NodeJS.Timeout;
-      const debouncedAutoBookmark = () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(handleAutoBookmark, 1000); // Reduced debounce for better responsiveness
-      };
-      
-      contentElement.addEventListener('scroll', debouncedAutoBookmark);
-      
-      return () => {
-        contentElement.removeEventListener('scroll', debouncedAutoBookmark);
-        clearTimeout(timeoutId);
-        if (bookmarkTimeoutRef.current) {
-          clearTimeout(bookmarkTimeoutRef.current);
-        }
-      };
+      const surahName = getSurahName(surahNumber);
+      toast({
+        title: "Bookmark saved",
+        description: `${surahName} - Verse ${currentVerse.numberInSurah}`,
+      });
     }
-  }, [readingMode, selectedSurah, allAyahs]);
+  };
 
   // Find surah name by surah number
   const getSurahName = (surahNumber: number) => {
@@ -215,10 +182,6 @@ const QuranPage = () => {
     setReadingMode(false);
     setSelectedSurah("");
     setAllAyahs([]);
-    lastBookmarkedVerse.current = null;
-    if (bookmarkTimeoutRef.current) {
-      clearTimeout(bookmarkTimeoutRef.current);
-    }
   };
 
   // Continue reading from bookmark
@@ -390,19 +353,29 @@ const QuranPage = () => {
             </div>
           </div>
           
-          {/* Scroll button */}
+          {/* Scroll and Save buttons */}
           {showScrollButton && readingMode && (
-            <button 
-              className="fixed right-4 bottom-8 p-3 bg-prayer-primary text-white rounded-full shadow-lg z-30 hover:bg-prayer-primary/90 transition-all"
-              onClick={handleScrollClick}
-              aria-label={isScrolledUp ? "Scroll to bottom" : "Scroll to top"}
-            >
-              {isScrolledUp ? (
-                <ArrowDown className="h-5 w-5" />
-              ) : (
-                <ArrowUp className="h-5 w-5" />
-              )}
-            </button>
+            <div className="fixed right-4 bottom-8 flex flex-col gap-2 z-30">
+              <button 
+                className="p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all"
+                onClick={handleSaveBookmark}
+                aria-label="Save bookmark"
+                title="Save current reading position"
+              >
+                <Save className="h-5 w-5" />
+              </button>
+              <button 
+                className="p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all"
+                onClick={handleScrollClick}
+                aria-label={isScrolledUp ? "Scroll to bottom" : "Scroll to top"}
+              >
+                {isScrolledUp ? (
+                  <ArrowDown className="h-5 w-5" />
+                ) : (
+                  <ArrowUp className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           )}
         </div>
       )}
