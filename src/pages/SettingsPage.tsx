@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -254,16 +253,6 @@ const SettingsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="pt-2">
-              <div className="text-sm font-medium mb-2">Currently Selected:</div>
-              <div className="bg-muted p-3 rounded-md">
-                <div className="font-medium">{location.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  Lat: {location.latitude.toFixed(4)}, Lng: {location.longitude.toFixed(4)}
-                </div>
-              </div>
             </div>
             
             <div className="grid gap-2">

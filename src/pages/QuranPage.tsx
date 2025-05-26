@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
@@ -18,6 +17,7 @@ const QuranPage = () => {
   const [isScrolledUp, setIsScrolledUp] = useState(true);
   const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const lastBookmarkedVerse = useRef<number | null>(null);
 
   useEffect(() => {
     const loadSurahs = async () => {
@@ -130,7 +130,7 @@ const QuranPage = () => {
     }
   };
 
-  // Simplified auto-bookmark when user scrolls
+  // Optimized auto-bookmark to prevent excessive saves
   useEffect(() => {
     if (!readingMode || !selectedSurah || allAyahs.length === 0) return;
 
@@ -156,20 +156,22 @@ const QuranPage = () => {
         }
       }
       
-      if (currentVerse) {
+      // Only save bookmark if verse has changed
+      if (currentVerse && currentVerse.numberInSurah !== lastBookmarkedVerse.current) {
         const surahNumber = parseInt(selectedSurah);
         saveBookmark(surahNumber, currentVerse.numberInSurah);
         setBookmark({ surahNumber, ayahNumber: currentVerse.numberInSurah, timestamp: Date.now() });
+        lastBookmarkedVerse.current = currentVerse.numberInSurah;
       }
     };
 
     const contentElement = contentRef.current;
     if (contentElement) {
-      // Debounce the auto-bookmark function
+      // Increased debounce time to reduce frequency
       let timeoutId: NodeJS.Timeout;
       const debouncedAutoBookmark = () => {
         clearTimeout(timeoutId);
-        timeoutId = setTimeout(handleAutoBookmark, 2000);
+        timeoutId = setTimeout(handleAutoBookmark, 3000); // Increased from 2000 to 3000
       };
       
       contentElement.addEventListener('scroll', debouncedAutoBookmark);
@@ -197,6 +199,7 @@ const QuranPage = () => {
     setReadingMode(false);
     setSelectedSurah("");
     setAllAyahs([]);
+    lastBookmarkedVerse.current = null; // Reset bookmark tracking
   };
 
   // Continue reading from bookmark
