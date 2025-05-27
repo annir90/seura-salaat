@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
@@ -5,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown, Save } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const QuranPage = () => {
   const [surahs, setSurahs] = useState<Surah[]>([]);
@@ -209,6 +211,11 @@ const QuranPage = () => {
     setSelectedSurah(surahNumber.toString());
   };
 
+  // Handle surah selection from dropdown
+  const handleSurahSelect = (value: string) => {
+    setSelectedSurah(value);
+  };
+
   return (
     <div className="flex flex-col pb-20">
       {/* Selection View - Only shown when not in reading mode */}
@@ -219,6 +226,27 @@ const QuranPage = () => {
           </div>
           <h1 className="text-2xl font-bold mb-4">Quran</h1>
           <p className="text-muted-foreground mb-6">Select a Surah to begin reading</p>
+          
+          {/* Surah Selection Dropdown */}
+          <div className="w-full max-w-md mb-6">
+            <Select value={selectedSurah} onValueChange={handleSurahSelect}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a Surah" />
+              </SelectTrigger>
+              <SelectContent>
+                {surahs.map((surah) => (
+                  <SelectItem key={surah.number} value={surah.number.toString()}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{surah.number}. {surah.englishName}</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {surah.numberOfAyahs} verses
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
           {/* Show last read bookmark */}
           {bookmark && (

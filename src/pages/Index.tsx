@@ -114,11 +114,12 @@ const Index = () => {
     loadPrayerTimes();
   }, []);
   
-  // Update prayer times every minute
+  // Enhanced update for automatic prayer timing with 10-second delay
   useEffect(() => {
+    // Update prayer times every 10 seconds for precise timing
     const interval = setInterval(() => {
       loadPrayerTimes();
-    }, 60000);
+    }, 10000);
     
     return () => clearInterval(interval);
   }, []);

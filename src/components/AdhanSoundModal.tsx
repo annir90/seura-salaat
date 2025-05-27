@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Play, Pause, Bell, Upload } from "lucide-react";
+import { Check, AlertTriangle, Play, Pause, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -21,23 +21,23 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Default audio options with local files
+// Updated audio options with new names
 const DEFAULT_ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
-    name: "Traditional Adhan",
+    name: "Adhan",
     url: "/audio/traditional-adhan.mp3",
     icon: <Bell size={20} />,
   },
   {
     id: "adhan-makkah",
-    name: "Makkah Adhan",
+    name: "Soft",
     url: "/audio/makkah-adhan.mp3",
     icon: <Bell size={20} />,
   },
   {
     id: "ringtone",
-    name: "Soft Reminder",
+    name: "Beep",
     url: "/audio/soft-notification.mp3",
     icon: <Bell size={20} />,
   }
@@ -52,13 +52,8 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const [loadErrors, setLoadErrors] = useState<{ [key: string]: boolean }>({});
-  const [customSounds, setCustomSounds] = useState<AdhanSoundOption[]>([]);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  // Combine default and custom sounds
-  const allSounds = [...DEFAULT_ADHAN_OPTIONS, ...customSounds];
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -68,118 +63,11 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     }
     
     setLoadErrors({});
-    loadCustomSounds();
     
     return () => {
       stopAllSounds();
     };
   }, [isOpen]);
-
-  // Load custom sounds from localStorage
-  const loadCustomSounds = () => {
-    try {
-      const saved = localStorage.getItem('custom-adhan-sounds');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setCustomSounds(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading custom sounds:', error);
-    }
-  };
-
-  // Save custom sounds to localStorage
-  const saveCustomSounds = (sounds: AdhanSoundOption[]) => {
-    try {
-      localStorage.setItem('custom-adhan-sounds', JSON.stringify(sounds));
-      setCustomSounds(sounds);
-    } catch (error) {
-      console.error('Error saving custom sounds:', error);
-      toast({
-        title: "Storage Error",
-        description: "Could not save custom sound. Storage may be full.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handle file upload with better local compatibility
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check if it's an audio file with extended format support
-    const audioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/m4a'];
-    const fileExtension = file.name.toLowerCase().split('.').pop();
-    const supportedExtensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
-
-    if (!audioTypes.includes(file.type) && !supportedExtensions.includes(fileExtension || '')) {
-      toast({
-        title: "Invalid File",
-        description: "Please select an audio file (MP3, WAV, OGG, AAC, M4A)",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check file size (max 15MB for better local file support)
-    if (file.size > 15 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Please select a file smaller than 15MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const audioUrl = e.target?.result as string;
-      const newSound: AdhanSoundOption = {
-        id: `custom-${Date.now()}`,
-        name: file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
-        url: audioUrl,
-        icon: <Upload size={20} />
-      };
-
-      const updatedCustomSounds = [...customSounds, newSound];
-      saveCustomSounds(updatedCustomSounds);
-      
-      toast({
-        title: "Audio Added",
-        description: `${newSound.name} has been added successfully`,
-      });
-    };
-
-    reader.onerror = () => {
-      toast({
-        title: "Upload Error",
-        description: "Could not read the audio file",
-        variant: "destructive",
-      });
-    };
-
-    reader.readAsDataURL(file);
-    
-    // Reset input
-    event.target.value = '';
-  };
-
-  // Remove custom sound
-  const removeCustomSound = (soundId: string) => {
-    const updatedSounds = customSounds.filter(sound => sound.id !== soundId);
-    saveCustomSounds(updatedSounds);
-    
-    // Stop playing if this sound was playing
-    if (isPlaying === soundId) {
-      stopAllSounds();
-    }
-    
-    toast({
-      title: "Sound Removed",
-      description: "Custom sound has been removed",
-    });
-  };
 
   const stopAllSounds = () => {
     Object.entries(audioRefs.current).forEach(([id, audio]) => {
@@ -196,7 +84,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   };
 
   const playSound = (soundId: string) => {
-    const soundOption = allSounds.find(o => o.id === soundId);
+    const soundOption = DEFAULT_ADHAN_OPTIONS.find(o => o.id === soundId);
     if (!soundOption) return;
     
     // If already playing this sound, stop it
@@ -260,7 +148,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   const handleSelect = (soundId: string) => {
     onSelect(soundId);
     
-    const selectedOption = allSounds.find(o => o.id === soundId);
+    const selectedOption = DEFAULT_ADHAN_OPTIONS.find(o => o.id === soundId);
     toast({
       title: "Notification Updated",
       description: `${prayerName} will use ${selectedOption?.name}`,
@@ -273,39 +161,15 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md bg-card text-card-foreground border border-border max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-foreground">{prayerName} Notification</DialogTitle>
+          <DialogTitle className="text-foreground">Notifications</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          {/* File upload section */}
-          <div className="border-2 border-dashed border-border rounded-lg p-4">
-            <div className="text-center">
-              <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground mb-3">Add your own audio file</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*,.mp3,.wav,.ogg,.aac,.m4a"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-xs"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Choose Audio File
-              </Button>
-            </div>
-          </div>
-
           {/* Sound options */}
-          {allSounds.map((option) => {
+          {DEFAULT_ADHAN_OPTIONS.map((option) => {
             const isSelected = selectedSoundId === option.id;
             const hasError = loadErrors[option.id];
             const isCurrentlyPlaying = isPlaying === option.id;
-            const isCustom = option.id.startsWith('custom-');
             
             return (
               <div
@@ -321,11 +185,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                     <span className="text-foreground">{option.icon}</span>
                     <div>
                       <span className="font-medium text-foreground">{option.name}</span>
-                      {isCustom && (
-                        <span className="ml-2 text-xs bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
-                          Custom
-                        </span>
-                      )}
                     </div>
                     
                     {hasError && (
@@ -347,17 +206,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
                       {isCurrentlyPlaying ? <Pause size={16} /> : <Play size={16} />}
                       {isCurrentlyPlaying ? ' Stop' : ' Play'}
                     </Button>
-                    
-                    {isCustom && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs px-2 h-8 text-destructive hover:bg-destructive/10"
-                        onClick={() => removeCustomSound(option.id)}
-                      >
-                        ×
-                      </Button>
-                    )}
                     
                     <Button
                       size="sm"
