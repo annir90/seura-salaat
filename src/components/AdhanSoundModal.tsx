@@ -21,7 +21,6 @@ interface AdhanSoundModalProps {
   selectedSoundId?: string;
 }
 
-// Updated audio options with new names
 const DEFAULT_ADHAN_OPTIONS: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
@@ -52,7 +51,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const [loadErrors, setLoadErrors] = useState<{ [key: string]: boolean }>({});
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   // Reset state when modal opens/closes
@@ -70,16 +69,15 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   }, [isOpen]);
 
   const stopAllSounds = () => {
-    Object.entries(audioRefs.current).forEach(([id, audio]) => {
-      if (audio) {
-        audio.pause();
-        try {
-          audio.currentTime = 0;
-        } catch (e) {
-          // Ignore errors when setting currentTime on unloaded audio
-        }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      try {
+        audioRef.current.currentTime = 0;
+      } catch (e) {
+        // Ignore errors when setting currentTime on unloaded audio
       }
-    });
+      audioRef.current = null;
+    }
     setIsPlaying(null);
   };
 
@@ -102,10 +100,12 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
     try {
       // Create a fresh audio instance
       const audio = new Audio();
+      audioRef.current = audio;
       
       // Set up event handlers
       audio.addEventListener("ended", () => {
         setIsPlaying(null);
+        audioRef.current = null;
       });
       
       audio.addEventListener("error", (e) => {
@@ -114,17 +114,18 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
       });
       
       audio.addEventListener("canplaythrough", () => {
-        audio.play().catch(e => {
-          console.error(`Playback failed for ${soundOption.name}:`, e);
-          handlePlaybackError(soundId, soundOption.name);
-        });
+        if (audioRef.current === audio) {
+          audio.play().catch(e => {
+            console.error(`Playback failed for ${soundOption.name}:`, e);
+            handlePlaybackError(soundId, soundOption.name);
+          });
+        }
       });
       
       // Set explicit volume
       audio.volume = 1.0;
       
-      // Store reference and load audio
-      audioRefs.current[soundId] = audio;
+      // Load audio
       audio.src = soundOption.url;
       audio.load();
       
@@ -137,6 +138,7 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
   const handlePlaybackError = (soundId: string, soundName: string) => {
     setLoadErrors(prev => ({...prev, [soundId]: true}));
     setIsPlaying(null);
+    audioRef.current = null;
     
     toast({
       title: "Audio Playback Issue",
@@ -165,7 +167,6 @@ const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          {/* Sound options */}
           {DEFAULT_ADHAN_OPTIONS.map((option) => {
             const isSelected = selectedSoundId === option.id;
             const hasError = loadErrors[option.id];

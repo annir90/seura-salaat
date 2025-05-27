@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages, ArrowLeft, ArrowUp, ArrowDown, Save } from "lucide-react";
+import { Loader2, BookOpen, Languages, ArrowLeft, Save } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,8 +14,6 @@ const QuranPage = () => {
   const [selectedSurah, setSelectedSurah] = useState<string>("");
   const [showTranslation, setShowTranslation] = useState(true);
   const [readingMode, setReadingMode] = useState(false);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [isScrolledUp, setIsScrolledUp] = useState(true);
   const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -36,48 +33,6 @@ const QuranPage = () => {
     
     loadSurahs();
   }, []);
-
-  // Handle scroll to show/hide scroll button and change its direction
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!contentRef.current) return;
-      
-      const scrollPosition = contentRef.current.scrollTop;
-      const scrollHeight = contentRef.current.scrollHeight;
-      const clientHeight = contentRef.current.clientHeight;
-      
-      setShowScrollButton(scrollPosition > 100);
-      const isNearBottom = scrollPosition + clientHeight > scrollHeight - 200;
-      setIsScrolledUp(!isNearBottom);
-    };
-    
-    const contentElement = contentRef.current;
-    if (contentElement) {
-      contentElement.addEventListener('scroll', handleScroll);
-      handleScroll();
-      
-      return () => {
-        contentElement.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, [readingMode]);
-
-  // Scroll handler function
-  const handleScrollClick = () => {
-    if (!contentRef.current) return;
-    
-    if (isScrolledUp) {
-      contentRef.current.scrollTo({
-        top: contentRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    } else {
-      contentRef.current.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }
-  };
 
   // Load complete surah when selectedSurah changes
   useEffect(() => {
@@ -394,9 +349,9 @@ const QuranPage = () => {
             </div>
           </div>
           
-          {/* Scroll and Save buttons */}
-          {showScrollButton && readingMode && (
-            <div className="fixed right-4 bottom-8 flex flex-col gap-2 z-30">
+          {/* Save bookmark button only */}
+          {readingMode && (
+            <div className="fixed right-4 bottom-8 z-30">
               <button 
                 className={`p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleSaveBookmark}
@@ -405,17 +360,6 @@ const QuranPage = () => {
                 title="Save current reading position"
               >
                 <Save className="h-5 w-5" />
-              </button>
-              <button 
-                className="p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all"
-                onClick={handleScrollClick}
-                aria-label={isScrolledUp ? "Scroll to bottom" : "Scroll to top"}
-              >
-                {isScrolledUp ? (
-                  <ArrowDown className="h-5 w-5" />
-                ) : (
-                  <ArrowUp className="h-5 w-5" />
-                )}
               </button>
             </div>
           )}

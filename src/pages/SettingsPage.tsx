@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -10,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Moon, Sun, Monitor, User, MapPin } from "lucide-react";
+import { Moon, Sun, User, MapPin } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
@@ -22,7 +23,6 @@ import {
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
   const [location, setLocation] = useState<Location>(getSelectedLocation());
-  const [calculationMethod, setCalculationMethod] = useState("ICF");
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -31,12 +31,6 @@ const SettingsPage = () => {
   // Load settings on component mount
   useEffect(() => {
     setAvailableLocations(getAvailableLocations());
-    
-    // Load calculation method
-    const savedMethod = localStorage.getItem('prayerapp-calculation-method');
-    if (savedMethod) {
-      setCalculationMethod(savedMethod);
-    }
     
     // Load notifications setting
     const savedNotifications = localStorage.getItem('prayer-notifications-enabled');
@@ -147,12 +141,6 @@ const SettingsPage = () => {
     }
   };
 
-  const handleCalculationMethodChange = (method: string) => {
-    setCalculationMethod(method);
-    localStorage.setItem('prayerapp-calculation-method', method);
-    toast.success(`Calculation method updated to ${method}`);
-  };
-
   const handleNotificationsChange = (enabled: boolean) => {
     setNotifications(enabled);
     localStorage.setItem('prayer-notifications-enabled', enabled.toString());
@@ -206,13 +194,6 @@ const SettingsPage = () => {
                   Dark
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="system" id="system" />
-                <Label htmlFor="system" className="flex items-center gap-2 cursor-pointer">
-                  <Monitor className="h-4 w-4" />
-                  System
-                </Label>
-              </div>
             </RadioGroup>
           </div>
         </div>
@@ -251,25 +232,6 @@ const SettingsPage = () => {
                       {loc.name}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="calculation">Calculation Method</Label>
-              <Select 
-                value={calculationMethod}
-                onValueChange={handleCalculationMethodChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select calculation method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ICF">Islamic Center of Finland (Recommended)</SelectItem>
-                  <SelectItem value="ISNA">ISNA (Islamic Society of North America)</SelectItem>
-                  <SelectItem value="MWL">Muslim World League</SelectItem>
-                  <SelectItem value="Egyptian">Egyptian General Authority</SelectItem>
-                  <SelectItem value="Makkah">Umm al-Qura University, Makkah</SelectItem>
                 </SelectContent>
               </Select>
             </div>

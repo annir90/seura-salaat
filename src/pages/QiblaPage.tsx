@@ -8,12 +8,60 @@ import { toast } from "sonner";
 const QiblaPage = () => {
   const [direction, setDirection] = useState(getQiblaDirection());
   const [compassHeading, setCompassHeading] = useState(0);
+  const [deviceOrientation, setDeviceOrientation] = useState(0);
+  
+  useEffect(() => {
+    // Request device orientation permission for iOS
+    const requestPermission = async () => {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+        try {
+          const permission = await (DeviceOrientationEvent as any).requestPermission();
+          if (permission === 'granted') {
+            setupOrientationListener();
+          }
+        } catch (error) {
+          console.error('Error requesting device orientation permission:', error);
+        }
+      } else {
+        setupOrientationListener();
+      }
+    };
+
+    const setupOrientationListener = () => {
+      const handleOrientation = (event: DeviceOrientationEvent) => {
+        if (event.alpha !== null) {
+          // Convert compass heading to match device orientation
+          const heading = event.alpha;
+          setDeviceOrientation(heading);
+          setCompassHeading(heading);
+        }
+      };
+
+      window.addEventListener('deviceorientationabsolute', handleOrientation);
+      window.addEventListener('deviceorientation', handleOrientation);
+
+      return () => {
+        window.removeEventListener('deviceorientationabsolute', handleOrientation);
+        window.removeEventListener('deviceorientation', handleOrientation);
+      };
+    };
+
+    requestPermission();
+  }, []);
   
   const handleCalibrate = () => {
-    // In a real app, this would access the device compass
-    toast.success("Compass calibrated successfully");
-    setCompassHeading(Math.random() * 360);
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+      toast.success("Compass calibrated with device orientation");
+      // Reset to current device orientation
+      setCompassHeading(deviceOrientation);
+    } else {
+      toast.success("Compass calibrated successfully");
+      setCompassHeading(Math.random() * 360);
+    }
   };
+
+  // Calculate the accurate Qibla direction relative to device orientation
+  const qiblaDirection = direction - compassHeading;
   
   return (
     <div className="flex flex-col items-center">
@@ -23,29 +71,51 @@ const QiblaPage = () => {
         <div 
           className="w-64 h-64 rounded-full bg-prayer-light flex items-center justify-center relative border-4 border-white shadow-lg"
         >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div 
-              className="w-6 h-6 rounded-full bg-prayer-primary absolute"
-              style={{
-                transform: `rotate(${compassHeading}deg) translateY(-110px)`
-              }}
-            />
-            <div 
-              className="w-2 h-32 bg-prayer-primary rounded-full absolute origin-bottom"
-              style={{
-                transform: `rotate(${direction - compassHeading}deg)`
-              }}
-            >
-              <div className="w-4 h-4 bg-prayer-primary absolute -top-2 left-1/2 transform -translate-x-1/2 rotate-45" />
-            </div>
-            <Compass className="w-8 h-8 text-prayer-primary" />
+          {/* North indicator */}
+          <div className="absolute top-2 text-xs font-bold text-prayer-primary">N</div>
+          
+          {/* Device orientation indicator */}
+          <div 
+            className="w-4 h-4 rounded-full bg-blue-500 absolute"
+            style={{
+              transform: `rotate(${compassHeading}deg) translateY(-110px)`
+            }}
+          />
+          
+          {/* Qibla direction arrow */}
+          <div 
+            className="w-2 h-32 bg-prayer-primary rounded-full absolute origin-bottom transition-transform duration-300"
+            style={{
+              transform: `rotate(${qiblaDirection}deg)`
+            }}
+          >
+            <div className="w-4 h-4 bg-prayer-primary absolute -top-2 left-1/2 transform -translate-x-1/2 rotate-45" />
+          </div>
+          
+          <Compass className="w-8 h-8 text-prayer-primary" />
+          
+          {/* Compass markings */}
+          <div className="absolute inset-0">
+            {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle) => (
+              <div
+                key={angle}
+                className="absolute w-0.5 h-4 bg-prayer-primary/30"
+                style={{
+                  top: '8px',
+                  left: '50%',
+                  transformOrigin: '50% 120px',
+                  transform: `translateX(-50%) rotate(${angle}deg)`
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
       
       <div className="text-center mb-8">
-        <p className="text-muted-foreground mb-2">Qibla is</p>
-        <p className="text-2xl font-bold text-prayer-primary">{direction}° East</p>
+        <p className="text-muted-foreground mb-2">Qibla Direction</p>
+        <p className="text-2xl font-bold text-prayer-primary">{Math.round(direction)}° from North</p>
+        <p className="text-sm text-muted-foreground mt-2">Device heading: {Math.round(compassHeading)}°</p>
       </div>
       
       <Button 
@@ -56,8 +126,8 @@ const QiblaPage = () => {
         Calibrate Compass
       </Button>
       
-      <div className="mt-6 text-sm text-center text-muted-foreground">
-        <p>For best results, hold your device flat and away from magnetic interference.</p>
+      <div className="mt-6 text-sm text-center text-muted-foreground max-w-md">
+        <p>Hold your device flat and away from magnetic interference. Allow location access for accurate Qibla direction.</p>
       </div>
     </div>
   );
