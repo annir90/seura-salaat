@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -10,8 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin } from "lucide-react";
+import { Moon, Sun, User, MapPin, LogOut } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
@@ -22,6 +22,7 @@ import {
 
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
+  const [notificationTiming, setNotificationTiming] = useState("5");
   const [location, setLocation] = useState<Location>(getSelectedLocation());
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -36,6 +37,12 @@ const SettingsPage = () => {
     const savedNotifications = localStorage.getItem('prayer-notifications-enabled');
     if (savedNotifications) {
       setNotifications(savedNotifications === 'true');
+    }
+    
+    // Load notification timing
+    const savedTiming = localStorage.getItem('prayer-notification-timing');
+    if (savedTiming) {
+      setNotificationTiming(savedTiming);
     }
     
     // Check user authentication status
@@ -146,6 +153,19 @@ const SettingsPage = () => {
     localStorage.setItem('prayer-notifications-enabled', enabled.toString());
     toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
   };
+
+  const handleNotificationTimingChange = (timing: string) => {
+    setNotificationTiming(timing);
+    localStorage.setItem('prayer-notification-timing', timing);
+    toast.success(`Notification timing set to ${timing} minutes before prayer`);
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('auth-token');
+    localStorage.removeItem('user-data');
+    toast.success("Signed out successfully");
+    window.location.href = "/welcome";
+  };
   
   return (
     <div>
@@ -155,18 +175,31 @@ const SettingsPage = () => {
         {/* User Status */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
           <h2 className="font-semibold text-lg mb-4">User Status</h2>
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
-              <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-full ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
+              </div>
+              <div>
+                <p className="font-medium">
+                  {isSignedIn && userEmail ? userEmail : "Visitor"}
+                </p>
+                <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                  {isSignedIn ? "Signed in" : "Not signed in"}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">
-                {isSignedIn && userEmail ? userEmail : "Visitor"}
-              </p>
-              <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                {isSignedIn ? "Signed in" : "Not signed in"}
-              </p>
-            </div>
+            {isSignedIn && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            )}
           </div>
         </div>
 
@@ -242,16 +275,36 @@ const SettingsPage = () => {
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
           <h2 className="font-semibold text-lg mb-4">Notification Settings</h2>
           
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="notifications" className="text-base">Prayer Notifications</Label>
-              <p className="text-sm text-muted-foreground">Receive notifications before prayer times</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="notifications" className="text-base">Prayer Notifications</Label>
+                <p className="text-sm text-muted-foreground">Receive notifications before prayer times</p>
+              </div>
+              <Switch 
+                id="notifications" 
+                checked={notifications} 
+                onCheckedChange={handleNotificationsChange}
+              />
             </div>
-            <Switch 
-              id="notifications" 
-              checked={notifications} 
-              onCheckedChange={handleNotificationsChange}
-            />
+            
+            {notifications && (
+              <div className="grid gap-2">
+                <Label htmlFor="notification-timing">Notification Timing</Label>
+                <Select 
+                  value={notificationTiming} 
+                  onValueChange={handleNotificationTimingChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timing" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 minutes before</SelectItem>
+                    <SelectItem value="10">10 minutes before</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
         
