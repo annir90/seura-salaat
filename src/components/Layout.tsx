@@ -1,14 +1,35 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Outlet } from "react-router-dom";
 import BottomNavbar from "./BottomNavbar";
 import { getSelectedLocation, Location } from "../services/locationService";
-import { toast } from "@/components/ui/use-toast";
 
 const Layout = () => {
   const [location, setLocation] = useState<Location | null>(null);
   const [calculationMethod, setCalculationMethod] = useState<string>("ISNA");
   const [dataSource, setDataSource] = useState<string>("Calculated");
+  
+  // Memoize the storage change handler for better performance
+  const handleStorageChange = useCallback((e: StorageEvent) => {
+    if (e.key === 'prayerapp-selected-location') {
+      try {
+        const newLocation = e.newValue ? JSON.parse(e.newValue) : null;
+        if (newLocation) {
+          setLocation(newLocation);
+        }
+      } catch (error) {
+        console.error('Error parsing location from storage', error);
+      }
+    } else if (e.key === 'prayerapp-calculation-method') {
+      if (e.newValue) {
+        setCalculationMethod(e.newValue);
+      }
+    } else if (e.key === 'prayerapp-data-source') {
+      if (e.newValue) {
+        setDataSource(e.newValue);
+      }
+    }
+  }, []);
   
   // Listen for location changes
   useEffect(() => {
@@ -28,32 +49,11 @@ const Layout = () => {
     }
     
     // Listen for storage changes from other tabs/windows
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'prayerapp-selected-location') {
-        try {
-          const newLocation = e.newValue ? JSON.parse(e.newValue) : null;
-          if (newLocation) {
-            setLocation(newLocation);
-          }
-        } catch (error) {
-          console.error('Error parsing location from storage', error);
-        }
-      } else if (e.key === 'prayerapp-calculation-method') {
-        if (e.newValue) {
-          setCalculationMethod(e.newValue);
-        }
-      } else if (e.key === 'prayerapp-data-source') {
-        if (e.newValue) {
-          setDataSource(e.newValue);
-        }
-      }
-    };
-    
     window.addEventListener('storage', handleStorageChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [handleStorageChange]);
   
   return (
     <div className="flex flex-col min-h-screen bg-background">

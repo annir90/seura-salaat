@@ -55,6 +55,7 @@ const SettingsPage = () => {
     // Check for authentication tokens or user data
     const authToken = localStorage.getItem('auth-token');
     const userData = localStorage.getItem('user-data');
+    const visitorMode = localStorage.getItem('visitor-mode');
     
     if (authToken && userData) {
       try {
@@ -66,6 +67,9 @@ const SettingsPage = () => {
         setIsSignedIn(false);
         setUserEmail(null);
       }
+    } else if (visitorMode) {
+      setIsSignedIn(false);
+      setUserEmail("Visitor");
     } else {
       setIsSignedIn(false);
       setUserEmail(null);
@@ -163,6 +167,7 @@ const SettingsPage = () => {
   const handleSignOut = () => {
     localStorage.removeItem('auth-token');
     localStorage.removeItem('user-data');
+    localStorage.removeItem('visitor-mode');
     toast.success("Signed out successfully");
     window.location.href = "/welcome";
   };
@@ -180,21 +185,21 @@ const SettingsPage = () => {
               <div className={`p-2 rounded-full ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
                 <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="font-medium">
-                  {isSignedIn && userEmail ? userEmail : "Visitor"}
+                  {isSignedIn && userEmail ? userEmail : (userEmail === "Visitor" ? "Visitor" : "Not signed in")}
                 </p>
                 <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                  {isSignedIn ? "Signed in" : "Not signed in"}
+                  {isSignedIn ? "Signed in" : (userEmail === "Visitor" ? "Visitor mode" : "Not signed in")}
                 </p>
               </div>
             </div>
-            {isSignedIn && (
+            {(isSignedIn || userEmail === "Visitor") && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 ml-2"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out

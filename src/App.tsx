@@ -16,10 +16,11 @@ import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
-// Check if user is authenticated
+// Check if user is authenticated or is a visitor
 const isAuthenticated = () => {
   const authToken = localStorage.getItem('auth-token');
-  return !!authToken;
+  const visitorMode = localStorage.getItem('visitor-mode');
+  return !!(authToken || visitorMode);
 };
 
 // Protected Route wrapper

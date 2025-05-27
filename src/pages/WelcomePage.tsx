@@ -37,6 +37,7 @@ const WelcomePage = () => {
   };
 
   const handleContinueAsVisitor = () => {
+    localStorage.setItem('visitor-mode', 'true');
     toast.success("Welcome! You're browsing as a visitor.");
     window.location.href = "/";
   };
