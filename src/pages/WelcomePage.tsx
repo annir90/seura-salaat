@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, UserPlus, Mail, Lock, Mosque } from "lucide-react";
+import { User, UserPlus, Mail, Lock, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 const WelcomePage = () => {
@@ -48,7 +48,7 @@ const WelcomePage = () => {
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-prayer-primary rounded-2xl flex items-center justify-center">
-              <Mosque className="h-8 w-8 text-white" />
+              <MapPin className="h-8 w-8 text-white" />
             </div>
           </div>
           <div>
