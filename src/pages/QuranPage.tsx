@@ -349,9 +349,9 @@ const QuranPage = () => {
             </div>
           </div>
           
-          {/* Save bookmark button only */}
+          {/* Save bookmark button - moved up */}
           {readingMode && (
-            <div className="fixed right-4 bottom-8 z-30">
+            <div className="fixed right-4 bottom-16 z-30">
               <button 
                 className={`p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleSaveBookmark}
