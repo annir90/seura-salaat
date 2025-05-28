@@ -95,6 +95,26 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', sans-serif;
+    /* Mobile-specific optimizations */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+  }
+
+  /* Safe area for mobile devices */
+  .container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Mobile keyboard fixes */
+  input, textarea, select {
+    -webkit-user-select: text;
+    user-select: text;
   }
 }
 
