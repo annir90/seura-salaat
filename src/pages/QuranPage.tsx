@@ -6,6 +6,7 @@ import { Loader2, BookOpen, Languages, ArrowLeft, Save } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getTranslation } from "@/services/translationService";
 
 const QuranPage = () => {
   const [surahs, setSurahs] = useState<Surah[]>([]);
@@ -17,6 +18,7 @@ const QuranPage = () => {
   const [bookmark, setBookmark] = useState<VerseBookmark | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const t = getTranslation();
 
   useEffect(() => {
     const loadSurahs = async () => {
@@ -53,7 +55,7 @@ const QuranPage = () => {
         const surahName = surahs.find(s => s.number === surahNumber)?.englishName || '';
         toast({
           title: `Surah ${surahName} loaded`,
-          description: `Successfully loaded all ${ayahsData.length} verses`,
+          description: `Successfully loaded all ${ayahsData.length} ${t.verses}`,
         });
 
         // Scroll to bookmarked verse if it's in this surah
@@ -65,7 +67,7 @@ const QuranPage = () => {
       } catch (error) {
         console.error("Error loading surah:", error);
         toast({
-          title: "Error",
+          title: t.error,
           description: "Failed to load surah. Please try again later.",
           variant: "destructive",
         });
@@ -77,7 +79,7 @@ const QuranPage = () => {
     if (selectedSurah) {
       loadCompleteSurah();
     }
-  }, [selectedSurah, surahs, bookmark]);
+  }, [selectedSurah, surahs, bookmark, t]);
 
   // Function to scroll to bookmarked verse
   const scrollToBookmarkedVerse = (ayahNumber: number) => {
@@ -127,7 +129,7 @@ const QuranPage = () => {
     } catch (error) {
       console.error("Error saving bookmark:", error);
       toast({
-        title: "Error",
+        title: t.error,
         description: "Failed to save bookmark",
         variant: "destructive",
       });
@@ -179,8 +181,8 @@ const QuranPage = () => {
           <div className="bg-prayer-primary w-16 h-16 rounded-full flex items-center justify-center mb-4">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mb-4">Quran</h1>
-          <p className="text-muted-foreground mb-6">Select a Surah to begin reading</p>
+          <h1 className="text-2xl font-bold mb-4">{t.quran}</h1>
+          <p className="text-muted-foreground mb-6">{t.selectSurahToRead}</p>
           
           {/* Surah Selection Dropdown */}
           <div className="w-full max-w-md mb-6">
@@ -194,7 +196,7 @@ const QuranPage = () => {
                     <div className="flex items-center justify-between w-full">
                       <span>{surah.number}. {surah.englishName}</span>
                       <span className="text-sm text-muted-foreground ml-2">
-                        {surah.numberOfAyahs} verses
+                        {surah.numberOfAyahs} {t.verses}
                       </span>
                     </div>
                   </SelectItem>
@@ -210,7 +212,7 @@ const QuranPage = () => {
                 <div className="p-2 bg-prayer-primary/20 rounded-full">
                   <BookOpen className="h-5 w-5 text-prayer-primary" />
                 </div>
-                <span className="font-semibold text-foreground">Continue Reading</span>
+                <span className="font-semibold text-foreground">{t.continueReading}</span>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
                 {getSurahName(bookmark.surahNumber)} - Verse {bookmark.ayahNumber}
@@ -219,7 +221,7 @@ const QuranPage = () => {
                 onClick={continueReading}
                 className="w-full bg-prayer-primary hover:bg-prayer-primary/90 text-white"
               >
-                Continue Reading
+                {t.continueReading}
               </Button>
             </div>
           )}
@@ -249,7 +251,7 @@ const QuranPage = () => {
                         {surah.englishName}
                       </h3>
                       <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {surah.numberOfAyahs} verses
+                        {surah.numberOfAyahs} {t.verses}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -288,7 +290,7 @@ const QuranPage = () => {
                 {getSurahName(parseInt(selectedSurah))}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {allAyahs.length} verses
+                {allAyahs.length} {t.verses}
               </p>
             </div>
             
@@ -341,17 +343,17 @@ const QuranPage = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-prayer-primary/10 rounded-full mb-4">
                   <BookOpen className="h-8 w-8 text-prayer-primary" />
                 </div>
-                <p className="text-lg font-medium">End of Surah</p>
+                <p className="text-lg font-medium">{t.endOfSurah}</p>
                 <p className="text-sm">
-                  {getSurahName(parseInt(selectedSurah))} - {allAyahs.length} verses
+                  {getSurahName(parseInt(selectedSurah))} - {allAyahs.length} {t.verses}
                 </p>
               </div>
             </div>
           </div>
           
-          {/* Save bookmark button - moved up */}
+          {/* Save bookmark button - moved up higher */}
           {readingMode && (
-            <div className="fixed right-4 bottom-16 z-30">
+            <div className="fixed right-4 bottom-24 z-30">
               <button 
                 className={`p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleSaveBookmark}

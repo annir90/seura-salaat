@@ -1,7 +1,7 @@
-
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
+import { getTranslation } from "./translationService";
 
 // Prayer time service using API for Espoo, Finland
 export interface PrayerTime {
@@ -39,15 +39,16 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
     }
     
     const timings = data.data.timings;
+    const t = getTranslation();
     
-    // Map API response to our format
+    // Map API response to our format with translations
     const prayers = [
-      { id: "fajr", name: "Fajr", time: formatTime(timings.Fajr) },
-      { id: "sunrise", name: "Sunrise", time: formatTime(timings.Sunrise) },
-      { id: "dhuhr", name: "Dhuhr", time: formatTime(timings.Dhuhr) },
-      { id: "asr", name: "Asr", time: formatTime(timings.Asr) },
-      { id: "maghrib", name: "Maghrib", time: formatTime(timings.Maghrib) },
-      { id: "isha", name: "Isha", time: formatTime(timings.Isha) }
+      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr) },
+      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise) },
+      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr) },
+      { id: "asr", name: t.asr, time: formatTime(timings.Asr) },
+      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib) },
+      { id: "isha", name: t.isha, time: formatTime(timings.Isha) }
     ];
     
     // Determine next prayer only for today's times
@@ -147,7 +148,7 @@ export const getQiblaDirection = () => {
   const y = Math.sin(longKaaba - longEspoo);
   const x = Math.cos(latEspoo) * Math.tan(latKaaba) - Math.sin(latEspoo) * Math.cos(longKaaba - longEspoo);
   
-  let qiblaDirection = Math.atan2(y, x) * (180 / Math.PI);
+  let qiblaDirection = Math.atan2(y, x) * (180 / 180);
   qiblaDirection = (qiblaDirection + 360) % 360;
   
   return Math.round(qiblaDirection);

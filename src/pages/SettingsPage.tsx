@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin, LogOut } from "lucide-react";
+import { Moon, Sun, User, MapPin, LogOut, Languages } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
@@ -19,6 +19,12 @@ import {
   getAvailableLocations, 
   Location
 } from "@/services/locationService";
+import { 
+  setLanguage, 
+  getCurrentLanguage, 
+  getTranslation, 
+  LanguageCode 
+} from "@/services/translationService";
 
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
@@ -27,7 +33,9 @@ const SettingsPage = () => {
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(getCurrentLanguage());
   const { theme, setTheme } = useTheme();
+  const t = getTranslation();
   
   // Load settings on component mount
   useEffect(() => {
@@ -69,7 +77,7 @@ const SettingsPage = () => {
       }
     } else if (visitorMode) {
       setIsSignedIn(false);
-      setUserEmail("Visitor");
+      setUserEmail(t.visitor);
     } else {
       setIsSignedIn(false);
       setUserEmail(null);
@@ -161,7 +169,16 @@ const SettingsPage = () => {
   const handleNotificationTimingChange = (timing: string) => {
     setNotificationTiming(timing);
     localStorage.setItem('prayer-notification-timing', timing);
-    toast.success(`Notification timing set to ${timing} minutes before prayer`);
+    toast.success(`Notification timing set to ${timing} ${t.minutesBefore}`);
+  };
+
+  const handleLanguageChange = (languageCode: string) => {
+    const newLanguage = languageCode as LanguageCode;
+    setLanguage(newLanguage);
+    setCurrentLanguage(newLanguage);
+    toast.success(`Language updated to ${newLanguage === 'fi' ? 'Suomi' : 'English'}`);
+    // Force page refresh to apply translations
+    setTimeout(() => window.location.reload(), 500);
   };
 
   const handleSignOut = () => {
@@ -174,12 +191,12 @@ const SettingsPage = () => {
   
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-foreground">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6 text-foreground">{t.settings}</h1>
       
       <div className="space-y-6">
         {/* User Status */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
-          <h2 className="font-semibold text-lg mb-4">User Status</h2>
+          <h2 className="font-semibold text-lg mb-4">{t.userStatus}</h2>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
@@ -187,32 +204,59 @@ const SettingsPage = () => {
               </div>
               <div className="flex-1">
                 <p className="font-medium">
-                  {isSignedIn && userEmail ? userEmail : (userEmail === "Visitor" ? "Visitor" : "Not signed in")}
+                  {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
                 </p>
                 <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                  {isSignedIn ? "Signed in" : (userEmail === "Visitor" ? "Visitor mode" : "Not signed in")}
+                  {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
                 </p>
               </div>
             </div>
-            {(isSignedIn || userEmail === "Visitor") && (
+            {(isSignedIn || userEmail === t.visitor) && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="flex items-center gap-2 ml-2"
+                className="flex items-center gap-2 ml-2 shrink-0"
               >
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                {t.signOut}
               </Button>
             )}
           </div>
         </div>
 
+        {/* Language Settings */}
+        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
+          <h2 className="font-semibold text-lg mb-4">{t.language}</h2>
+          <div className="space-y-3">
+            <Label htmlFor="language">{t.language}</Label>
+            <Select value={currentLanguage} onValueChange={handleLanguageChange}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">
+                  <div className="flex items-center gap-2">
+                    <Languages className="h-4 w-4" />
+                    English
+                  </div>
+                </SelectItem>
+                <SelectItem value="fi">
+                  <div className="flex items-center gap-2">
+                    <Languages className="h-4 w-4" />
+                    Suomi
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Theme Settings */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
-          <h2 className="font-semibold text-lg mb-4">Appearance</h2>
+          <h2 className="font-semibold text-lg mb-4">{t.appearance}</h2>
           <div className="space-y-3">
-            <Label htmlFor="theme">Theme</Label>
+            <Label htmlFor="theme">{t.theme}</Label>
             <RadioGroup
               value={theme}
               onValueChange={(value) => setTheme(value as any)}
@@ -222,14 +266,14 @@ const SettingsPage = () => {
                 <RadioGroupItem value="light" id="light" />
                 <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer">
                   <Sun className="h-4 w-4" />
-                  Light
+                  {t.light}
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="dark" id="dark" />
                 <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer">
                   <Moon className="h-4 w-4" />
-                  Dark
+                  {t.dark}
                 </Label>
               </div>
             </RadioGroup>
@@ -238,25 +282,25 @@ const SettingsPage = () => {
 
         {/* Location Settings */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
-          <h2 className="font-semibold text-lg mb-4">Location Settings</h2>
+          <h2 className="font-semibold text-lg mb-4">{t.locationSettings}</h2>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Auto-detect Location</Label>
-                <p className="text-sm text-muted-foreground">Automatically detect your current location</p>
+                <Label className="text-base">{t.autoDetectLocation}</Label>
+                <p className="text-sm text-muted-foreground">{t.autoDetectLocationDesc}</p>
               </div>
               <button 
                 onClick={autoDetectLocation}
                 className="flex items-center gap-2 px-3 py-2 bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors"
               >
                 <MapPin className="h-4 w-4" />
-                Detect
+                {t.detect}
               </button>
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="location">Select Location</Label>
+              <Label htmlFor="location">{t.selectLocation}</Label>
               <Select 
                 value={location.id} 
                 onValueChange={handleLocationChange}
@@ -278,13 +322,13 @@ const SettingsPage = () => {
         
         {/* Notification Settings */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
-          <h2 className="font-semibold text-lg mb-4">Notification Settings</h2>
+          <h2 className="font-semibold text-lg mb-4">{t.notificationSettings}</h2>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="notifications" className="text-base">Prayer Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive notifications before prayer times</p>
+                <Label htmlFor="notifications" className="text-base">{t.prayerNotifications}</Label>
+                <p className="text-sm text-muted-foreground">{t.prayerNotificationsDesc}</p>
               </div>
               <Switch 
                 id="notifications" 
@@ -295,7 +339,7 @@ const SettingsPage = () => {
             
             {notifications && (
               <div className="grid gap-2">
-                <Label htmlFor="notification-timing">Notification Timing</Label>
+                <Label htmlFor="notification-timing">{t.notificationTiming}</Label>
                 <Select 
                   value={notificationTiming} 
                   onValueChange={handleNotificationTimingChange}
@@ -304,8 +348,8 @@ const SettingsPage = () => {
                     <SelectValue placeholder="Select timing" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5 minutes before</SelectItem>
-                    <SelectItem value="10">10 minutes before</SelectItem>
+                    <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
+                    <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

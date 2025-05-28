@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
 import { Loader2, CalendarDays, Clock } from "lucide-react";
+import { getTranslation } from "@/services/translationService";
+import { getIslamicDate, formatIslamicDate } from "@/services/islamicDateService";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState("");
+  const [islamicDate, setIslamicDate] = useState("");
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = getTranslation();
   
   // Expanded hadith collection with Arabic and English (20 hadiths)
   const hadiths = [
@@ -67,7 +71,7 @@ const Index = () => {
       english: "The Prophet (peace be upon him) said: 'Patience is the key to relief.'"
     },
     {
-      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ تَوَاضَعَ لِلَّهِ رَفَعَهُ",
+      arabic: "قَالَ رسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ تَوَاضَعَ لِلَّهِ رَفَعَهُ",
       english: "The Prophet (peace be upon him) said: 'Whoever humbles himself for Allah, Allah will elevate him.'"
     },
     {
@@ -94,14 +98,52 @@ const Index = () => {
   
   const [currentHadith, setCurrentHadith] = useState(0);
   
-  // Load prayer times
+  // Load prayer times with automatic transition logic
   const loadPrayerTimes = async () => {
     try {
       setLoading(true);
       const times = await getPrayerTimes();
-      setPrayerTimes(times);
+      
+      // Apply 20-second early transition logic
+      const updatedTimes = times.map((prayer, index) => {
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes() * 60 + now.getSeconds();
+        const [hours, minutes] = prayer.time.split(":").map(Number);
+        const prayerTime = hours * 3600 + minutes * 60; // Convert to seconds
+        
+        // If we're within 20 seconds before prayer time, move to next prayer
+        const timeDiff = prayerTime - currentTime;
+        if (timeDiff > 0 && timeDiff <= 20) {
+          const nextIndex = (index + 1) % times.length;
+          return { ...prayer, isNext: false };
+        }
+        
+        return prayer;
+      });
+      
+      // Find the actual next prayer after applying transition logic
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      let nextPrayerIndex = updatedTimes.findIndex(prayer => {
+        const [hours, minutes] = prayer.time.split(":").map(Number);
+        const prayerTime = hours * 60 + minutes;
+        return prayerTime > currentTime + 0.33; // Add 20 seconds buffer (0.33 minutes)
+      });
+      
+      if (nextPrayerIndex === -1) nextPrayerIndex = 0; // Next day's Fajr
+      
+      const finalTimes = updatedTimes.map((prayer, index) => ({
+        ...prayer,
+        isNext: index === nextPrayerIndex
+      }));
+      
+      setPrayerTimes(finalTimes);
       const formattedDate = await getDateForHeader();
       setCurrentDate(formattedDate);
+      
+      // Update Islamic date
+      const islamicDateObj = getIslamicDate();
+      setIslamicDate(formatIslamicDate(islamicDateObj));
     } catch (error) {
       console.error("Error loading prayer times:", error);
     } finally {
@@ -133,10 +175,30 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [hadiths.length]);
 
-  // Check if today is Friday
-  const isFriday = () => {
-    const today = new Date();
-    return today.getDay() === 5;
+  // Check if we should show Juma prayer (Saturday 18:00 to Friday 13:40)
+  const shouldShowJumaa = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+    
+    // Saturday 18:00 (1080 minutes) onwards
+    if (dayOfWeek === 6 && currentTime >= 1080) {
+      return true;
+    }
+    
+    // Sunday through Thursday (any time)
+    if (dayOfWeek >= 0 && dayOfWeek <= 4) {
+      return true;
+    }
+    
+    // Friday until 13:40 (820 minutes)
+    if (dayOfWeek === 5 && currentTime <= 820) {
+      return true;
+    }
+    
+    return false;
   };
   
   return (
@@ -171,24 +233,27 @@ const Index = () => {
           </div>
           
           <div className="mb-6">
-            <h2 className="font-semibold text-xl mb-3 text-foreground">Prayer Schedule</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-xl text-foreground">{t.prayerSchedule}</h2>
+              <p className="text-sm text-muted-foreground">{islamicDate}</p>
+            </div>
             {prayerTimes.map((prayer) => (
               <PrayerCard key={prayer.id} prayer={prayer} />
             ))}
           </div>
 
-          {isFriday() && (
+          {shouldShowJumaa() && (
             <div className="bg-prayer-primary/10 dark:bg-prayer-primary/20 rounded-lg p-4 mb-4 border border-prayer-primary/20 dark:border-prayer-primary/30">
               <div className="flex items-center gap-2 mb-3">
                 <CalendarDays className="h-5 w-5 text-prayer-primary" />
-                <h3 className="font-semibold text-lg text-foreground">Jumaa Prayer</h3>
+                <h3 className="font-semibold text-lg text-foreground">{t.jumaaPrayer}</h3>
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-prayer-primary" />
-                  <p className="text-muted-foreground">Prayer time: <span className="font-medium text-foreground">13:30</span></p>
+                  <p className="text-muted-foreground">{t.prayerTime}: <span className="font-medium text-foreground">13:45-14:00</span></p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Join us for Friday prayer (Salat al-Jumaa) at the mosque. Remember to arrive early for the khutbah.</p>
+                <p className="text-sm text-muted-foreground mt-2">{t.joinUsText}</p>
               </div>
             </div>
           )}
