@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
@@ -164,6 +165,16 @@ const Index = () => {
     }, 10000);
     
     return () => clearInterval(interval);
+  }, []);
+
+  // Auto-refresh prayer times every hour in background
+  useEffect(() => {
+    const hourlyRefresh = setInterval(() => {
+      console.log("Hourly prayer times refresh");
+      loadPrayerTimes();
+    }, 3600000); // 1 hour = 3600000 milliseconds
+    
+    return () => clearInterval(hourlyRefresh);
   }, []);
 
   // Rotate hadith every 15 seconds for more consistent viewing

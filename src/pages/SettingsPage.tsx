@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin, LogOut, Languages } from "lucide-react";
+import { Moon, Sun, User, MapPin, LogOut, Languages, Share2, QrCode } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
@@ -34,6 +34,7 @@ const SettingsPage = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(getCurrentLanguage());
+  const [showQRCode, setShowQRCode] = useState(false);
   const { theme, setTheme } = useTheme();
   const t = getTranslation();
   
@@ -188,6 +189,35 @@ const SettingsPage = () => {
     toast.success("Signed out successfully");
     window.location.href = "/welcome";
   };
+
+  const shareAppUrl = "https://d7360491-a249-4f6e-9474-c67ad3a482a2.lovableproject.com";
+  
+  const handleShareApp = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'PrayConnect - Prayer Times App',
+          text: 'Check out this amazing prayer times app!',
+          url: shareAppUrl,
+        });
+        toast.success("App shared successfully!");
+      } catch (error) {
+        console.log("Share cancelled or failed");
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareAppUrl);
+        toast.success("App link copied to clipboard!");
+      } catch (error) {
+        toast.error("Failed to copy link");
+      }
+    }
+  };
+
+  const generateQRCodeUrl = (text: string) => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
+  };
   
   return (
     <div>
@@ -222,6 +252,51 @@ const SettingsPage = () => {
                 {t.signOut}
               </Button>
             )}
+          </div>
+        </div>
+
+        {/* Share App Section */}
+        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
+          <h2 className="font-semibold text-lg mb-4">Share the App</h2>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Help others discover PrayConnect! Share this app with your friends and family.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Button 
+                  onClick={handleShareApp}
+                  className="flex items-center gap-2 bg-prayer-primary hover:bg-prayer-primary/90"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share App
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowQRCode(!showQRCode)}
+                  className="flex items-center gap-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                  QR Code
+                </Button>
+              </div>
+              
+              {showQRCode && (
+                <div className="flex justify-center p-4 bg-muted/20 rounded-lg">
+                  <img 
+                    src={generateQRCodeUrl(shareAppUrl)}
+                    alt="QR Code for PrayConnect App"
+                    className="w-48 h-48"
+                  />
+                </div>
+              )}
+              
+              <div className="text-xs text-muted-foreground break-all">
+                {shareAppUrl}
+              </div>
+            </div>
           </div>
         </div>
 

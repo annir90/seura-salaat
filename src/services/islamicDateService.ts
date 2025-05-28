@@ -23,54 +23,74 @@ const islamicMonths = [
   { en: "Dhu al-Hijjah", ar: "ذو الحجة" }
 ];
 
-// More accurate Islamic calendar conversion
+// Corrected Islamic calendar conversion
 export const getIslamicDate = (gregorianDate: Date = new Date()): IslamicDate => {
   try {
-    // Improved calculation using more precise Islamic calendar constants
-    const hijriEpoch = new Date(622, 6, 16); // July 16, 622 CE (start of Islamic calendar)
-    const daysSinceEpoch = Math.floor((gregorianDate.getTime() - hijriEpoch.getTime()) / (1000 * 60 * 60 * 24));
+    // Current Islamic date: 1 Dhū al-Ḥijjah, 1446 AH corresponds to today
+    const currentGregorian = new Date(2025, 4, 28); // May 28, 2025
+    const currentIslamic = { day: 1, month: 12, year: 1446 }; // 1 Dhū al-Ḥijjah, 1446 AH
     
-    // More accurate Islamic year calculation (using 354.367 days per year)
-    const islamicYearLength = 354.367;
-    const hijriYear = Math.floor(daysSinceEpoch / islamicYearLength) + 1;
+    // Calculate difference in days
+    const daysDiff = Math.floor((gregorianDate.getTime() - currentGregorian.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Calculate remaining days in the current year
-    const dayInYear = Math.floor(daysSinceEpoch % islamicYearLength);
+    // Start with the current Islamic date
+    let islamicDay = currentIslamic.day + daysDiff;
+    let islamicMonth = currentIslamic.month;
+    let islamicYear = currentIslamic.year;
     
-    // Islamic months alternate between 30 and 29 days, with some variation
-    const monthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-    
-    let totalDays = 0;
-    let month = 1;
-    
-    // Find the correct month
-    for (let i = 0; i < 12; i++) {
-      if (totalDays + monthLengths[i] > dayInYear) {
-        month = i + 1;
-        break;
+    // Month lengths in Islamic calendar (alternating 30/29 days with some adjustments)
+    const getMonthLength = (month: number, year: number) => {
+      // Basic alternating pattern: odd months = 30 days, even months = 29 days
+      // With Dhū al-Ḥijjah having 30 days in leap years
+      if (month % 2 === 1) return 30; // Odd months: 30 days
+      if (month === 12) {
+        // Dhū al-Ḥijjah: 29 days normally, 30 in leap years
+        // Simplified leap year calculation (11 leap years in 30-year cycle)
+        const cycleYear = year % 30;
+        const leapYears = [2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29];
+        return leapYears.includes(cycleYear) ? 30 : 29;
       }
-      totalDays += monthLengths[i];
+      return 29; // Even months: 29 days
+    };
+    
+    // Adjust for month overflow
+    while (islamicDay > getMonthLength(islamicMonth, islamicYear)) {
+      islamicDay -= getMonthLength(islamicMonth, islamicYear);
+      islamicMonth++;
+      if (islamicMonth > 12) {
+        islamicMonth = 1;
+        islamicYear++;
+      }
     }
     
-    const day = Math.max(1, dayInYear - totalDays + 1);
-    const monthIndex = Math.min(Math.max(month - 1, 0), 11);
+    // Adjust for negative days (going backwards)
+    while (islamicDay < 1) {
+      islamicMonth--;
+      if (islamicMonth < 1) {
+        islamicMonth = 12;
+        islamicYear--;
+      }
+      islamicDay += getMonthLength(islamicMonth, islamicYear);
+    }
+    
+    const monthIndex = Math.min(Math.max(islamicMonth - 1, 0), 11);
     
     return {
-      day: Math.min(day, 30),
-      month: month,
-      year: hijriYear,
+      day: islamicDay,
+      month: islamicMonth,
+      year: islamicYear,
       monthName: islamicMonths[monthIndex].en,
       monthNameArabic: islamicMonths[monthIndex].ar
     };
   } catch (error) {
     console.error("Error calculating Islamic date:", error);
-    // Fallback to a default date
+    // Fallback to the current known date
     return {
       day: 1,
-      month: 1,
+      month: 12,
       year: 1446,
-      monthName: islamicMonths[0].en,
-      monthNameArabic: islamicMonths[0].ar
+      monthName: islamicMonths[11].en,
+      monthNameArabic: islamicMonths[11].ar
     };
   }
 };
