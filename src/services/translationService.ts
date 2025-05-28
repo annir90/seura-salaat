@@ -50,6 +50,22 @@ export interface Translation {
   endOfSurah: string;
   verses: string;
   
+  // Calendar page
+  prayerCalendar: string;
+  chooseDayPrompt: string;
+  selectDatePrompt: string;
+  prayerTimesFor: string;
+  noPrayerTimes: string;
+  
+  // Qibla page
+  qiblaFinder: string;
+  qiblaDirection: string;
+  deviceHeading: string;
+  calibrateCompass: string;
+  compassCalibrated: string;
+  qiblaInstructions: string;
+  fromNorth: string;
+  
   // Common
   loading: string;
   error: string;
@@ -107,6 +123,22 @@ const englishTranslations: Translation = {
   endOfSurah: "End of Surah",
   verses: "verses",
   
+  // Calendar page
+  prayerCalendar: "Prayer Calendar",
+  chooseDayPrompt: "Choose the day you want to know!",
+  selectDatePrompt: "Select a date from the calendar above to view prayer times for that day.",
+  prayerTimesFor: "Prayer Times for",
+  noPrayerTimes: "No prayer times available for this date.",
+  
+  // Qibla page
+  qiblaFinder: "Qibla Finder",
+  qiblaDirection: "Qibla Direction",
+  deviceHeading: "Device heading",
+  calibrateCompass: "Calibrate Compass",
+  compassCalibrated: "Compass calibrated successfully",
+  qiblaInstructions: "Hold your device flat and away from magnetic interference. Allow location access for accurate Qibla direction.",
+  fromNorth: "from North",
+  
   // Common
   loading: "Loading...",
   error: "Error",
@@ -163,6 +195,22 @@ const finnishTranslations: Translation = {
   continueReading: "Jatka lukemista",
   endOfSurah: "Suuran loppu",
   verses: "säettä",
+  
+  // Calendar page
+  prayerCalendar: "Rukouskalenteri",
+  chooseDayPrompt: "Valitse päivä jonka haluat tietää!",
+  selectDatePrompt: "Valitse päivämäärä kalenterista yllä nähdäksesi kyseisen päivän rukousajat.",
+  prayerTimesFor: "Rukousajat",
+  noPrayerTimes: "Rukousaikoja ei ole saatavilla tälle päivälle.",
+  
+  // Qibla page
+  qiblaFinder: "Qibla-etsijä",
+  qiblaDirection: "Qibla-suunta",
+  deviceHeading: "Laitteen suunta",
+  calibrateCompass: "Kalibroi kompassi",
+  compassCalibrated: "Kompassi kalibroitu onnistuneesti",
+  qiblaInstructions: "Pidä laitetta tasaisena ja kaukana magneettisista häiriöistä. Salli sijaintipääsy tarkkaa Qibla-suuntaa varten.",
+  fromNorth: "pohjoisesta",
   
   // Common
   loading: "Ladataan...",

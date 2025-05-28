@@ -4,11 +4,13 @@ import { getQiblaDirection } from "@/services/prayerTimeService";
 import { Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getTranslation } from "@/services/translationService";
 
 const QiblaPage = () => {
   const [direction, setDirection] = useState(getQiblaDirection());
   const [compassHeading, setCompassHeading] = useState(0);
   const [deviceOrientation, setDeviceOrientation] = useState(0);
+  const t = getTranslation();
   
   useEffect(() => {
     // Request device orientation permission for iOS
@@ -51,11 +53,11 @@ const QiblaPage = () => {
   
   const handleCalibrate = () => {
     if (typeof DeviceOrientationEvent !== 'undefined') {
-      toast.success("Compass calibrated with device orientation");
+      toast.success(t.compassCalibrated);
       // Reset to current device orientation
       setCompassHeading(deviceOrientation);
     } else {
-      toast.success("Compass calibrated successfully");
+      toast.success(t.compassCalibrated);
       setCompassHeading(Math.random() * 360);
     }
   };
@@ -65,7 +67,7 @@ const QiblaPage = () => {
   
   return (
     <div className="flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-6">Qibla Finder</h1>
+      <h1 className="text-2xl font-bold mb-6">{t.qiblaFinder}</h1>
       
       <div className="relative mb-8 animate-fade-in">
         <div 
@@ -113,9 +115,9 @@ const QiblaPage = () => {
       </div>
       
       <div className="text-center mb-8">
-        <p className="text-muted-foreground mb-2">Qibla Direction</p>
-        <p className="text-2xl font-bold text-prayer-primary">{Math.round(direction)}° from North</p>
-        <p className="text-sm text-muted-foreground mt-2">Device heading: {Math.round(compassHeading)}°</p>
+        <p className="text-muted-foreground mb-2">{t.qiblaDirection}</p>
+        <p className="text-2xl font-bold text-prayer-primary">{Math.round(direction)}° {t.fromNorth}</p>
+        <p className="text-sm text-muted-foreground mt-2">{t.deviceHeading}: {Math.round(compassHeading)}°</p>
       </div>
       
       <Button 
@@ -123,11 +125,11 @@ const QiblaPage = () => {
         className="bg-prayer-light text-prayer-primary hover:bg-prayer-accent"
         onClick={handleCalibrate}
       >
-        Calibrate Compass
+        {t.calibrateCompass}
       </Button>
       
       <div className="mt-6 text-sm text-center text-muted-foreground max-w-md">
-        <p>Hold your device flat and away from magnetic interference. Allow location access for accurate Qibla direction.</p>
+        <p>{t.qiblaInstructions}</p>
       </div>
     </div>
   );

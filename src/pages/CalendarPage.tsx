@@ -4,11 +4,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { getPrayerTimes, PrayerTime } from "@/services/prayerTimeService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Loader2, CalendarDays } from "lucide-react";
+import { getTranslation } from "@/services/translationService";
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(false);
+  const t = getTranslation();
   
   const handleDateChange = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -49,7 +51,7 @@ const CalendarPage = () => {
   
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-foreground">Prayer Calendar</h1>
+      <h1 className="text-2xl font-bold mb-6 text-foreground">{t.prayerCalendar}</h1>
       
       <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 mb-6 border border-border">
         <Calendar
@@ -64,8 +66,8 @@ const CalendarPage = () => {
         <Card className="bg-card text-card-foreground border border-border">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <CalendarDays className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">Choose the day you want to know!</h3>
-            <p className="text-muted-foreground text-center">Select a date from the calendar above to view prayer times for that day.</p>
+            <h3 className="text-lg font-medium mb-2">{t.chooseDayPrompt}</h3>
+            <p className="text-muted-foreground text-center">{t.selectDatePrompt}</p>
           </CardContent>
         </Card>
       ) : (
@@ -73,7 +75,7 @@ const CalendarPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-prayer-primary" />
-              Prayer Times for {formatSelectedDate(selectedDate)}
+              {t.prayerTimesFor} {formatSelectedDate(selectedDate)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -100,7 +102,7 @@ const CalendarPage = () => {
             ) : (
               <div className="text-center py-8">
                 <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No prayer times available for this date.</p>
+                <p className="text-muted-foreground">{t.noPrayerTimes}</p>
               </div>
             )}
           </CardContent>

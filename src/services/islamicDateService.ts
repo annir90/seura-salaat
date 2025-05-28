@@ -23,26 +23,40 @@ const islamicMonths = [
   { en: "Dhu al-Hijjah", ar: "ذو الحجة" }
 ];
 
-// Convert Gregorian date to Islamic date (approximation)
+// More accurate Islamic calendar conversion
 export const getIslamicDate = (gregorianDate: Date = new Date()): IslamicDate => {
   try {
-    // Simple approximation - Islamic calendar is about 11 days shorter per year
-    // This is a basic calculation, for precise dates, an API would be better
-    const gregorianYear = gregorianDate.getFullYear();
-    const gregorianDayOfYear = Math.floor((gregorianDate.getTime() - new Date(gregorianYear, 0, 0).getTime()) / 86400000);
+    // Improved calculation using more precise Islamic calendar constants
+    const hijriEpoch = new Date(622, 6, 16); // July 16, 622 CE (start of Islamic calendar)
+    const daysSinceEpoch = Math.floor((gregorianDate.getTime() - hijriEpoch.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Approximate conversion (Hijri epoch: July 16, 622 CE)
-    const daysSinceHijriEpoch = Math.floor((gregorianDate.getTime() - new Date(622, 6, 16).getTime()) / 86400000);
-    const hijriYear = Math.floor(daysSinceHijriEpoch / 354.367) + 1; // Islamic year is ~354.367 days
+    // More accurate Islamic year calculation (using 354.367 days per year)
+    const islamicYearLength = 354.367;
+    const hijriYear = Math.floor(daysSinceEpoch / islamicYearLength) + 1;
     
-    const dayInYear = daysSinceHijriEpoch % 354;
-    const month = Math.floor(dayInYear / 29.5) + 1; // Islamic months are ~29.5 days
-    const day = Math.floor(dayInYear % 29.5) + 1;
+    // Calculate remaining days in the current year
+    const dayInYear = Math.floor(daysSinceEpoch % islamicYearLength);
     
+    // Islamic months alternate between 30 and 29 days, with some variation
+    const monthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    
+    let totalDays = 0;
+    let month = 1;
+    
+    // Find the correct month
+    for (let i = 0; i < 12; i++) {
+      if (totalDays + monthLengths[i] > dayInYear) {
+        month = i + 1;
+        break;
+      }
+      totalDays += monthLengths[i];
+    }
+    
+    const day = Math.max(1, dayInYear - totalDays + 1);
     const monthIndex = Math.min(Math.max(month - 1, 0), 11);
     
     return {
-      day: Math.max(day, 1),
+      day: Math.min(day, 30),
       month: month,
       year: hijriYear,
       monthName: islamicMonths[monthIndex].en,

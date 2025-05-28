@@ -71,7 +71,7 @@ const Index = () => {
       english: "The Prophet (peace be upon him) said: 'Patience is the key to relief.'"
     },
     {
-      arabic: "قَالَ رسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ تَوَاضَعَ لِلَّهِ رَفَعَهُ",
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: مَنْ تَوَاضَعَ لِلَّهِ رَفَعَهُ",
       english: "The Prophet (peace be upon him) said: 'Whoever humbles himself for Allah, Allah will elevate him.'"
     },
     {
@@ -175,21 +175,16 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [hadiths.length]);
 
-  // Check if we should show Juma prayer (Saturday 18:00 to Friday 13:40)
+  // Check if we should show Juma prayer (Thursday 18:00 to Friday 13:40)
   const shouldShowJumaa = () => {
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday, 5 = Friday
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTime = currentHour * 60 + currentMinute;
     
-    // Saturday 18:00 (1080 minutes) onwards
-    if (dayOfWeek === 6 && currentTime >= 1080) {
-      return true;
-    }
-    
-    // Sunday through Thursday (any time)
-    if (dayOfWeek >= 0 && dayOfWeek <= 4) {
+    // Thursday 18:00 (1080 minutes) onwards
+    if (dayOfWeek === 4 && currentTime >= 1080) {
       return true;
     }
     
