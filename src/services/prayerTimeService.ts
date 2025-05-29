@@ -1,3 +1,4 @@
+
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -11,9 +12,19 @@ export interface PrayerTime {
   isNext: boolean;
 }
 
-// Helper function to format time as HH:MM
-const formatTime = (time: string): string => {
-  return time.substring(0, 5); // Extract HH:MM from HH:MM format
+// Helper function to format time as HH:MM with null checks
+const formatTime = (time: string | null | undefined): string => {
+  console.log("formatTime called with:", time);
+  if (!time || typeof time !== 'string') {
+    console.warn("formatTime received null/undefined/invalid time:", time);
+    return "00:00";
+  }
+  try {
+    return time.substring(0, 5); // Extract HH:MM from HH:MM format
+  } catch (error) {
+    console.error("Error formatting time:", error, "Input:", time);
+    return "00:00";
+  }
 };
 
 // Cache for prayer times
@@ -26,6 +37,8 @@ let prayerTimesCache: {
 const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
   try {
     const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    console.log("Fetching prayer times for date:", dateString);
+    
     const response = await fetch(`https://api.aladhan.com/v1/timingsByCity/${dateString}?city=Espoo&country=Finland&method=3`);
     
     if (!response.ok) {
@@ -33,23 +46,28 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
     }
     
     const data = await response.json();
+    console.log("API response received:", data);
     
     if (data.code !== 200 || !data.data?.timings) {
       throw new Error('Invalid API response');
     }
     
     const timings = data.data.timings;
+    console.log("Prayer timings from API:", timings);
+    
     const t = getTranslation();
     
-    // Map API response to our format with translations
+    // Map API response to our format with translations and null checks
     const prayers = [
-      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr) },
-      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise) },
-      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr) },
-      { id: "asr", name: t.asr, time: formatTime(timings.Asr) },
-      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib) },
-      { id: "isha", name: t.isha, time: formatTime(timings.Isha) }
+      { id: "fajr", name: t.fajr || "Fajr", time: formatTime(timings.Fajr) },
+      { id: "sunrise", name: t.sunrise || "Sunrise", time: formatTime(timings.Sunrise) },
+      { id: "dhuhr", name: t.dhuhr || "Dhuhr", time: formatTime(timings.Dhuhr) },
+      { id: "asr", name: t.asr || "Asr", time: formatTime(timings.Asr) },
+      { id: "maghrib", name: t.maghrib || "Maghrib", time: formatTime(timings.Maghrib) },
+      { id: "isha", name: t.isha || "Isha", time: formatTime(timings.Isha) }
     ];
+    
+    console.log("Processed prayers:", prayers);
     
     // Determine next prayer only for today's times
     const isToday = date.toDateString() === new Date().toDateString();
@@ -60,9 +78,15 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
       const currentTime = now.getHours() * 60 + now.getMinutes();
       
       nextPrayerIndex = prayers.findIndex(prayer => {
-        const [hours, minutes] = prayer.time.split(":").map(Number);
-        const prayerTime = hours * 60 + minutes;
-        return prayerTime > currentTime;
+        if (!prayer.time || prayer.time === "00:00") return false;
+        try {
+          const [hours, minutes] = prayer.time.split(":").map(Number);
+          const prayerTime = hours * 60 + minutes;
+          return prayerTime > currentTime;
+        } catch (error) {
+          console.error("Error parsing prayer time:", prayer.time, error);
+          return false;
+        }
       });
       
       if (nextPrayerIndex === -1) nextPrayerIndex = 0; // Next day's Fajr
@@ -84,8 +108,11 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
   const today = new Date().toDateString();
   const requestedDate = date.toDateString();
   
+  console.log("getPrayerTimes called for date:", requestedDate);
+  
   // If date is today and we have cached data, return it
   if (requestedDate === today && prayerTimesCache && prayerTimesCache.date === today) {
+    console.log("Returning cached prayer times");
     return prayerTimesCache.times;
   }
   
@@ -107,6 +134,7 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
     // Try Rabita.fi as fallback for today only
     if (requestedDate === today) {
       try {
+        console.log("Trying Rabita fallback");
         const rabitaTimes = await fetchRabitaPrayerTimes();
         if (rabitaTimes && rabitaTimes.length > 0) {
           return rabitaTimes;
@@ -117,39 +145,62 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
     }
     
     // Return empty array if all methods fail
+    console.warn("All prayer time sources failed, returning empty array");
     return [];
   }
 };
 
 export const getDateForHeader = async () => {
-  const now = new Date();
-  const options: Intl.DateTimeFormatOptions = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric'
-  };
-  return now.toLocaleDateString('en-US', options);
+  try {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
+    };
+    const dateString = now.toLocaleDateString('en-US', options);
+    console.log("Generated date for header:", dateString);
+    return dateString;
+  } catch (error) {
+    console.error("Error generating date for header:", error);
+    return "Today";
+  }
 };
 
 export const getQiblaDirection = () => {
-  const selectedLocation = getSelectedLocation();
-  const LATITUDE = selectedLocation.latitude;
-  const LONGITUDE = selectedLocation.longitude;
-  
-  const KAABA_LATITUDE = 21.4225;
-  const KAABA_LONGITUDE = 39.8262;
-  
-  const latEspoo = LATITUDE * (Math.PI / 180);
-  const longEspoo = LONGITUDE * (Math.PI / 180);
-  const latKaaba = KAABA_LATITUDE * (Math.PI / 180);
-  const longKaaba = KAABA_LONGITUDE * (Math.PI / 180);
-  
-  const y = Math.sin(longKaaba - longEspoo);
-  const x = Math.cos(latEspoo) * Math.tan(latKaaba) - Math.sin(latEspoo) * Math.cos(longKaaba - longEspoo);
-  
-  let qiblaDirection = Math.atan2(y, x) * (180 / 180);
-  qiblaDirection = (qiblaDirection + 360) % 360;
-  
-  return Math.round(qiblaDirection);
+  try {
+    const selectedLocation = getSelectedLocation();
+    if (!selectedLocation) {
+      console.error("No selected location found");
+      return 0;
+    }
+    
+    const LATITUDE = selectedLocation.latitude;
+    const LONGITUDE = selectedLocation.longitude;
+    
+    console.log("Calculating Qibla for location:", { LATITUDE, LONGITUDE });
+    
+    const KAABA_LATITUDE = 21.4225;
+    const KAABA_LONGITUDE = 39.8262;
+    
+    const latEspoo = LATITUDE * (Math.PI / 180);
+    const longEspoo = LONGITUDE * (Math.PI / 180);
+    const latKaaba = KAABA_LATITUDE * (Math.PI / 180);
+    const longKaaba = KAABA_LONGITUDE * (Math.PI / 180);
+    
+    const y = Math.sin(longKaaba - longEspoo);
+    const x = Math.cos(latEspoo) * Math.tan(latKaaba) - Math.sin(latEspoo) * Math.cos(longKaaba - longEspoo);
+    
+    let qiblaDirection = Math.atan2(y, x) * (180 / 180);
+    qiblaDirection = (qiblaDirection + 360) % 360;
+    
+    const roundedDirection = Math.round(qiblaDirection);
+    console.log("Calculated Qibla direction:", roundedDirection);
+    
+    return roundedDirection;
+  } catch (error) {
+    console.error("Error calculating Qibla direction:", error);
+    return 0;
+  }
 };

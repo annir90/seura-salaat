@@ -26,12 +26,15 @@ const islamicMonths = [
 // Corrected Islamic calendar conversion
 export const getIslamicDate = (gregorianDate: Date = new Date()): IslamicDate => {
   try {
+    console.log("getIslamicDate called with:", gregorianDate);
+    
     // Current Islamic date: 1 Dhū al-Ḥijjah, 1446 AH corresponds to today
-    const currentGregorian = new Date(2025, 4, 28); // May 28, 2025
+    const currentGregorian = new Date(2025, 4, 29); // May 29, 2025 (today)
     const currentIslamic = { day: 1, month: 12, year: 1446 }; // 1 Dhū al-Ḥijjah, 1446 AH
     
     // Calculate difference in days
     const daysDiff = Math.floor((gregorianDate.getTime() - currentGregorian.getTime()) / (1000 * 60 * 60 * 24));
+    console.log("Days difference from reference:", daysDiff);
     
     // Start with the current Islamic date
     let islamicDay = currentIslamic.day + daysDiff;
@@ -40,6 +43,11 @@ export const getIslamicDate = (gregorianDate: Date = new Date()): IslamicDate =>
     
     // Month lengths in Islamic calendar (alternating 30/29 days with some adjustments)
     const getMonthLength = (month: number, year: number) => {
+      if (month < 1 || month > 12) {
+        console.warn("Invalid month:", month);
+        return 29; // Default fallback
+      }
+      
       // Basic alternating pattern: odd months = 30 days, even months = 29 days
       // With Dhū al-Ḥijjah having 30 days in leap years
       if (month % 2 === 1) return 30; // Odd months: 30 days
@@ -75,13 +83,17 @@ export const getIslamicDate = (gregorianDate: Date = new Date()): IslamicDate =>
     
     const monthIndex = Math.min(Math.max(islamicMonth - 1, 0), 11);
     
-    return {
+    const result = {
       day: islamicDay,
       month: islamicMonth,
       year: islamicYear,
-      monthName: islamicMonths[monthIndex].en,
-      monthNameArabic: islamicMonths[monthIndex].ar
+      monthName: islamicMonths[monthIndex]?.en || "Unknown",
+      monthNameArabic: islamicMonths[monthIndex]?.ar || "غير معروف"
     };
+    
+    console.log("Calculated Islamic date:", result);
+    return result;
+    
   } catch (error) {
     console.error("Error calculating Islamic date:", error);
     // Fallback to the current known date
@@ -89,15 +101,35 @@ export const getIslamicDate = (gregorianDate: Date = new Date()): IslamicDate =>
       day: 1,
       month: 12,
       year: 1446,
-      monthName: islamicMonths[11].en,
-      monthNameArabic: islamicMonths[11].ar
+      monthName: islamicMonths[11]?.en || "Dhu al-Hijjah",
+      monthNameArabic: islamicMonths[11]?.ar || "ذو الحجة"
     };
   }
 };
 
 export const formatIslamicDate = (islamicDate: IslamicDate, showArabic: boolean = false): string => {
-  if (showArabic) {
-    return `${islamicDate.day} ${islamicDate.monthNameArabic} ${islamicDate.year}`;
+  try {
+    if (!islamicDate) {
+      console.error("formatIslamicDate received null islamicDate");
+      return "";
+    }
+    
+    const { day, month, year, monthName, monthNameArabic } = islamicDate;
+    
+    if (showArabic) {
+      const arabicName = monthNameArabic || "غير معروف";
+      const formatted = `${day} ${arabicName} ${year}`;
+      console.log("Formatted Arabic Islamic date:", formatted);
+      return formatted;
+    }
+    
+    const englishName = monthName || "Unknown";
+    const formatted = `${day} ${englishName} ${year} AH`;
+    console.log("Formatted English Islamic date:", formatted);
+    return formatted;
+    
+  } catch (error) {
+    console.error("Error formatting Islamic date:", error, "Input:", islamicDate);
+    return "Date unavailable";
   }
-  return `${islamicDate.day} ${islamicDate.monthName} ${islamicDate.year} AH`;
 };
