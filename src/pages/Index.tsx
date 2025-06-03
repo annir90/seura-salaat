@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
@@ -48,7 +47,7 @@ const Index = () => {
       english: "The Prophet (peace be upon him) said: 'The world is a prison for the believer and paradise for the disbeliever.'"
     },
     {
-      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهِ عَلَيْهِ وَسَلَّمَ: اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ",
+      arabic: "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ",
       english: "The Prophet (peace be upon him) said: 'Be conscious of Allah wherever you are.'"
     },
     {
@@ -240,7 +239,7 @@ const Index = () => {
           
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-xl text-foreground">{islamicDate}</h2>
+              <h2 className="font-semibold text-sm text-muted-foreground">{islamicDate}</h2>
               <p className="text-sm text-muted-foreground">{currentDate}</p>
             </div>
             {prayerTimes.map((prayer) => (

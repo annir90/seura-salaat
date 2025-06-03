@@ -1,4 +1,3 @@
-
 export interface Translation {
   // Navigation
   home: string;
@@ -43,6 +42,12 @@ export interface Translation {
   notificationTiming: string;
   minutesBefore: string;
   language: string;
+  
+  // Share app section
+  shareApp: string;
+  shareAppDesc: string;
+  shareAppButton: string;
+  qrCode: string;
   
   // Quran page
   selectSurahToRead: string;
@@ -117,6 +122,12 @@ const englishTranslations: Translation = {
   minutesBefore: "minutes before",
   language: "Language",
   
+  // Share app section
+  shareApp: "Share the App",
+  shareAppDesc: "Help others discover Seura Prayer! Share this app with your friends and family.",
+  shareAppButton: "Share App",
+  qrCode: "QR Code",
+  
   // Quran page
   selectSurahToRead: "Select a Surah to begin reading",
   continueReading: "Continue Reading",
@@ -189,6 +200,12 @@ const finnishTranslations: Translation = {
   notificationTiming: "Ilmoituksen ajoitus",
   minutesBefore: "minuuttia ennen",
   language: "Kieli",
+  
+  // Share app section
+  shareApp: "Jaa sovellus",
+  shareAppDesc: "Auta muita löytämään Seura Prayer! Jaa tämä sovellus ystävillesi ja perheellesi.",
+  shareAppButton: "Jaa sovellus",
+  qrCode: "QR-koodi",
   
   // Quran page
   selectSurahToRead: "Valitse suura aloittaaksesi lukemisen",

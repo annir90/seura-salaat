@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin, LogOut, Languages, Share2, QrCode } from "lucide-react";
+import { Moon, Sun, User, MapPin, LogOut, Languages, QrCode } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
@@ -25,6 +25,7 @@ import {
   getTranslation, 
   LanguageCode 
 } from "@/services/translationService";
+import SocialShare from "@/components/SocialShare";
 
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
@@ -257,21 +258,15 @@ const SettingsPage = () => {
 
         {/* Share App Section */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
-          <h2 className="font-semibold text-lg mb-4">Share the App</h2>
+          <h2 className="font-semibold text-lg mb-4">{t.shareApp}</h2>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Help others discover PrayConnect! Share this app with your friends and family.
+              {t.shareAppDesc}
             </p>
             
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <Button 
-                  onClick={handleShareApp}
-                  className="flex items-center gap-2 bg-prayer-primary hover:bg-prayer-primary/90"
-                >
-                  <Share2 className="h-4 w-4" />
-                  Share App
-                </Button>
+                <SocialShare />
                 
                 <Button 
                   variant="outline"
@@ -279,7 +274,7 @@ const SettingsPage = () => {
                   className="flex items-center gap-2"
                 >
                   <QrCode className="h-4 w-4" />
-                  QR Code
+                  {t.qrCode}
                 </Button>
               </div>
               
@@ -287,15 +282,11 @@ const SettingsPage = () => {
                 <div className="flex justify-center p-4 bg-muted/20 rounded-lg">
                   <img 
                     src={generateQRCodeUrl(shareAppUrl)}
-                    alt="QR Code for PrayConnect App"
+                    alt="QR Code for Seura Prayer App"
                     className="w-48 h-48"
                   />
                 </div>
               )}
-              
-              <div className="text-xs text-muted-foreground break-all">
-                {shareAppUrl}
-              </div>
             </div>
           </div>
         </div>
@@ -433,7 +424,7 @@ const SettingsPage = () => {
         </div>
         
         <div className="text-center text-sm text-muted-foreground pt-4">
-          <p>PrayConnect v1.0</p>
+          <p>Seura Prayer v1.0</p>
         </div>
       </div>
     </div>

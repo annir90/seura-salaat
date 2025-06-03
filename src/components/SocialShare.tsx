@@ -10,9 +10,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getTranslation } from "@/services/translationService";
 
 const SocialShare = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const t = getTranslation();
 
   const shareData = {
     title: "Seura Prayer",
@@ -76,16 +78,16 @@ const SocialShare = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share the app
+        <Button className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2">
+          <Share2 className="h-4 w-4" />
+          {t.shareAppButton}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Seura Prayer</DialogTitle>
+          <DialogTitle>{t.shareApp}</DialogTitle>
           <DialogDescription>
-            Share this app with your friends and family
+            {t.shareAppDesc}
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-3 gap-4 py-4">
