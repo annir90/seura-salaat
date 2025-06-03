@@ -1,12 +1,11 @@
 
 import { NavLink } from "react-router-dom";
-import { Home, Compass, BookOpen, Calendar, Settings } from "lucide-react";
+import { Home, BookOpen, Calendar, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNavbar = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Compass, label: "Qibla", path: "/qibla" },
     { icon: BookOpen, label: "Quran", path: "/quran" },
     { icon: Calendar, label: "Calendar", path: "/calendar" },
     { icon: Settings, label: "Settings", path: "/settings" }

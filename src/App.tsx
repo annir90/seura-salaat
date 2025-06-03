@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import QiblaPage from "./pages/QiblaPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import QuranPage from "./pages/QuranPage";
@@ -30,7 +29,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="prayer-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="prayer-ui-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -43,7 +42,6 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route index element={<Index />} />
-              <Route path="/qibla" element={<QiblaPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/quran" element={<QuranPage />} />
               <Route path="/settings" element={<SettingsPage />} />
