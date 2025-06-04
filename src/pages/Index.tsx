@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
@@ -138,8 +137,7 @@ const Index = () => {
       
       setPrayerTimes(finalTimes);
       
-      // Set normal date instead of formatted date from service
-      const now = new Date();
+      // Set normal date instead of formatted date from service - reuse the existing 'now' variable
       const normalDate = now.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
