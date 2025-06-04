@@ -1,13 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerTimeService";
 import PrayerCard from "@/components/PrayerCard";
 import { Loader2, CalendarDays, Clock } from "lucide-react";
 import { getTranslation } from "@/services/translationService";
-import { getIslamicDate, formatIslamicDate } from "@/services/islamicDateService";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState("");
-  const [islamicDate, setIslamicDate] = useState("");
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
   const [loading, setLoading] = useState(true);
   const t = getTranslation();
@@ -138,12 +137,16 @@ const Index = () => {
       }));
       
       setPrayerTimes(finalTimes);
-      const formattedDate = await getDateForHeader();
-      setCurrentDate(formattedDate);
       
-      // Update Islamic date
-      const islamicDateObj = getIslamicDate();
-      setIslamicDate(formatIslamicDate(islamicDateObj));
+      // Set normal date instead of formatted date from service
+      const now = new Date();
+      const normalDate = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      setCurrentDate(normalDate);
     } catch (error) {
       console.error("Error loading prayer times:", error);
     } finally {
@@ -238,9 +241,8 @@ const Index = () => {
           </div>
           
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-sm text-muted-foreground">{islamicDate}</h2>
-              <p className="text-sm text-muted-foreground">{currentDate}</p>
+            <div className="flex items-center justify-center mb-3">
+              <p className="text-lg font-medium text-foreground">{currentDate}</p>
             </div>
             {prayerTimes.map((prayer) => (
               <PrayerCard key={prayer.id} prayer={prayer} />
