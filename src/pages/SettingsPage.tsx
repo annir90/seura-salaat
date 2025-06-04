@@ -26,6 +26,7 @@ import {
   LanguageCode 
 } from "@/services/translationService";
 import SocialShare from "@/components/SocialShare";
+import { getPrayerTimes } from "@/services/prayerTimeService";
 
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
@@ -58,7 +59,55 @@ const SettingsPage = () => {
     // Check user authentication status
     checkUserStatus();
     autoDetectLocation();
+    
+    // Setup prayer notifications if enabled
+    if (savedNotifications === 'true') {
+      setupPrayerNotifications();
+    }
   }, []);
+
+  // Setup prayer notifications
+  const setupPrayerNotifications = async () => {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications');
+      return;
+    }
+
+    // Request permission
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast.error('Notification permission denied');
+        return;
+      }
+    }
+
+    if (Notification.permission === 'granted') {
+      // Get today's prayer times
+      const prayerTimes = await getPrayerTimes();
+      const timingMinutes = parseInt(notificationTiming);
+      
+      prayerTimes.forEach(prayer => {
+        if (prayer.time && prayer.time !== "00:00") {
+          const [hours, minutes] = prayer.time.split(':').map(Number);
+          const prayerDate = new Date();
+          prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
+          
+          const now = new Date();
+          if (prayerDate > now) {
+            const timeUntilNotification = prayerDate.getTime() - now.getTime();
+            
+            setTimeout(() => {
+              new Notification(`${prayer.name} Prayer Reminder`, {
+                body: `${prayer.name} prayer is in ${timingMinutes} minutes at ${prayer.time}`,
+                icon: '/favicon.ico'
+              });
+            }, timeUntilNotification);
+          }
+        }
+      });
+    }
+  };
 
   // Check if user is signed in
   const checkUserStatus = () => {
@@ -165,13 +214,24 @@ const SettingsPage = () => {
   const handleNotificationsChange = (enabled: boolean) => {
     setNotifications(enabled);
     localStorage.setItem('prayer-notifications-enabled', enabled.toString());
-    toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
+    
+    if (enabled) {
+      setupPrayerNotifications();
+      toast.success('Prayer notifications enabled');
+    } else {
+      toast.success('Prayer notifications disabled');
+    }
   };
 
   const handleNotificationTimingChange = (timing: string) => {
     setNotificationTiming(timing);
     localStorage.setItem('prayer-notification-timing', timing);
     toast.success(`Notification timing set to ${timing} ${t.minutesBefore}`);
+    
+    // Re-setup notifications with new timing if enabled
+    if (notifications) {
+      setupPrayerNotifications();
+    }
   };
 
   const handleLanguageChange = (languageCode: string) => {
@@ -221,20 +281,20 @@ const SettingsPage = () => {
   };
   
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-foreground">{t.settings}</h1>
       
       <div className="space-y-6">
         {/* User Status */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
           <h2 className="font-semibold text-lg mb-4">{t.userStatus}</h2>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={`p-2 rounded-full flex-shrink-0 ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
                 <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
               </div>
-              <div className="flex-1">
-                <p className="font-medium">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">
                   {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
                 </p>
                 <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
@@ -247,7 +307,7 @@ const SettingsPage = () => {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="flex items-center gap-2 ml-2 shrink-0"
+                className="flex items-center gap-2 flex-shrink-0"
               >
                 <LogOut className="h-4 w-4" />
                 {t.signOut}
@@ -265,7 +325,7 @@ const SettingsPage = () => {
             </p>
             
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <SocialShare />
                 
                 <Button 
@@ -297,10 +357,10 @@ const SettingsPage = () => {
           <div className="space-y-3">
             <Label htmlFor="language">{t.language}</Label>
             <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="flex-1">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background border border-border shadow-lg z-50">
                 <SelectItem value="en">
                   <div className="flex items-center gap-2">
                     <Languages className="h-4 w-4" />
@@ -358,7 +418,7 @@ const SettingsPage = () => {
               </div>
               <button 
                 onClick={autoDetectLocation}
-                className="flex items-center gap-2 px-3 py-2 bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors flex-shrink-0"
               >
                 <MapPin className="h-4 w-4" />
                 {t.detect}
@@ -371,10 +431,10 @@ const SettingsPage = () => {
                 value={location.id} 
                 onValueChange={handleLocationChange}
               >
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border shadow-lg z-50">
                   {availableLocations.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id}>
                       {loc.name}
@@ -410,10 +470,10 @@ const SettingsPage = () => {
                   value={notificationTiming} 
                   onValueChange={handleNotificationTimingChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select timing" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border border-border shadow-lg z-50">
                     <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
                     <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
                   </SelectContent>
