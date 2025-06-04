@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
-import { Bell, BellOff } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import AdhanSoundModal from "./AdhanSoundModal";
 
@@ -157,11 +156,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
             onCheckedChange={handleNotificationToggle}
             className="scale-75"
           />
-          {notificationEnabled ? (
-            <Bell size={16} className="text-prayer-primary" />
-          ) : (
-            <BellOff size={16} className="text-muted-foreground" />
-          )}
         </div>
 
         {/* Sound Selection Button */}
