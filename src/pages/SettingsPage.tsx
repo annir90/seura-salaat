@@ -11,13 +11,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin, LogOut, Languages, QrCode } from "lucide-react";
+import { Moon, Sun, User, MapPin, LogOut, Languages } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
   saveSelectedLocation, 
   getAvailableLocations, 
-  Location
+  Location,
+  addCustomLocation
 } from "@/services/locationService";
 import { 
   setLanguage, 
@@ -174,38 +175,94 @@ const SettingsPage = () => {
     }
   };
 
-  // Auto-detect user location
+  // Enhanced auto-detect user location with reverse geocoding
   const autoDetectLocation = () => {
     if (navigator.geolocation) {
+      toast.info("Detecting your location...");
+      
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
-          console.log(`Auto-detected location: ${latitude}, ${longitude}`);
+          console.log(`Auto-detected coordinates: ${latitude}, ${longitude}`);
           
-          // Find closest available location or create custom one
-          const closestLocation = findClosestLocation(latitude, longitude);
-          
-          if (closestLocation) {
-            setLocation(closestLocation);
-            saveSelectedLocation(closestLocation);
-            toast.success(`Location set to ${closestLocation.name}`);
-          } else {
-            // Create custom location if no close match found
-            const detectedLocation: Location = {
-              id: "auto-detected",
-              name: `Auto-detected (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`,
+          try {
+            // Try to get location name using reverse geocoding
+            const response = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              const cityName = data.city || data.locality || data.principalSubdivision || 'Unknown Location';
+              const countryName = data.countryName || '';
+              
+              // Create a more descriptive location name
+              const locationName = countryName ? `${cityName}, ${countryName}` : cityName;
+              
+              // Check if we have a close match in available locations first
+              const closestLocation = findClosestLocation(latitude, longitude);
+              
+              if (closestLocation && calculateDistance(latitude, longitude, closestLocation.latitude, closestLocation.longitude) < 25) {
+                // Use the predefined location if it's within 25km
+                setLocation(closestLocation);
+                saveSelectedLocation(closestLocation);
+                toast.success(`Location set to ${closestLocation.name}`);
+              } else {
+                // Create a custom location with the detected name
+                const detectedLocation = addCustomLocation(locationName, latitude, longitude);
+                setLocation(detectedLocation);
+                saveSelectedLocation(detectedLocation);
+                toast.success(`Custom location detected: ${locationName}`);
+              }
+            } else {
+              // Fallback to coordinates if reverse geocoding fails
+              const detectedLocation = addCustomLocation(
+                `Location (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
+                latitude,
+                longitude
+              );
+              setLocation(detectedLocation);
+              saveSelectedLocation(detectedLocation);
+              toast.success("Location detected successfully");
+            }
+          } catch (error) {
+            console.error("Reverse geocoding failed:", error);
+            // Fallback to coordinate-based location
+            const detectedLocation = addCustomLocation(
+              `Auto-detected (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
               latitude,
               longitude
-            };
-            
+            );
             setLocation(detectedLocation);
             saveSelectedLocation(detectedLocation);
-            toast.success("Custom location auto-detected successfully");
+            toast.success("Location detected (coordinates)");
           }
         },
         (error) => {
           console.error("Geolocation error:", error);
-          toast.error("Could not auto-detect location. Using default Espoo location.");
+          let errorMessage = "Could not detect location. ";
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += "Location access was denied.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += "Location information is unavailable.";
+              break;
+            case error.TIMEOUT:
+              errorMessage += "Location request timed out.";
+              break;
+            default:
+              errorMessage += "An unknown error occurred.";
+              break;
+          }
+          
+          toast.error(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
         }
       );
     } else {
@@ -317,10 +374,6 @@ const SettingsPage = () => {
       }
     }
   };
-
-  const generateQRCodeUrl = (text: string) => {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
-  };
   
   return (
     <div className="max-w-2xl mx-auto px-4 pb-20">
@@ -358,7 +411,7 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* Share App Section */}
+        {/* Share App Section - Removed QR Code */}
         <div className="bg-card text-card-foreground rounded-2xl shadow-md p-4 border border-border">
           <h2 className="font-semibold text-lg mb-4">{t.shareApp}</h2>
           <div className="space-y-4">
@@ -367,28 +420,7 @@ const SettingsPage = () => {
             </p>
             
             <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <SocialShare />
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowQRCode(!showQRCode)}
-                  className="flex items-center gap-2"
-                >
-                  <QrCode className="h-4 w-4" />
-                  {t.qrCode}
-                </Button>
-              </div>
-              
-              {showQRCode && (
-                <div className="flex justify-center p-4 bg-muted/20 rounded-lg">
-                  <img 
-                    src={generateQRCodeUrl(shareAppUrl)}
-                    alt="QR Code for Seura Prayer App"
-                    className="w-48 h-48"
-                  />
-                </div>
-              )}
+              <SocialShare />
             </div>
           </div>
         </div>
