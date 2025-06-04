@@ -66,7 +66,7 @@ const SettingsPage = () => {
     }
   }, []);
 
-  // Setup prayer notifications
+  // Setup prayer notifications with service worker for background execution
   const setupPrayerNotifications = async () => {
     if (!('Notification' in window)) {
       console.log('This browser does not support notifications');
@@ -83,29 +83,68 @@ const SettingsPage = () => {
     }
 
     if (Notification.permission === 'granted') {
-      // Get today's prayer times
-      const prayerTimes = await getPrayerTimes();
-      const timingMinutes = parseInt(notificationTiming);
-      
-      prayerTimes.forEach(prayer => {
-        if (prayer.time && prayer.time !== "00:00") {
-          const [hours, minutes] = prayer.time.split(':').map(Number);
-          const prayerDate = new Date();
-          prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
-          
-          const now = new Date();
-          if (prayerDate > now) {
-            const timeUntilNotification = prayerDate.getTime() - now.getTime();
-            
-            setTimeout(() => {
-              new Notification(`${prayer.name} Prayer Reminder`, {
-                body: `${prayer.name} prayer is in ${timingMinutes} minutes at ${prayer.time}`,
-                icon: '/favicon.ico'
-              });
-            }, timeUntilNotification);
-          }
+      try {
+        // Register service worker for background notifications
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('Service Worker registered:', registration);
         }
-      });
+
+        // Schedule notifications for today's prayers
+        const prayerTimes = await getPrayerTimes();
+        const timingMinutes = parseInt(notificationTiming);
+        
+        // Clear existing timeouts
+        if (window.prayerTimeouts) {
+          window.prayerTimeouts.forEach(timeout => clearTimeout(timeout));
+        }
+        window.prayerTimeouts = [];
+        
+        prayerTimes.forEach(prayer => {
+          if (prayer.time && prayer.time !== "00:00") {
+            const [hours, minutes] = prayer.time.split(':').map(Number);
+            const prayerDate = new Date();
+            prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
+            
+            const now = new Date();
+            if (prayerDate > now) {
+              const timeUntilNotification = prayerDate.getTime() - now.getTime();
+              
+              // Store timeout reference for cleanup
+              const timeoutId = setTimeout(async () => {
+                // Check if notifications are still enabled for this prayer
+                const prayerEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
+                if (prayerEnabled && notifications) {
+                  // Show notification
+                  new Notification(`${prayer.name} Prayer Reminder`, {
+                    body: `${prayer.name} prayer is in ${timingMinutes} minutes at ${prayer.time}`,
+                    icon: '/favicon.ico',
+                    tag: `prayer-${prayer.id}`,
+                    requireInteraction: true
+                  });
+
+                  // Play adhan sound if selected
+                  const selectedSound = localStorage.getItem(`prayer_adhan_${prayer.id}`);
+                  if (selectedSound && selectedSound !== 'none') {
+                    try {
+                      const audio = new Audio(`/audio/${selectedSound}.mp3`);
+                      audio.volume = 0.7;
+                      await audio.play();
+                    } catch (error) {
+                      console.error('Error playing adhan sound:', error);
+                    }
+                  }
+                }
+              }, timeUntilNotification);
+              
+              window.prayerTimeouts.push(timeoutId);
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error setting up notifications:', error);
+        toast.error('Failed to setup prayer notifications');
+      }
     }
   };
 
@@ -219,6 +258,11 @@ const SettingsPage = () => {
       setupPrayerNotifications();
       toast.success('Prayer notifications enabled');
     } else {
+      // Clear existing timeouts
+      if (window.prayerTimeouts) {
+        window.prayerTimeouts.forEach(timeout => clearTimeout(timeout));
+        window.prayerTimeouts = [];
+      }
       toast.success('Prayer notifications disabled');
     }
   };
@@ -228,7 +272,6 @@ const SettingsPage = () => {
     localStorage.setItem('prayer-notification-timing', timing);
     toast.success(`Notification timing set to ${timing} ${t.minutesBefore}`);
     
-    // Re-setup notifications with new timing if enabled
     if (notifications) {
       setupPrayerNotifications();
     }
@@ -239,7 +282,6 @@ const SettingsPage = () => {
     setLanguage(newLanguage);
     setCurrentLanguage(newLanguage);
     toast.success(`Language updated to ${newLanguage === 'fi' ? 'Suomi' : 'English'}`);
-    // Force page refresh to apply translations
     setTimeout(() => window.location.reload(), 500);
   };
 
@@ -281,7 +323,7 @@ const SettingsPage = () => {
   };
   
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-4 pb-20">
       <h1 className="text-2xl font-bold mb-6 text-foreground">{t.settings}</h1>
       
       <div className="space-y-6">
@@ -294,10 +336,10 @@ const SettingsPage = () => {
                 <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">
+                <p className="font-medium text-sm break-words">
                   {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
                 </p>
-                <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                <p className={`text-xs ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
                   {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
                 </p>
               </div>
@@ -360,7 +402,7 @@ const SettingsPage = () => {
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg z-50">
+              <SelectContent className="bg-background border border-border shadow-lg z-[9999] fixed">
                 <SelectItem value="en">
                   <div className="flex items-center gap-2">
                     <Languages className="h-4 w-4" />
@@ -434,7 +476,7 @@ const SettingsPage = () => {
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border border-border shadow-lg z-50">
+                <SelectContent className="bg-background border border-border shadow-lg z-[9999] fixed">
                   {availableLocations.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id}>
                       {loc.name}
@@ -473,7 +515,7 @@ const SettingsPage = () => {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select timing" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border border-border shadow-lg z-50">
+                  <SelectContent className="bg-background border border-border shadow-lg z-[9999] fixed">
                     <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
                     <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
                   </SelectContent>

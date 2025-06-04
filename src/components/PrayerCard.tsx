@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
-import { Bell } from "lucide-react";
+import { Bell, BellOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import AdhanSoundModal from "./AdhanSoundModal";
 
 interface PrayerCardProps {
@@ -10,12 +11,14 @@ interface PrayerCardProps {
 }
 
 const STORAGE_KEY_PREFIX = "prayer_adhan_";
+const NOTIFICATION_TOGGLE_PREFIX = "prayer-notification-";
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan");
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
 
-  // Load saved sound preference from localStorage on component mount
+  // Load saved preferences from localStorage on component mount
   useEffect(() => {
     try {
       if (!prayer?.id) {
@@ -23,14 +26,21 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         return;
       }
       
+      // Load sound preference
       const savedSound = localStorage.getItem(`${STORAGE_KEY_PREFIX}${prayer.id}`);
       console.log(`Loaded sound preference for ${prayer.id}:`, savedSound);
       
       if (savedSound) {
         setSelectedSound(savedSound);
       }
+
+      // Load notification toggle state
+      const savedNotificationState = localStorage.getItem(`${NOTIFICATION_TOGGLE_PREFIX}${prayer.id}`);
+      if (savedNotificationState !== null) {
+        setNotificationEnabled(savedNotificationState === 'true');
+      }
     } catch (error) {
-      console.error("Error loading sound preference:", error);
+      console.error("Error loading prayer preferences:", error);
     }
   }, [prayer?.id]);
 
@@ -98,6 +108,21 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     }
   };
 
+  const handleNotificationToggle = (enabled: boolean) => {
+    try {
+      if (!prayer?.id) {
+        console.error("Cannot toggle notification: prayer id is missing");
+        return;
+      }
+      
+      setNotificationEnabled(enabled);
+      localStorage.setItem(`${NOTIFICATION_TOGGLE_PREFIX}${prayer.id}`, enabled.toString());
+      console.log(`Notification ${enabled ? 'enabled' : 'disabled'} for prayer ${prayer.name}`);
+    } catch (error) {
+      console.error("Error saving notification preference:", error);
+    }
+  };
+
   const prayerName = prayer.name || "Unknown Prayer";
   const prayerTime = prayer.time || "00:00";
 
@@ -124,16 +149,34 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         <p className="font-medium text-lg md:text-xl text-prayer-primary">{prayerTime}</p>
       </div>
       
-      <button 
-        className={cn(
-          "rounded-full p-2 transition-colors hover:bg-accent",
-          selectedSound ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
-        )}
-        aria-label={`Set notification for ${prayerName}`}
-        onClick={handleOpenModal}
-      >
-        <Bell size={20} className={selectedSound ? "text-prayer-primary" : ""} />
-      </button>
+      <div className="flex items-center gap-2">
+        {/* Notification Toggle Switch */}
+        <div className="flex items-center gap-1">
+          <Switch
+            checked={notificationEnabled}
+            onCheckedChange={handleNotificationToggle}
+            className="scale-75"
+          />
+          {notificationEnabled ? (
+            <Bell size={16} className="text-prayer-primary" />
+          ) : (
+            <BellOff size={16} className="text-muted-foreground" />
+          )}
+        </div>
+
+        {/* Sound Selection Button */}
+        <button 
+          className={cn(
+            "rounded-full p-2 transition-colors hover:bg-accent",
+            selectedSound && notificationEnabled ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+          aria-label={`Set notification sound for ${prayerName}`}
+          onClick={handleOpenModal}
+          disabled={!notificationEnabled}
+        >
+          <Bell size={20} className={selectedSound && notificationEnabled ? "text-prayer-primary" : ""} />
+        </button>
+      </div>
 
       <AdhanSoundModal
         isOpen={isModalOpen}
