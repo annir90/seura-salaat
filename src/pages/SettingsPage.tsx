@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin, LogOut, Languages, Bell, BellRing } from "lucide-react";
+import { Moon, Sun, User, MapPin, LogOut, Languages, Bell, BellRing, Share2 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
