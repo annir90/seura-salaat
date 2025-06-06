@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -39,11 +38,6 @@ const adhanSoundOptions: AdhanSoundOption[] = [
     name: "Soft Notification",
     description: "Gentle notification sound",
   },
-  {
-    id: "none",
-    name: "No Sound",
-    description: "Silent notification only",
-  },
 ];
 
 const AdhanSoundModal = ({
@@ -57,7 +51,6 @@ const AdhanSoundModal = ({
 }: AdhanSoundModalProps) => {
   const handleSelectSound = (soundId: string) => {
     onSelect(soundId);
-    // Don't close modal automatically
   };
 
   return (
@@ -71,7 +64,7 @@ const AdhanSoundModal = ({
         
         <div className="space-y-6 py-4">
           {/* Notification Toggle Switch */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+          <div className="flex items-center justify-between pb-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="bg-prayer-light/20 p-2 rounded-full">
                 <Bell className="h-5 w-5 text-prayer-primary" />
@@ -128,21 +121,6 @@ const AdhanSoundModal = ({
               </RadioGroup>
             </>
           )}
-        </div>
-        
-        <div className="flex justify-end gap-2 pt-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onClose}
-            className="bg-prayer-primary hover:bg-prayer-primary/90"
-          >
-            Save
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

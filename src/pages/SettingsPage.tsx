@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -27,7 +26,6 @@ import {
   getTranslation, 
   LanguageCode 
 } from "@/services/translationService";
-import SocialShare from "@/components/SocialShare";
 import { getPrayerTimes } from "@/services/prayerTimeService";
 
 const SettingsPage = () => {
@@ -346,11 +344,11 @@ const SettingsPage = () => {
     window.location.href = "/welcome";
   };
 
-  // Enhanced native sharing functionality
+  // Enhanced native sharing functionality with real social media apps
   const handleShareApp = async () => {
     const shareData = {
       title: "Seura Prayer - Prayer Times App",
-      text: "Check out this great app for prayer times and reminders:",
+      text: "Check out this great app for prayer times and reminders!",
       url: "https://d7360491-a249-4f6e-9474-c67ad3a482a2.lovableproject.com"
     };
 
@@ -361,11 +359,18 @@ const SettingsPage = () => {
       } catch (error) {
         if (error.name !== 'AbortError') {
           console.error("Share failed:", error);
-          toast.error("Failed to share app");
+          // Fallback to clipboard only if native sharing truly fails
+          try {
+            const shareText = `${shareData.text} ${shareData.url}`;
+            await navigator.clipboard.writeText(shareText);
+            toast.success("App link copied to clipboard!");
+          } catch (clipboardError) {
+            toast.error("Failed to share app");
+          }
         }
       }
     } else {
-      // Fallback: copy to clipboard
+      // Fallback: copy to clipboard for older browsers
       try {
         const shareText = `${shareData.text} ${shareData.url}`;
         await navigator.clipboard.writeText(shareText);
@@ -377,201 +382,203 @@ const SettingsPage = () => {
   };
   
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 pb-24 max-w-xl">
-      <h1 className="text-2xl font-bold mb-6 text-foreground">{t.settings}</h1>
-      
-      <div className="space-y-6">
-        {/* User Status */}
-        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
-          <h2 className="font-semibold text-xl mb-5">{t.userStatus}</h2>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className={`p-3 rounded-full flex-shrink-0 ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
+    <div className="min-h-screen bg-background">
+      <div className="w-full max-w-md mx-auto px-4 sm:px-6 pb-24">
+        <h1 className="text-2xl font-bold mb-6 text-foreground pt-6">{t.settings}</h1>
+        
+        <div className="space-y-4">
+          {/* User Status */}
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+            <h2 className="font-semibold text-lg mb-4">{t.userStatus}</h2>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className={`p-3 rounded-full flex-shrink-0 ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                  <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm break-words">
+                    {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
+                  </p>
+                  <p className={`text-xs ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                    {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-base break-words">
-                  {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
-                </p>
-                <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                  {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
-                </p>
-              </div>
+              {(isSignedIn || userEmail === t.visitor) && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 flex-shrink-0 h-9 text-xs"
+                >
+                  <LogOut className="h-3 w-3" />
+                  {t.signOut}
+                </Button>
+              )}
             </div>
-            {(isSignedIn || userEmail === t.visitor) && (
+          </div>
+
+          {/* Share App Section */}
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+            <h2 className="font-semibold text-lg mb-4">{t.shareApp}</h2>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {t.shareAppDesc}
+              </p>
+              
               <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSignOut}
-                className="flex items-center gap-2 flex-shrink-0 h-10"
+                onClick={handleShareApp}
+                className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 text-sm py-3 w-full"
               >
-                <LogOut className="h-4 w-4" />
-                {t.signOut}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Share App Section */}
-        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
-          <h2 className="font-semibold text-xl mb-5">{t.shareApp}</h2>
-          <div className="space-y-5">
-            <p className="text-base text-muted-foreground">
-              {t.shareAppDesc}
-            </p>
-            
-            <Button 
-              onClick={handleShareApp}
-              className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 text-base py-5 w-full"
-            >
-              <Share2 className="h-5 w-5" />
-              {t.shareAppButton}
-            </Button>
-          </div>
-        </div>
-
-        {/* Language Settings */}
-        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
-          <h2 className="font-semibold text-xl mb-5">{t.language}</h2>
-          <div className="space-y-4">
-            <Label htmlFor="language" className="text-base">{t.language}</Label>
-            <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-full h-12 text-base">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg">
-                <SelectItem value="en">
-                  <div className="flex items-center gap-3">
-                    <Languages className="h-5 w-5" />
-                    English
-                  </div>
-                </SelectItem>
-                <SelectItem value="fi">
-                  <div className="flex items-center gap-3">
-                    <Languages className="h-5 w-5" />
-                    Suomi
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Theme Settings */}
-        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
-          <h2 className="font-semibold text-xl mb-5">{t.appearance}</h2>
-          <div className="space-y-4">
-            <Label htmlFor="theme" className="text-base">{t.theme}</Label>
-            <RadioGroup
-              value={theme}
-              onValueChange={(value) => setTheme(value as any)}
-              className="flex gap-6"
-            >
-              <div className="flex items-center space-x-3">
-                <RadioGroupItem value="light" id="light" />
-                <Label htmlFor="light" className="flex items-center gap-3 cursor-pointer text-base">
-                  <Sun className="h-5 w-5" />
-                  {t.light}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <RadioGroupItem value="dark" id="dark" />
-                <Label htmlFor="dark" className="flex items-center gap-3 cursor-pointer text-base">
-                  <Moon className="h-5 w-5" />
-                  {t.dark}
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </div>
-
-        {/* Location Settings */}
-        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
-          <h2 className="font-semibold text-xl mb-5">{t.locationSettings}</h2>
-          
-          <div className="space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex-1">
-                <Label className="text-base">{t.autoDetectLocation}</Label>
-                <p className="text-sm text-muted-foreground mt-1">{t.autoDetectLocationDesc}</p>
-              </div>
-              <Button 
-                onClick={autoDetectLocation}
-                className="flex items-center gap-2 px-4 py-2 h-auto bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors flex-shrink-0 w-full sm:w-auto"
-              >
-                <MapPin className="h-5 w-5" />
-                {t.detect}
+                <Share2 className="h-4 w-4" />
+                {t.shareAppButton}
               </Button>
             </div>
-            
-            <div className="grid gap-3">
-              <Label htmlFor="location" className="text-base">{t.selectLocation}</Label>
-              <Select 
-                value={location.id} 
-                onValueChange={handleLocationChange}
-              >
-                <SelectTrigger className="w-full h-12 text-base">
-                  <SelectValue placeholder="Select location" />
+          </div>
+
+          {/* Language Settings */}
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+            <h2 className="font-semibold text-lg mb-4">{t.language}</h2>
+            <div className="space-y-3">
+              <Label htmlFor="language" className="text-sm">{t.language}</Label>
+              <Select value={currentLanguage} onValueChange={handleLanguageChange}>
+                <SelectTrigger className="w-full h-11 text-sm">
+                  <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border border-border shadow-lg">
-                  {availableLocations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="en">
+                    <div className="flex items-center gap-3">
+                      <Languages className="h-4 w-4" />
+                      English
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="fi">
+                    <div className="flex items-center gap-3">
+                      <Languages className="h-4 w-4" />
+                      Suomi
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-        </div>
-        
-        {/* Prayer Notifications */}
-        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
-          <h2 className="font-semibold text-xl mb-5">{t.notificationSettings}</h2>
-          
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <div className={`p-2 rounded-full flex-shrink-0 ${notifications ? 'bg-prayer-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                  {notifications ? 
-                    <BellRing className={`h-5 w-5 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
-                    <Bell className={`h-5 w-5 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
-                  }
+
+          {/* Theme Settings */}
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+            <h2 className="font-semibold text-lg mb-4">{t.appearance}</h2>
+            <div className="space-y-3">
+              <Label htmlFor="theme" className="text-sm">{t.theme}</Label>
+              <RadioGroup
+                value={theme}
+                onValueChange={(value) => setTheme(value as any)}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="light" id="light" />
+                  <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Sun className="h-4 w-4" />
+                    {t.light}
+                  </Label>
                 </div>
-                <div className="flex-1">
-                  <Label htmlFor="notifications" className="text-base">{t.prayerNotifications}</Label>
-                  <p className="text-sm text-muted-foreground mt-1">{t.prayerNotificationsDesc}</p>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="dark" id="dark" />
+                  <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Moon className="h-4 w-4" />
+                    {t.dark}
+                  </Label>
                 </div>
-              </div>
-              <Switch 
-                id="notifications" 
-                checked={notifications} 
-                onCheckedChange={handleNotificationsChange}
-              />
+              </RadioGroup>
             </div>
+          </div>
+
+          {/* Location Settings */}
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+            <h2 className="font-semibold text-lg mb-4">{t.locationSettings}</h2>
             
-            {notifications && (
-              <div className="grid gap-3 ml-10">
-                <Label htmlFor="notification-timing" className="text-base">{t.notificationTiming}</Label>
-                <Select 
-                  value={notificationTiming} 
-                  onValueChange={handleNotificationTimingChange}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3">
+                <div className="flex-1">
+                  <Label className="text-sm">{t.autoDetectLocation}</Label>
+                  <p className="text-xs text-muted-foreground mt-1">{t.autoDetectLocationDesc}</p>
+                </div>
+                <Button 
+                  onClick={autoDetectLocation}
+                  className="flex items-center gap-2 px-4 py-3 h-auto bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors w-full text-sm"
                 >
-                  <SelectTrigger className="w-full h-12 text-base">
-                    <SelectValue placeholder="Select timing" />
+                  <MapPin className="h-4 w-4" />
+                  {t.detect}
+                </Button>
+              </div>
+              
+              <div className="grid gap-3">
+                <Label htmlFor="location" className="text-sm">{t.selectLocation}</Label>
+                <Select 
+                  value={location.id} 
+                  onValueChange={handleLocationChange}
+                >
+                  <SelectTrigger className="w-full h-11 text-sm">
+                    <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border shadow-lg">
-                    <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
-                    <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
+                    {availableLocations.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id}>
+                        {loc.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-        
-        <div className="text-center text-sm text-muted-foreground pt-4">
-          <p>Seura Prayer v1.0</p>
+          
+          {/* Prayer Notifications */}
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+            <h2 className="font-semibold text-lg mb-4">{t.notificationSettings}</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className={`p-2 rounded-full flex-shrink-0 ${notifications ? 'bg-prayer-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                    {notifications ? 
+                      <BellRing className={`h-4 w-4 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
+                      <Bell className={`h-4 w-4 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
+                    }
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="notifications" className="text-sm">{t.prayerNotifications}</Label>
+                    <p className="text-xs text-muted-foreground mt-1">{t.prayerNotificationsDesc}</p>
+                  </div>
+                </div>
+                <Switch 
+                  id="notifications" 
+                  checked={notifications} 
+                  onCheckedChange={handleNotificationsChange}
+                />
+              </div>
+              
+              {notifications && (
+                <div className="grid gap-3 ml-8">
+                  <Label htmlFor="notification-timing" className="text-sm">{t.notificationTiming}</Label>
+                  <Select 
+                    value={notificationTiming} 
+                    onValueChange={handleNotificationTimingChange}
+                  >
+                    <SelectTrigger className="w-full h-11 text-sm">
+                      <SelectValue placeholder="Select timing" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border shadow-lg">
+                      <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
+                      <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="text-center text-xs text-muted-foreground pt-4">
+            <p>Seura Prayer v1.0</p>
+          </div>
         </div>
       </div>
     </div>
