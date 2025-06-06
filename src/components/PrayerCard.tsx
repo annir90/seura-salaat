@@ -215,7 +215,9 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         >
           <Bell 
             size={20} 
-            className={cn(selectedSound && notificationEnabled ? "text-prayer-primary" : "")}
+            className={cn(
+              selectedSound && notificationEnabled ? "text-prayer-primary" : "text-muted-foreground"
+            )}
           />
         </Button>
       </div>
