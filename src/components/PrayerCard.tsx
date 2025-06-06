@@ -88,7 +88,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const handleOpenModal = () => {
     console.log("Opening adhan modal for prayer:", prayer.name);
     setIsModalOpen(true);
-    setIsPopoverOpen(false);
   };
 
   const handleCloseModal = () => {
@@ -204,49 +203,21 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       </div>
       
       <div className="flex items-center gap-2">
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <button 
-              className={cn(
-                "rounded-full p-2 transition-colors hover:bg-accent",
-                selectedSound && notificationEnabled ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-label={`Prayer notification settings for ${prayerName}`}
-            >
-              <Bell 
-                size={20} 
-                className={selectedSound && notificationEnabled ? "text-prayer-primary" : ""}
-              />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-4" side="top">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium">Enable notifications</h4>
-                  <p className="text-xs text-muted-foreground">Get reminders for {prayerName}</p>
-                </div>
-                <Switch 
-                  checked={notificationEnabled} 
-                  onCheckedChange={handleNotificationToggle}
-                />
-              </div>
-              
-              {notificationEnabled && (
-                <div className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleOpenModal}
-                    className="w-full"
-                  >
-                    {selectedSound ? 'Change sound' : 'Select sound'}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <Button 
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "rounded-full",
+            selectedSound && notificationEnabled ? "text-prayer-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+          aria-label={`Prayer notification settings for ${prayerName}`}
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Bell 
+            size={20} 
+            className={cn(selectedSound && notificationEnabled ? "text-prayer-primary" : "")}
+          />
+        </Button>
       </div>
 
       <AdhanSoundModal
@@ -255,6 +226,8 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         prayerName={prayerName}
         onSelect={handleSelectSound}
         selectedSoundId={selectedSound}
+        notificationEnabled={notificationEnabled}
+        onNotificationToggle={handleNotificationToggle}
       />
     </div>
   );

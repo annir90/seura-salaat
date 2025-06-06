@@ -1,16 +1,16 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Play, Pause, Bell } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Bell } from "lucide-react";
 
-interface AdhanSoundOption {
+export interface AdhanSoundOption {
   id: string;
   name: string;
-  url: string;
-  icon: React.ReactNode;
+  description: string;
 }
 
 interface AdhanSoundModalProps {
@@ -19,211 +19,130 @@ interface AdhanSoundModalProps {
   prayerName: string;
   onSelect: (soundId: string) => void;
   selectedSoundId?: string;
+  notificationEnabled?: boolean;
+  onNotificationToggle?: (enabled: boolean) => void;
 }
 
-const DEFAULT_ADHAN_OPTIONS: AdhanSoundOption[] = [
+const adhanSoundOptions: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
-    name: "Adhan",
-    url: "/audio/traditional-adhan.mp3",
-    icon: <Bell size={20} />,
+    name: "Traditional Adhan",
+    description: "Classic adhan sound",
   },
   {
-    id: "adhan-makkah",
-    name: "Soft",
-    url: "/audio/makkah-adhan.mp3",
-    icon: <Bell size={20} />,
+    id: "makkah-adhan",
+    name: "Makkah Adhan",
+    description: "Adhan from Masjid al-Haram",
   },
   {
-    id: "ringtone",
-    name: "Beep",
-    url: "/audio/soft-notification.mp3",
-    icon: <Bell size={20} />,
-  }
+    id: "soft-notification",
+    name: "Soft Notification",
+    description: "Gentle notification sound",
+  },
+  {
+    id: "none",
+    name: "No Sound",
+    description: "Silent notification only",
+  },
 ];
 
-const AdhanSoundModal: React.FC<AdhanSoundModalProps> = ({
+const AdhanSoundModal = ({
   isOpen,
   onClose,
   prayerName,
   onSelect,
-  selectedSoundId,
-}) => {
-  const [isPlaying, setIsPlaying] = useState<string | null>(null);
-  const [loadErrors, setLoadErrors] = useState<{ [key: string]: boolean }>({});
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { toast } = useToast();
-
-  // Reset state when modal opens/closes
-  useEffect(() => {
-    if (!isOpen) {
-      stopAllSounds();
-      return;
-    }
-    
-    setLoadErrors({});
-    
-    return () => {
-      stopAllSounds();
-    };
-  }, [isOpen]);
-
-  const stopAllSounds = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      try {
-        audioRef.current.currentTime = 0;
-      } catch (e) {
-        // Ignore errors when setting currentTime on unloaded audio
-      }
-      audioRef.current = null;
-    }
-    setIsPlaying(null);
-  };
-
-  const playSound = (soundId: string) => {
-    const soundOption = DEFAULT_ADHAN_OPTIONS.find(o => o.id === soundId);
-    if (!soundOption) return;
-    
-    // If already playing this sound, stop it
-    if (isPlaying === soundId) {
-      stopAllSounds();
-      return;
-    }
-    
-    // Stop any other playing sounds first
-    stopAllSounds();
-    
-    // Set playing state immediately for UI feedback
-    setIsPlaying(soundId);
-    
-    try {
-      // Create a fresh audio instance
-      const audio = new Audio();
-      audioRef.current = audio;
-      
-      // Set up event handlers
-      audio.addEventListener("ended", () => {
-        setIsPlaying(null);
-        audioRef.current = null;
-      });
-      
-      audio.addEventListener("error", (e) => {
-        console.error(`Error with ${soundOption.name} audio:`, e);
-        handlePlaybackError(soundId, soundOption.name);
-      });
-      
-      audio.addEventListener("canplaythrough", () => {
-        if (audioRef.current === audio) {
-          audio.play().catch(e => {
-            console.error(`Playback failed for ${soundOption.name}:`, e);
-            handlePlaybackError(soundId, soundOption.name);
-          });
-        }
-      });
-      
-      // Set explicit volume
-      audio.volume = 1.0;
-      
-      // Load audio
-      audio.src = soundOption.url;
-      audio.load();
-      
-    } catch (error) {
-      console.error(`General error playing ${soundOption.name}:`, error);
-      handlePlaybackError(soundId, soundOption.name);
-    }
-  };
-  
-  const handlePlaybackError = (soundId: string, soundName: string) => {
-    setLoadErrors(prev => ({...prev, [soundId]: true}));
-    setIsPlaying(null);
-    audioRef.current = null;
-    
-    toast({
-      title: "Audio Playback Issue",
-      description: `Unable to play ${soundName}. Please check if the audio file is compatible.`,
-      variant: "destructive",
-    });
-  };
-
-  const handleSelect = (soundId: string) => {
+  selectedSoundId = "traditional-adhan",
+  notificationEnabled = true,
+  onNotificationToggle
+}: AdhanSoundModalProps) => {
+  const handleSelectSound = (soundId: string) => {
     onSelect(soundId);
-    
-    const selectedOption = DEFAULT_ADHAN_OPTIONS.find(o => o.id === soundId);
-    toast({
-      title: "Notification Updated",
-      description: `${prayerName} will use ${selectedOption?.name}`,
-    });
-    
-    onClose();
+    // Don't close modal automatically
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-card text-card-foreground border border-border max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Notifications</DialogTitle>
+          <DialogTitle className="text-center text-lg font-semibold">
+            {prayerName} Prayer Notification
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          {DEFAULT_ADHAN_OPTIONS.map((option) => {
-            const isSelected = selectedSoundId === option.id;
-            const hasError = loadErrors[option.id];
-            const isCurrentlyPlaying = isPlaying === option.id;
-            
-            return (
-              <div
-                key={option.id}
-                className={cn(
-                  "rounded-lg border p-4 transition-all border-border",
-                  isSelected && "border-prayer-primary bg-prayer-light/10 dark:bg-prayer-light/5",
-                  !isSelected && "hover:bg-accent/50"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-foreground">{option.icon}</span>
-                    <div>
-                      <span className="font-medium text-foreground">{option.name}</span>
-                    </div>
-                    
-                    {hasError && (
-                      <AlertTriangle size={16} className="text-destructive" />
-                    )}
-                    
-                    {isSelected && (
-                      <Check size={16} className="text-prayer-primary" />
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs px-3 h-8"
-                      onClick={() => playSound(option.id)}
-                    >
-                      {isCurrentlyPlaying ? <Pause size={16} /> : <Play size={16} />}
-                      {isCurrentlyPlaying ? ' Stop' : ' Play'}
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant={isSelected ? "outline" : "default"}
-                      onClick={() => handleSelect(option.id)}
-                      className={cn(
-                        "text-xs px-3 h-8",
-                        isSelected && "bg-prayer-light/10 text-prayer-primary border-prayer-primary hover:bg-prayer-light/20"
-                      )}
-                    >
-                      {isSelected ? "Selected" : "Select"}
-                    </Button>
-                  </div>
-                </div>
+        <div className="space-y-6 py-4">
+          {/* Notification Toggle Switch */}
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="bg-prayer-light/20 p-2 rounded-full">
+                <Bell className="h-5 w-5 text-prayer-primary" />
               </div>
-            );
-          })}
+              <div>
+                <h3 className="font-medium text-base">Enable notifications</h3>
+                <p className="text-sm text-muted-foreground">Get alerts before {prayerName} prayer</p>
+              </div>
+            </div>
+            {onNotificationToggle && (
+              <Switch
+                checked={notificationEnabled}
+                onCheckedChange={onNotificationToggle}
+              />
+            )}
+          </div>
+          
+          {notificationEnabled && (
+            <>
+              <div className="mb-4">
+                <h3 className="font-medium text-base mb-2">Select notification sound</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Choose which sound plays for this prayer
+                </p>
+              </div>
+              
+              <RadioGroup
+                value={selectedSoundId}
+                onValueChange={handleSelectSound}
+                className="space-y-3"
+              >
+                {adhanSoundOptions.map((option) => (
+                  <div
+                    key={option.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      selectedSoundId === option.id
+                        ? "border-prayer-primary bg-prayer-light/10"
+                        : "border-border"
+                    } hover:bg-accent transition-colors`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value={option.id} id={option.id} />
+                      <Label htmlFor={option.id} className="cursor-pointer flex-1">
+                        <div>
+                          <h4 className="font-medium">{option.name}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {option.description}
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+                  </div>
+                ))}
+              </RadioGroup>
+            </>
+          )}
+        </div>
+        
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            variant="outline"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onClose}
+            className="bg-prayer-primary hover:bg-prayer-primary/90"
+          >
+            Save
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

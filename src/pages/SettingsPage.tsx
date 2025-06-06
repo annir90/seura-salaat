@@ -377,17 +377,17 @@ const SettingsPage = () => {
   };
   
   return (
-    <div className="max-w-2xl mx-auto px-6 pb-20">
-      <h1 className="text-2xl font-bold mb-8 text-foreground">{t.settings}</h1>
+    <div className="w-full mx-auto px-4 sm:px-6 pb-24 max-w-xl">
+      <h1 className="text-2xl font-bold mb-6 text-foreground">{t.settings}</h1>
       
-      <div className="space-y-8">
-        {/* User Status - Larger mobile-friendly box */}
-        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-6 border border-border">
-          <h2 className="font-semibold text-xl mb-6">{t.userStatus}</h2>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="space-y-6">
+        {/* User Status */}
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
+          <h2 className="font-semibold text-xl mb-5">{t.userStatus}</h2>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className={`p-3 rounded-full flex-shrink-0 ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                <User className={`h-6 w-6 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-base break-words">
@@ -403,7 +403,7 @@ const SettingsPage = () => {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="flex items-center gap-2 flex-shrink-0"
+                className="flex items-center gap-2 flex-shrink-0 h-10"
               >
                 <LogOut className="h-4 w-4" />
                 {t.signOut}
@@ -412,17 +412,17 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* Share App Section - Enhanced native sharing */}
-        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-6 border border-border">
-          <h2 className="font-semibold text-xl mb-6">{t.shareApp}</h2>
-          <div className="space-y-6">
+        {/* Share App Section */}
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
+          <h2 className="font-semibold text-xl mb-5">{t.shareApp}</h2>
+          <div className="space-y-5">
             <p className="text-base text-muted-foreground">
               {t.shareAppDesc}
             </p>
             
             <Button 
               onClick={handleShareApp}
-              className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 text-lg py-6 px-8 w-full"
+              className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 text-base py-5 w-full"
             >
               <Share2 className="h-5 w-5" />
               {t.shareAppButton}
@@ -431,15 +431,15 @@ const SettingsPage = () => {
         </div>
 
         {/* Language Settings */}
-        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-6 border border-border">
-          <h2 className="font-semibold text-xl mb-6">{t.language}</h2>
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
+          <h2 className="font-semibold text-xl mb-5">{t.language}</h2>
           <div className="space-y-4">
             <Label htmlFor="language" className="text-base">{t.language}</Label>
             <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-full h-12">
+              <SelectTrigger className="w-full h-12 text-base">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg z-[9999] fixed">
+              <SelectContent className="bg-background border border-border shadow-lg">
                 <SelectItem value="en">
                   <div className="flex items-center gap-3">
                     <Languages className="h-5 w-5" />
@@ -458,8 +458,8 @@ const SettingsPage = () => {
         </div>
 
         {/* Theme Settings */}
-        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-6 border border-border">
-          <h2 className="font-semibold text-xl mb-6">{t.appearance}</h2>
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
+          <h2 className="font-semibold text-xl mb-5">{t.appearance}</h2>
           <div className="space-y-4">
             <Label htmlFor="theme" className="text-base">{t.theme}</Label>
             <RadioGroup
@@ -486,18 +486,18 @@ const SettingsPage = () => {
         </div>
 
         {/* Location Settings */}
-        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-6 border border-border">
-          <h2 className="font-semibold text-xl mb-6">{t.locationSettings}</h2>
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
+          <h2 className="font-semibold text-xl mb-5">{t.locationSettings}</h2>
           
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex-1">
                 <Label className="text-base">{t.autoDetectLocation}</Label>
                 <p className="text-sm text-muted-foreground mt-1">{t.autoDetectLocationDesc}</p>
               </div>
               <Button 
                 onClick={autoDetectLocation}
-                className="flex items-center gap-2 px-4 py-3 bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors flex-shrink-0 ml-4"
+                className="flex items-center gap-2 px-4 py-2 h-auto bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors flex-shrink-0 w-full sm:w-auto"
               >
                 <MapPin className="h-5 w-5" />
                 {t.detect}
@@ -510,10 +510,10 @@ const SettingsPage = () => {
                 value={location.id} 
                 onValueChange={handleLocationChange}
               >
-                <SelectTrigger className="w-full h-12">
+                <SelectTrigger className="w-full h-12 text-base">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border border-border shadow-lg z-[9999] fixed">
+                <SelectContent className="bg-background border border-border shadow-lg">
                   {availableLocations.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id}>
                       {loc.name}
@@ -525,17 +525,17 @@ const SettingsPage = () => {
           </div>
         </div>
         
-        {/* Prayer Notifications with Bell Icon */}
-        <div className="bg-card text-card-foreground rounded-2xl shadow-md p-6 border border-border">
-          <h2 className="font-semibold text-xl mb-6">{t.notificationSettings}</h2>
+        {/* Prayer Notifications */}
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm p-5 border border-border">
+          <h2 className="font-semibold text-xl mb-5">{t.notificationSettings}</h2>
           
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 flex-1">
-                <div className={`p-3 rounded-full flex-shrink-0 ${notifications ? 'bg-prayer-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
+              <div className="flex items-center gap-3 flex-1">
+                <div className={`p-2 rounded-full flex-shrink-0 ${notifications ? 'bg-prayer-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
                   {notifications ? 
-                    <BellRing className={`h-6 w-6 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
-                    <Bell className={`h-6 w-6 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
+                    <BellRing className={`h-5 w-5 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
+                    <Bell className={`h-5 w-5 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
                   }
                 </div>
                 <div className="flex-1">
@@ -551,16 +551,16 @@ const SettingsPage = () => {
             </div>
             
             {notifications && (
-              <div className="grid gap-3 ml-16">
+              <div className="grid gap-3 ml-10">
                 <Label htmlFor="notification-timing" className="text-base">{t.notificationTiming}</Label>
                 <Select 
                   value={notificationTiming} 
                   onValueChange={handleNotificationTimingChange}
                 >
-                  <SelectTrigger className="w-full h-12">
+                  <SelectTrigger className="w-full h-12 text-base">
                     <SelectValue placeholder="Select timing" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border border-border shadow-lg z-[9999] fixed">
+                  <SelectContent className="bg-background border border-border shadow-lg">
                     <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
                     <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
                   </SelectContent>
@@ -570,7 +570,7 @@ const SettingsPage = () => {
           </div>
         </div>
         
-        <div className="text-center text-sm text-muted-foreground pt-6">
+        <div className="text-center text-sm text-muted-foreground pt-4">
           <p>Seura Prayer v1.0</p>
         </div>
       </div>
