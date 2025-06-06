@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
@@ -6,6 +5,7 @@ import { Bell } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import AdhanSoundModal from "./AdhanSoundModal";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 interface PrayerCardProps {
   prayer: PrayerTime;
