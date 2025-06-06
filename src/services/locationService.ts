@@ -7,66 +7,45 @@ export interface Location {
   longitude: number;
 }
 
-// Expanded list of available locations covering major cities worldwide
+// Finnish cities and towns for prayer times calculations
 const AVAILABLE_LOCATIONS: Location[] = [
-  // Finland
-  { id: "espoo", name: "Espoo, Finland", latitude: 60.2055, longitude: 24.6559 },
-  { id: "helsinki", name: "Helsinki, Finland", latitude: 60.1699, longitude: 24.9384 },
-  { id: "tampere", name: "Tampere, Finland", latitude: 61.4978, longitude: 23.7610 },
-  { id: "turku", name: "Turku, Finland", latitude: 60.4518, longitude: 22.2666 },
-  { id: "oulu", name: "Oulu, Finland", latitude: 65.0121, longitude: 25.4651 },
-  
-  // Europe
-  { id: "london", name: "London, UK", latitude: 51.5074, longitude: -0.1278 },
-  { id: "paris", name: "Paris, France", latitude: 48.8566, longitude: 2.3522 },
-  { id: "berlin", name: "Berlin, Germany", latitude: 52.5200, longitude: 13.4050 },
-  { id: "stockholm", name: "Stockholm, Sweden", latitude: 59.3293, longitude: 18.0686 },
-  { id: "oslo", name: "Oslo, Norway", latitude: 59.9139, longitude: 10.7522 },
-  { id: "copenhagen", name: "Copenhagen, Denmark", latitude: 55.6761, longitude: 12.5683 },
-  { id: "amsterdam", name: "Amsterdam, Netherlands", latitude: 52.3676, longitude: 4.9041 },
-  { id: "brussels", name: "Brussels, Belgium", latitude: 50.8503, longitude: 4.3517 },
-  { id: "vienna", name: "Vienna, Austria", latitude: 48.2082, longitude: 16.3738 },
-  { id: "zurich", name: "Zurich, Switzerland", latitude: 47.3769, longitude: 8.5417 },
-  
-  // Middle East
-  { id: "mecca", name: "Mecca, Saudi Arabia", latitude: 21.3891, longitude: 39.8579 },
-  { id: "medina", name: "Medina, Saudi Arabia", latitude: 24.5247, longitude: 39.5692 },
-  { id: "riyadh", name: "Riyadh, Saudi Arabia", latitude: 24.7136, longitude: 46.6753 },
-  { id: "dubai", name: "Dubai, UAE", latitude: 25.2048, longitude: 55.2708 },
-  { id: "doha", name: "Doha, Qatar", latitude: 25.2760, longitude: 51.5200 },
-  { id: "kuwait", name: "Kuwait City, Kuwait", latitude: 29.3759, longitude: 47.9774 },
-  { id: "istanbul", name: "Istanbul, Turkey", latitude: 41.0082, longitude: 28.9784 },
-  { id: "ankara", name: "Ankara, Turkey", latitude: 39.9334, longitude: 32.8597 },
-  
-  // North America
-  { id: "new_york", name: "New York, USA", latitude: 40.7128, longitude: -74.0060 },
-  { id: "los_angeles", name: "Los Angeles, USA", latitude: 34.0522, longitude: -118.2437 },
-  { id: "chicago", name: "Chicago, USA", latitude: 41.8781, longitude: -87.6298 },
-  { id: "toronto", name: "Toronto, Canada", latitude: 43.6532, longitude: -79.3832 },
-  { id: "vancouver", name: "Vancouver, Canada", latitude: 49.2827, longitude: -123.1207 },
-  
-  // Asia
-  { id: "jakarta", name: "Jakarta, Indonesia", latitude: -6.2088, longitude: 106.8456 },
-  { id: "kuala_lumpur", name: "Kuala Lumpur, Malaysia", latitude: 3.1390, longitude: 101.6869 },
-  { id: "singapore", name: "Singapore", latitude: 1.3521, longitude: 103.8198 },
-  { id: "bangkok", name: "Bangkok, Thailand", latitude: 13.7563, longitude: 100.5018 },
-  { id: "karachi", name: "Karachi, Pakistan", latitude: 24.8607, longitude: 67.0011 },
-  { id: "lahore", name: "Lahore, Pakistan", latitude: 31.5204, longitude: 74.3587 },
-  { id: "islamabad", name: "Islamabad, Pakistan", latitude: 33.6844, longitude: 73.0479 },
-  { id: "dhaka", name: "Dhaka, Bangladesh", latitude: 23.8103, longitude: 90.4125 },
-  { id: "mumbai", name: "Mumbai, India", latitude: 19.0760, longitude: 72.8777 },
-  { id: "delhi", name: "Delhi, India", latitude: 28.7041, longitude: 77.1025 },
-  
-  // Africa
-  { id: "cairo", name: "Cairo, Egypt", latitude: 30.0444, longitude: 31.2357 },
-  { id: "casablanca", name: "Casablanca, Morocco", latitude: 33.5731, longitude: -7.5898 },
-  { id: "tunis", name: "Tunis, Tunisia", latitude: 36.8065, longitude: 10.1815 },
-  { id: "lagos", name: "Lagos, Nigeria", latitude: 6.5244, longitude: 3.3792 },
-  { id: "johannesburg", name: "Johannesburg, South Africa", latitude: -26.2041, longitude: 28.0473 },
-  
-  // Australia
-  { id: "sydney", name: "Sydney, Australia", latitude: -33.8688, longitude: 151.2093 },
-  { id: "melbourne", name: "Melbourne, Australia", latitude: -37.8136, longitude: 144.9631 },
+  // Major Finnish cities
+  { id: "helsinki", name: "Helsinki", latitude: 60.1699, longitude: 24.9384 },
+  { id: "espoo", name: "Espoo", latitude: 60.2055, longitude: 24.6559 },
+  { id: "tampere", name: "Tampere", latitude: 61.4978, longitude: 23.7610 },
+  { id: "vantaa", name: "Vantaa", latitude: 60.2943, longitude: 25.0408 },
+  { id: "oulu", name: "Oulu", latitude: 65.0121, longitude: 25.4651 },
+  { id: "turku", name: "Turku", latitude: 60.4518, longitude: 22.2666 },
+  { id: "jyvaskyla", name: "Jyväskylä", latitude: 62.2426, longitude: 25.7473 },
+  { id: "lahti", name: "Lahti", latitude: 60.9827, longitude: 25.6612 },
+  { id: "kuopio", name: "Kuopio", latitude: 62.8924, longitude: 27.6782 },
+  { id: "pori", name: "Pori", latitude: 61.4847, longitude: 21.7972 },
+  { id: "kouvola", name: "Kouvola", latitude: 60.8678, longitude: 26.7041 },
+  { id: "joensuu", name: "Joensuu", latitude: 62.6010, longitude: 29.7636 },
+  { id: "lappeenranta", name: "Lappeenranta", latitude: 61.0587, longitude: 28.1887 },
+  { id: "hameenlinna", name: "Hämeenlinna", latitude: 60.9959, longitude: 24.4641 },
+  { id: "vaasa", name: "Vaasa", latitude: 63.0951, longitude: 21.6165 },
+  { id: "seinajoki", name: "Seinäjoki", latitude: 62.7903, longitude: 22.8404 },
+  { id: "rovaniemi", name: "Rovaniemi", latitude: 66.5039, longitude: 25.7294 },
+  { id: "mikkeli", name: "Mikkeli", latitude: 61.6885, longitude: 27.2721 },
+  { id: "kotka", name: "Kotka", latitude: 60.4664, longitude: 26.9458 },
+  { id: "salo", name: "Salo", latitude: 60.3838, longitude: 23.1200 },
+  { id: "porvoo", name: "Porvoo", latitude: 60.3925, longitude: 25.6656 },
+  { id: "kokkola", name: "Kokkola", latitude: 63.8383, longitude: 23.1344 },
+  { id: "lohja", name: "Lohja", latitude: 60.2488, longitude: 24.0653 },
+  { id: "hyvinkaa", name: "Hyvinkää", latitude: 60.6319, longitude: 24.8580 },
+  { id: "nurmijärvi", name: "Nurmijärvi", latitude: 60.4686, longitude: 24.8093 },
+  { id: "järvenpää", name: "Järvenpää", latitude: 60.4736, longitude: 25.0896 },
+  { id: "rauma", name: "Rauma", latitude: 61.1275, longitude: 21.5112 },
+  { id: "tuusula", name: "Tuusula", latitude: 60.4020, longitude: 25.0265 },
+  { id: "kirkkonummi", name: "Kirkkonummi", latitude: 60.1218, longitude: 24.4358 },
+  { id: "kajaani", name: "Kajaani", latitude: 64.2277, longitude: 27.7285 },
+  { id: "kerava", name: "Kerava", latitude: 60.4042, longitude: 25.1050 },
+  { id: "naantali", name: "Naantali", latitude: 60.4677, longitude: 22.0232 },
+  { id: "savonlinna", name: "Savonlinna", latitude: 61.8681, longitude: 28.8794 },
+  { id: "imatra", name: "Imatra", latitude: 61.1719, longitude: 28.7587 },
+  { id: "tornio", name: "Tornio", latitude: 65.8482, longitude: 24.1467 },
+  { id: "riihimaki", name: "Riihimäki", latitude: 60.7395, longitude: 24.7772 }
 ];
 
 // Default location
