@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
 import { Bell } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import AdhanSoundModal from "./AdhanSoundModal";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 interface PrayerCardProps {
   prayer: PrayerTime;
@@ -16,6 +18,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan");
   const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   // Load saved preferences from localStorage on component mount
   useEffect(() => {
@@ -85,6 +88,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const handleOpenModal = () => {
     console.log("Opening adhan modal for prayer:", prayer.name);
     setIsModalOpen(true);
+    setIsPopoverOpen(false);
   };
 
   const handleCloseModal = () => {
@@ -102,6 +106,11 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       setSelectedSound(soundId);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}${prayer.id}`, soundId);
       console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
+      
+      // Register notification with service worker for mobile
+      if (notificationEnabled && 'serviceWorker' in navigator) {
+        registerPrayerReminderWithServiceWorker(prayer, soundId);
+      }
     } catch (error) {
       console.error("Error saving sound preference:", error);
     }
@@ -117,8 +126,54 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       setNotificationEnabled(enabled);
       localStorage.setItem(`${NOTIFICATION_TOGGLE_PREFIX}${prayer.id}`, enabled.toString());
       console.log(`Notification ${enabled ? 'enabled' : 'disabled'} for prayer ${prayer.name}`);
+      
+      // Register or unregister notification with service worker
+      if (enabled && 'serviceWorker' in navigator) {
+        registerPrayerReminderWithServiceWorker(prayer, selectedSound);
+      }
     } catch (error) {
       console.error("Error saving notification preference:", error);
+    }
+  };
+
+  // Register prayer notification with service worker for better mobile support
+  const registerPrayerReminderWithServiceWorker = (prayer: PrayerTime, soundId: string | undefined) => {
+    try {
+      if (!prayer.time || !prayer.id) return;
+      
+      const notificationTimingSetting = localStorage.getItem('prayer-notification-timing') || "5";
+      const timingMinutes = parseInt(notificationTimingSetting, 10);
+      
+      // Parse prayer time
+      const [hours, minutes] = prayer.time.split(':').map(Number);
+      
+      // Calculate notification time (minutes before prayer)
+      const prayerDate = new Date();
+      prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
+      
+      const now = new Date();
+      
+      // Only schedule if it's in the future
+      if (prayerDate > now) {
+        const delay = prayerDate.getTime() - now.getTime();
+        
+        // Send message to service worker to schedule notification
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SCHEDULE_PRAYER_NOTIFICATION',
+            prayerName: prayer.name,
+            prayerId: prayer.id,
+            time: prayer.time,
+            delay: delay,
+            soundId: soundId || 'none',
+            minutesBefore: timingMinutes
+          });
+          
+          console.log(`Prayer notification scheduled: ${prayer.name} at ${prayer.time}, ${timingMinutes} minutes before`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to register prayer reminder:", error);
     }
   };
 
@@ -149,27 +204,49 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       </div>
       
       <div className="flex items-center gap-2">
-        {/* Notification Toggle Switch */}
-        <div className="flex items-center gap-1">
-          <Switch
-            checked={notificationEnabled}
-            onCheckedChange={handleNotificationToggle}
-            className="scale-75"
-          />
-        </div>
-
-        {/* Sound Selection Button */}
-        <button 
-          className={cn(
-            "rounded-full p-2 transition-colors hover:bg-accent",
-            selectedSound && notificationEnabled ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
-          )}
-          aria-label={`Set notification sound for ${prayerName}`}
-          onClick={handleOpenModal}
-          disabled={!notificationEnabled}
-        >
-          <Bell size={20} className={selectedSound && notificationEnabled ? "text-prayer-primary" : ""} />
-        </button>
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button 
+              className={cn(
+                "rounded-full p-2 transition-colors hover:bg-accent",
+                selectedSound && notificationEnabled ? "bg-prayer-light text-prayer-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-label={`Prayer notification settings for ${prayerName}`}
+            >
+              <Bell 
+                size={20} 
+                className={selectedSound && notificationEnabled ? "text-prayer-primary" : ""}
+              />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-4" side="top">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium">Enable notifications</h4>
+                  <p className="text-xs text-muted-foreground">Get reminders for {prayerName}</p>
+                </div>
+                <Switch 
+                  checked={notificationEnabled} 
+                  onCheckedChange={handleNotificationToggle}
+                />
+              </div>
+              
+              {notificationEnabled && (
+                <div className="pt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleOpenModal}
+                    className="w-full"
+                  >
+                    {selectedSound ? 'Change sound' : 'Select sound'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <AdhanSoundModal

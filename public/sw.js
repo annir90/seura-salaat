@@ -10,6 +10,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
+// Storage for scheduled notifications
+const scheduledNotifications = new Map();
+
 // Handle background sync for prayer notifications
 self.addEventListener('sync', (event) => {
   if (event.tag === 'prayer-notification') {
@@ -19,7 +22,7 @@ self.addEventListener('sync', (event) => {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event.notification);
+  console.log('Notification clicked:', event.notification.tag);
   event.notification.close();
   
   // Focus or open the app
@@ -36,21 +39,42 @@ self.addEventListener('notificationclick', (event) => {
 // Handle background message for prayer times
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SCHEDULE_PRAYER_NOTIFICATION') {
-    const { prayerName, time, delay } = event.data;
+    const { prayerName, prayerId, time, delay, soundId, minutesBefore } = event.data;
     
-    setTimeout(() => {
-      self.registration.showNotification(`${prayerName} Prayer Reminder`, {
-        body: `${prayerName} prayer time is approaching at ${time}`,
+    // Cancel any existing notification for this prayer
+    if (scheduledNotifications.has(prayerId)) {
+      clearTimeout(scheduledNotifications.get(prayerId));
+    }
+    
+    // Schedule new notification
+    const timeoutId = setTimeout(() => {
+      console.log(`Showing notification for ${prayerName} prayer`);
+      
+      self.registration.showNotification(`${prayerName} Prayer Time`, {
+        body: `${prayerName} prayer time is in ${minutesBefore} minutes (${time})`,
         icon: '/favicon.ico',
-        tag: `prayer-${prayerName}`,
+        tag: `prayer-${prayerId}`,
         requireInteraction: true,
-        badge: '/favicon.ico'
+        badge: '/favicon.ico',
+        data: {
+          prayerId: prayerId,
+          soundId: soundId,
+          time: time
+        }
       });
+      
+      // Remove from scheduled notifications after showing
+      scheduledNotifications.delete(prayerId);
     }, delay);
+    
+    // Store the timeout ID to allow cancellation
+    scheduledNotifications.set(prayerId, timeoutId);
+    
+    console.log(`Prayer notification scheduled: ${prayerName} at ${time}, ${minutesBefore} minutes before`);
   }
 });
 
 async function handlePrayerNotification() {
-  // This function can be extended to handle scheduled notifications
+  // This function handles scheduled notifications
   console.log('Handling prayer notification in background');
 }
