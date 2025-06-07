@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
@@ -208,7 +209,9 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
           size="icon"
           className={cn(
             "rounded-full",
-            selectedSound && notificationEnabled ? "text-prayer-primary" : "text-muted-foreground hover:text-foreground"
+            selectedSound && notificationEnabled 
+              ? "bg-prayer-primary/10 text-prayer-primary hover:bg-prayer-primary/20" 
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
           )}
           aria-label={`Prayer notification settings for ${prayerName}`}
           onClick={() => setIsModalOpen(true)}
