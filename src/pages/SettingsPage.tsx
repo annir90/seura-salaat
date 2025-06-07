@@ -18,7 +18,10 @@ import {
   saveSelectedLocation, 
   getAvailableLocations, 
   Location,
-  addCustomLocation
+  addCustomLocation,
+  calculateDistance,
+  findClosestLocation,
+  autoDetectLocationSilently
 } from "@/services/locationService";
 import { 
   setLanguage, 
@@ -264,34 +267,6 @@ const SettingsPage = () => {
     }
   };
 
-  // Find closest available location
-  const findClosestLocation = (lat: number, lng: number): Location | null => {
-    let closestLocation: Location | null = null;
-    let minDistance = Infinity;
-    
-    availableLocations.forEach(loc => {
-      const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude);
-      if (distance < minDistance && distance < 50) { // Within 50km
-        minDistance = distance;
-        closestLocation = loc;
-      }
-    });
-    
-    return closestLocation;
-  };
-
-  // Calculate distance between two coordinates
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-  
   const handleLocationChange = (locationId: string) => {
     const selectedLocation = availableLocations.find(l => l.id === locationId);
     if (selectedLocation) {
@@ -347,9 +322,9 @@ const SettingsPage = () => {
   // Enhanced native sharing functionality with real social media apps
   const handleShareApp = async () => {
     const shareData = {
-      title: "Seura Prayer - Prayer Times App",
+      title: "PrayConnect - Prayer Times App",
       text: "Check out this great app for prayer times and reminders!",
-      url: "https://d7360491-a249-4f6e-9474-c67ad3a482a2.lovableproject.com"
+      url: window.location.origin
     };
 
     if (navigator.share) {
@@ -359,47 +334,33 @@ const SettingsPage = () => {
       } catch (error) {
         if (error.name !== 'AbortError') {
           console.error("Share failed:", error);
-          // Fallback to clipboard only if native sharing truly fails
-          try {
-            const shareText = `${shareData.text} ${shareData.url}`;
-            await navigator.clipboard.writeText(shareText);
-            toast.success("App link copied to clipboard!");
-          } catch (clipboardError) {
-            toast.error("Failed to share app");
-          }
+          toast.error("Failed to share app");
         }
       }
     } else {
-      // Fallback: copy to clipboard for older browsers
-      try {
-        const shareText = `${shareData.text} ${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast.success("App link copied to clipboard!");
-      } catch (error) {
-        toast.error("Failed to copy link");
-      }
+      toast.error("Native sharing not supported on this device");
     }
   };
   
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-md mx-auto px-4 sm:px-6 pb-24">
+      <div className="w-full max-w-full mx-auto px-4 sm:px-6 pb-24">
         <h1 className="text-2xl font-bold mb-6 text-foreground pt-6">{t.settings}</h1>
         
         <div className="space-y-4">
           {/* User Status */}
-          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-6 border border-border">
             <h2 className="font-semibold text-lg mb-4">{t.userStatus}</h2>
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className={`p-3 rounded-full flex-shrink-0 ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                  <User className={`h-5 w-5 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                  <User className={`h-6 w-6 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm break-words">
+                  <p className="font-medium text-base break-words">
                     {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
                   </p>
-                  <p className={`text-xs ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                  <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
                     {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
                   </p>
                 </div>
@@ -409,9 +370,9 @@ const SettingsPage = () => {
                   variant="outline" 
                   size="sm" 
                   onClick={handleSignOut}
-                  className="flex items-center gap-2 flex-shrink-0 h-9 text-xs"
+                  className="flex items-center gap-2 flex-shrink-0 h-10 text-sm px-4"
                 >
-                  <LogOut className="h-3 w-3" />
+                  <LogOut className="h-4 w-4" />
                   {t.signOut}
                 </Button>
               )}
@@ -419,42 +380,42 @@ const SettingsPage = () => {
           </div>
 
           {/* Share App Section */}
-          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-6 border border-border">
             <h2 className="font-semibold text-lg mb-4">{t.shareApp}</h2>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 {t.shareAppDesc}
               </p>
               
               <Button 
                 onClick={handleShareApp}
-                className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 text-sm py-3 w-full"
+                className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 text-base py-4 w-full h-12"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-5 w-5" />
                 {t.shareAppButton}
               </Button>
             </div>
           </div>
 
           {/* Language Settings */}
-          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-6 border border-border">
             <h2 className="font-semibold text-lg mb-4">{t.language}</h2>
-            <div className="space-y-3">
-              <Label htmlFor="language" className="text-sm">{t.language}</Label>
+            <div className="space-y-4">
+              <Label htmlFor="language" className="text-base">{t.language}</Label>
               <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full h-11 text-sm">
+                <SelectTrigger className="w-full h-12 text-base">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border border-border shadow-lg">
                   <SelectItem value="en">
                     <div className="flex items-center gap-3">
-                      <Languages className="h-4 w-4" />
+                      <Languages className="h-5 w-5" />
                       English
                     </div>
                   </SelectItem>
                   <SelectItem value="fi">
                     <div className="flex items-center gap-3">
-                      <Languages className="h-4 w-4" />
+                      <Languages className="h-5 w-5" />
                       Suomi
                     </div>
                   </SelectItem>
@@ -464,26 +425,26 @@ const SettingsPage = () => {
           </div>
 
           {/* Theme Settings */}
-          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-6 border border-border">
             <h2 className="font-semibold text-lg mb-4">{t.appearance}</h2>
-            <div className="space-y-3">
-              <Label htmlFor="theme" className="text-sm">{t.theme}</Label>
+            <div className="space-y-4">
+              <Label htmlFor="theme" className="text-base">{t.theme}</Label>
               <RadioGroup
                 value={theme}
                 onValueChange={(value) => setTheme(value as any)}
-                className="flex gap-6"
+                className="flex gap-8"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <RadioGroupItem value="light" id="light" />
-                  <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer text-sm">
-                    <Sun className="h-4 w-4" />
+                  <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer text-base">
+                    <Sun className="h-5 w-5" />
                     {t.light}
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <RadioGroupItem value="dark" id="dark" />
-                  <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer text-sm">
-                    <Moon className="h-4 w-4" />
+                  <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer text-base">
+                    <Moon className="h-5 w-5" />
                     {t.dark}
                   </Label>
                 </div>
@@ -492,31 +453,17 @@ const SettingsPage = () => {
           </div>
 
           {/* Location Settings */}
-          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-6 border border-border">
             <h2 className="font-semibold text-lg mb-4">{t.locationSettings}</h2>
             
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3">
-                <div className="flex-1">
-                  <Label className="text-sm">{t.autoDetectLocation}</Label>
-                  <p className="text-xs text-muted-foreground mt-1">{t.autoDetectLocationDesc}</p>
-                </div>
-                <Button 
-                  onClick={autoDetectLocation}
-                  className="flex items-center gap-2 px-4 py-3 h-auto bg-prayer-primary text-white rounded-lg hover:bg-prayer-primary/90 transition-colors w-full text-sm"
-                >
-                  <MapPin className="h-4 w-4" />
-                  {t.detect}
-                </Button>
-              </div>
-              
-              <div className="grid gap-3">
-                <Label htmlFor="location" className="text-sm">{t.selectLocation}</Label>
+            <div className="space-y-6">              
+              <div className="grid gap-4">
+                <Label htmlFor="location" className="text-base">{t.selectLocation}</Label>
                 <Select 
                   value={location.id} 
                   onValueChange={handleLocationChange}
                 >
-                  <SelectTrigger className="w-full h-11 text-sm">
+                  <SelectTrigger className="w-full h-12 text-base">
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border shadow-lg">
@@ -532,21 +479,21 @@ const SettingsPage = () => {
           </div>
           
           {/* Prayer Notifications */}
-          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-4 border border-border">
+          <div className="w-full bg-card text-card-foreground rounded-xl shadow-sm p-6 border border-border">
             <h2 className="font-semibold text-lg mb-4">{t.notificationSettings}</h2>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className={`p-2 rounded-full flex-shrink-0 ${notifications ? 'bg-prayer-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={`p-3 rounded-full flex-shrink-0 ${notifications ? 'bg-prayer-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
                     {notifications ? 
-                      <BellRing className={`h-4 w-4 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
-                      <Bell className={`h-4 w-4 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
+                      <BellRing className={`h-6 w-6 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
+                      <Bell className={`h-6 w-6 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
                     }
                   </div>
                   <div className="flex-1">
-                    <Label htmlFor="notifications" className="text-sm">{t.prayerNotifications}</Label>
-                    <p className="text-xs text-muted-foreground mt-1">{t.prayerNotificationsDesc}</p>
+                    <Label htmlFor="notifications" className="text-base">{t.prayerNotifications}</Label>
+                    <p className="text-sm text-muted-foreground mt-1">{t.prayerNotificationsDesc}</p>
                   </div>
                 </div>
                 <Switch 
@@ -557,13 +504,13 @@ const SettingsPage = () => {
               </div>
               
               {notifications && (
-                <div className="grid gap-3 ml-8">
-                  <Label htmlFor="notification-timing" className="text-sm">{t.notificationTiming}</Label>
+                <div className="grid gap-4 ml-10">
+                  <Label htmlFor="notification-timing" className="text-base">{t.notificationTiming}</Label>
                   <Select 
                     value={notificationTiming} 
                     onValueChange={handleNotificationTimingChange}
                   >
-                    <SelectTrigger className="w-full h-11 text-sm">
+                    <SelectTrigger className="w-full h-12 text-base">
                       <SelectValue placeholder="Select timing" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg">
@@ -576,8 +523,8 @@ const SettingsPage = () => {
             </div>
           </div>
           
-          <div className="text-center text-xs text-muted-foreground pt-4">
-            <p>Seura Prayer v1.0</p>
+          <div className="text-center text-sm text-muted-foreground pt-6">
+            <p>PrayConnect v1.0</p>
           </div>
         </div>
       </div>

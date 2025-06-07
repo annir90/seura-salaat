@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, Play } from "lucide-react";
 
 export interface AdhanSoundOption {
   id: string;
@@ -51,6 +52,16 @@ const AdhanSoundModal = ({
 }: AdhanSoundModalProps) => {
   const handleSelectSound = (soundId: string) => {
     onSelect(soundId);
+  };
+
+  const playSound = async (soundId: string) => {
+    try {
+      const audio = new Audio(`/audio/${soundId}.mp3`);
+      audio.volume = 0.7;
+      await audio.play();
+    } catch (error) {
+      console.error('Error playing sound:', error);
+    }
   };
 
   return (
@@ -105,7 +116,7 @@ const AdhanSoundModal = ({
                         : "border-border"
                     } hover:bg-accent transition-colors`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1">
                       <RadioGroupItem value={option.id} id={option.id} />
                       <Label htmlFor={option.id} className="cursor-pointer flex-1">
                         <div>
@@ -116,6 +127,14 @@ const AdhanSoundModal = ({
                         </div>
                       </Label>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => playSound(option.id)}
+                      className="ml-2 p-2 h-8 w-8"
+                    >
+                      <Play className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </RadioGroup>

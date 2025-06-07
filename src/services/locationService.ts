@@ -86,3 +86,97 @@ export const addCustomLocation = (name: string, latitude: number, longitude: num
   // For now, we'll just return it for immediate use
   return newLocation;
 };
+
+// Calculate distance between two coordinates
+export const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+// Find closest available location
+export const findClosestLocation = (lat: number, lng: number): Location | null => {
+  let closestLocation: Location | null = null;
+  let minDistance = Infinity;
+  
+  AVAILABLE_LOCATIONS.forEach(loc => {
+    const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude);
+    if (distance < minDistance && distance < 50) { // Within 50km
+      minDistance = distance;
+      closestLocation = loc;
+    }
+  });
+  
+  return closestLocation;
+};
+
+// Auto-detect location without asking permission (silent detection)
+export const autoDetectLocationSilently = (): Promise<Location | null> => {
+  return new Promise((resolve) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log(`Auto-detected coordinates: ${latitude}, ${longitude}`);
+          
+          try {
+            // Try to get location name using reverse geocoding
+            const response = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              const cityName = data.city || data.locality || data.principalSubdivision || 'Unknown Location';
+              
+              // Check if we have a close match in available Finnish locations first
+              const closestLocation = findClosestLocation(latitude, longitude);
+              
+              if (closestLocation && calculateDistance(latitude, longitude, closestLocation.latitude, closestLocation.longitude) < 15) {
+                // Use the predefined location if it's within 15km for better accuracy
+                resolve(closestLocation);
+              } else {
+                // Create a custom location with the detected name
+                const detectedLocation = addCustomLocation(cityName, latitude, longitude);
+                resolve(detectedLocation);
+              }
+            } else {
+              // Fallback to coordinates if reverse geocoding fails
+              const detectedLocation = addCustomLocation(
+                `Location (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
+                latitude,
+                longitude
+              );
+              resolve(detectedLocation);
+            }
+          } catch (error) {
+            console.error("Reverse geocoding failed:", error);
+            // Fallback to coordinate-based location
+            const detectedLocation = addCustomLocation(
+              `Auto-detected (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
+              latitude,
+              longitude
+            );
+            resolve(detectedLocation);
+          }
+        },
+        (error) => {
+          console.log("Geolocation not available or permission denied:", error);
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 300000 // 5 minutes
+        }
+      );
+    } else {
+      resolve(null);
+    }
+  });
+};

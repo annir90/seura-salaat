@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App = () => {
   const [appReady, setAppReady] = useState(false);
 
-  // Small delay to ensure smooth redirects
+  // Small delay to ensure smooth redirects and show welcome by default
   useEffect(() => {
     const timer = setTimeout(() => {
       setAppReady(true);
@@ -52,9 +52,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/welcome" element={
-                isAuthenticated() ? <Navigate to="/" replace /> : <WelcomePage />
-              } />
+              <Route path="/welcome" element={<WelcomePage />} />
               <Route path="/" element={
                 <ProtectedRoute>
                   <Layout />
@@ -66,10 +64,8 @@ const App = () => {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
-              {/* Redirect all unmatched routes to welcome page if not authenticated */}
-              <Route path="*" element={
-                isAuthenticated() ? <Navigate to="/" replace /> : <Navigate to="/welcome" replace />
-              } />
+              {/* All unmatched routes redirect to welcome page by default */}
+              <Route path="*" element={<Navigate to="/welcome" replace />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
