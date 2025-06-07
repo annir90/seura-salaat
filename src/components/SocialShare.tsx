@@ -1,46 +1,68 @@
 
 import { useState } from "react";
-import { Share2 } from "lucide-react";
+import { Share2, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { getTranslation } from "@/services/translationService";
 
 const SocialShare = () => {
   const t = getTranslation();
+  const [isSharing, setIsSharing] = useState(false);
 
   const shareData = {
-    title: "Seura Prayer - Prayer Times App",
-    text: "Check out this great app for prayer times and reminders:",
-    url: "https://d7360491-a249-4f6e-9474-c67ad3a482a2.lovableproject.com",
+    title: "PrayConnect - Prayer Times App",
+    text: "Check out this amazing prayer times app! 🕌",
+    url: window.location.origin,
   };
 
   const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
+    setIsSharing(true);
+    
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Error sharing:', error);
+        toast.success("App shared successfully! 🎉");
+      } else {
+        // Fallback: copy to clipboard
+        const shareText = `${shareData.text}\n${shareData.url}`;
+        await navigator.clipboard.writeText(shareText);
+        toast.success("Link copied to clipboard! 📋");
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+        // Final fallback: copy to clipboard
+        try {
+          const shareText = `${shareData.text}\n${shareData.url}`;
+          await navigator.clipboard.writeText(shareText);
+          toast.success("Link copied to clipboard! 📋");
+        } catch (clipboardError) {
+          toast.error("Failed to share. Please try again.");
         }
       }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        const shareText = `${shareData.text} ${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        console.log('Link copied to clipboard');
-      } catch (error) {
-        console.error('Failed to copy link:', error);
-      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
   return (
     <Button 
       onClick={handleNativeShare}
-      className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-2 w-full"
+      disabled={isSharing}
+      className="bg-prayer-primary hover:bg-prayer-primary/90 flex items-center gap-3 w-full h-14 text-base font-medium shadow-lg"
     >
-      <Share2 className="h-4 w-4" />
-      {t.shareAppButton}
+      {isSharing ? (
+        <>
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+          Sharing...
+        </>
+      ) : (
+        <>
+          <Share2 className="h-5 w-5" />
+          {t.shareAppButton}
+          <ExternalLink className="h-4 w-4 opacity-60" />
+        </>
+      )}
     </Button>
   );
 };

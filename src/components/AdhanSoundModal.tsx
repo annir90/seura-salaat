@@ -26,18 +26,18 @@ interface AdhanSoundModalProps {
 const adhanSoundOptions: AdhanSoundOption[] = [
   {
     id: "traditional-adhan",
-    name: "Traditional Adhan",
-    description: "Classic adhan sound",
+    name: "Adhan",
+    description: "Traditional call to prayer",
   },
   {
     id: "makkah-adhan",
-    name: "Makkah Adhan",
-    description: "Adhan from Masjid al-Haram",
+    name: "Soft",
+    description: "Gentle melodic sound",
   },
   {
     id: "soft-notification",
-    name: "Soft Notification",
-    description: "Gentle notification sound",
+    name: "Beep",
+    description: "Simple notification tone",
   },
 ];
 

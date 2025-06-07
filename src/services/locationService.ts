@@ -106,7 +106,7 @@ export const findClosestLocation = (lat: number, lng: number): Location | null =
   
   AVAILABLE_LOCATIONS.forEach(loc => {
     const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude);
-    if (distance < minDistance && distance < 50) { // Within 50km
+    if (distance < minDistance) {
       minDistance = distance;
       closestLocation = loc;
     }
@@ -115,68 +115,40 @@ export const findClosestLocation = (lat: number, lng: number): Location | null =
   return closestLocation;
 };
 
-// Auto-detect location without asking permission (silent detection)
+// Auto-detect location silently and set the closest available location automatically
 export const autoDetectLocationSilently = (): Promise<Location | null> => {
   return new Promise((resolve) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
           console.log(`Auto-detected coordinates: ${latitude}, ${longitude}`);
           
-          try {
-            // Try to get location name using reverse geocoding
-            const response = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-            );
-            
-            if (response.ok) {
-              const data = await response.json();
-              const cityName = data.city || data.locality || data.principalSubdivision || 'Unknown Location';
-              
-              // Check if we have a close match in available Finnish locations first
-              const closestLocation = findClosestLocation(latitude, longitude);
-              
-              if (closestLocation && calculateDistance(latitude, longitude, closestLocation.latitude, closestLocation.longitude) < 15) {
-                // Use the predefined location if it's within 15km for better accuracy
-                resolve(closestLocation);
-              } else {
-                // Create a custom location with the detected name
-                const detectedLocation = addCustomLocation(cityName, latitude, longitude);
-                resolve(detectedLocation);
-              }
-            } else {
-              // Fallback to coordinates if reverse geocoding fails
-              const detectedLocation = addCustomLocation(
-                `Location (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
-                latitude,
-                longitude
-              );
-              resolve(detectedLocation);
-            }
-          } catch (error) {
-            console.error("Reverse geocoding failed:", error);
-            // Fallback to coordinate-based location
-            const detectedLocation = addCustomLocation(
-              `Auto-detected (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
-              latitude,
-              longitude
-            );
-            resolve(detectedLocation);
+          // Find the closest available location
+          const closestLocation = findClosestLocation(latitude, longitude);
+          
+          if (closestLocation) {
+            // Automatically save the closest location
+            saveSelectedLocation(closestLocation);
+            console.log(`Auto-set location to: ${closestLocation.name}`);
+            resolve(closestLocation);
+          } else {
+            // Fallback to default if no close location found
+            resolve(DEFAULT_LOCATION);
           }
         },
         (error) => {
-          console.log("Geolocation not available or permission denied:", error);
-          resolve(null);
+          console.log("Geolocation not available, using default location:", error);
+          resolve(DEFAULT_LOCATION);
         },
         {
           enableHighAccuracy: false,
-          timeout: 5000,
+          timeout: 3000,
           maximumAge: 300000 // 5 minutes
         }
       );
     } else {
-      resolve(null);
+      resolve(DEFAULT_LOCATION);
     }
   });
 };
