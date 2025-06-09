@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -12,7 +13,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Moon, Sun, User, MapPin, LogOut, Languages, Bell, BellRing } from "lucide-react";
+import { 
+  Moon, 
+  Sun, 
+  User, 
+  MapPin, 
+  LogOut, 
+  Languages, 
+  Bell, 
+  BellRing, 
+  Share2,
+  Volume2,
+  Vibrate,
+  Smartphone,
+  Shield
+} from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
   getSelectedLocation, 
@@ -33,6 +48,8 @@ import SocialShare from "@/components/SocialShare";
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
   const [notificationTiming, setNotificationTiming] = useState("5");
+  const [vibration, setVibration] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [location, setLocation] = useState<Location>(getSelectedLocation());
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -55,6 +72,18 @@ const SettingsPage = () => {
     const savedTiming = localStorage.getItem('prayer-notification-timing');
     if (savedTiming) {
       setNotificationTiming(savedTiming);
+    }
+
+    // Load vibration setting
+    const savedVibration = localStorage.getItem('prayer-vibration-enabled');
+    if (savedVibration) {
+      setVibration(savedVibration === 'true');
+    }
+
+    // Load sound setting
+    const savedSound = localStorage.getItem('prayer-sound-enabled');
+    if (savedSound) {
+      setSoundEnabled(savedSound === 'true');
     }
     
     // Check user authentication status
@@ -116,7 +145,6 @@ const SettingsPage = () => {
             if (prayerDate > now) {
               const timeUntilNotification = prayerDate.getTime() - now.getTime();
               
-              // Store timeout reference for cleanup
               const timeoutId = setTimeout(async () => {
                 // Check if notifications are still enabled for this prayer
                 const prayerEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
@@ -129,9 +157,9 @@ const SettingsPage = () => {
                     requireInteraction: true
                   });
 
-                  // Play adhan sound if selected
-                  const selectedSound = localStorage.getItem(`prayer_adhan_${prayer.id}`);
-                  if (selectedSound && selectedSound !== 'none') {
+                  // Play adhan sound if enabled
+                  if (soundEnabled) {
+                    const selectedSound = localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'traditional-adhan';
                     try {
                       const audio = new Audio(`/audio/${selectedSound}.mp3`);
                       audio.volume = 0.7;
@@ -139,6 +167,11 @@ const SettingsPage = () => {
                     } catch (error) {
                       console.error('Error playing adhan sound:', error);
                     }
+                  }
+
+                  // Vibrate if enabled and supported
+                  if (vibration && 'vibrate' in navigator) {
+                    navigator.vibrate([200, 100, 200, 100, 200]);
                   }
                 }
               }, timeUntilNotification);
@@ -156,7 +189,6 @@ const SettingsPage = () => {
 
   // Check if user is signed in
   const checkUserStatus = () => {
-    // Check for authentication tokens or user data
     const authToken = localStorage.getItem('auth-token');
     const userData = localStorage.getItem('user-data');
     const visitorMode = localStorage.getItem('visitor-mode');
@@ -197,13 +229,24 @@ const SettingsPage = () => {
       setupPrayerNotifications();
       toast.success('Prayer notifications enabled');
     } else {
-      // Clear existing timeouts
       if (window.prayerTimeouts) {
         window.prayerTimeouts.forEach(timeout => clearTimeout(timeout));
         window.prayerTimeouts = [];
       }
       toast.success('Prayer notifications disabled');
     }
+  };
+
+  const handleVibrationChange = (enabled: boolean) => {
+    setVibration(enabled);
+    localStorage.setItem('prayer-vibration-enabled', enabled.toString());
+    toast.success(`Vibration ${enabled ? 'enabled' : 'disabled'}`);
+  };
+
+  const handleSoundChange = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    localStorage.setItem('prayer-sound-enabled', enabled.toString());
+    toast.success(`Sound ${enabled ? 'enabled' : 'disabled'}`);
   };
 
   const handleNotificationTimingChange = (timing: string) => {
@@ -234,7 +277,7 @@ const SettingsPage = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="w-full max-w-4xl mx-auto px-4 py-6 pb-24">
+      <div className="w-full max-w-2xl mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-prayer-primary to-secondary bg-clip-text text-transparent mb-2">
@@ -243,24 +286,22 @@ const SettingsPage = () => {
           <p className="text-muted-foreground">Customize your prayer experience</p>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* User Profile Card */}
-          <Card className="border-2 border-prayer-primary/20 shadow-lg">
+          <Card className="w-full">
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className={`p-3 rounded-full ${isSignedIn ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                  <User className={`h-6 w-6 ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`} />
-                </div>
+              <CardTitle className="flex items-center gap-3">
+                <User className="h-5 w-5 text-prayer-primary" />
                 {t.userStatus}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="font-medium text-lg mb-1">
+                  <p className="font-medium mb-1">
                     {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
                   </p>
-                  <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                  <p className={`text-sm ${isSignedIn ? 'text-green-600' : 'text-muted-foreground'}`}>
                     {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
                   </p>
                 </div>
@@ -268,7 +309,7 @@ const SettingsPage = () => {
                   <Button 
                     variant="outline" 
                     onClick={handleSignOut}
-                    className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                    className="flex items-center gap-2 text-red-600"
                   >
                     <LogOut className="h-4 w-4" />
                     {t.signOut}
@@ -279,12 +320,10 @@ const SettingsPage = () => {
           </Card>
 
           {/* Share App Card */}
-          <Card className="border-2 border-blue-200 shadow-lg">
+          <Card className="w-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                  <Languages className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
+              <CardTitle className="flex items-center gap-3">
+                <Share2 className="h-5 w-5 text-blue-600" />
                 {t.shareApp}
               </CardTitle>
             </CardHeader>
@@ -297,30 +336,28 @@ const SettingsPage = () => {
           </Card>
 
           {/* Language Settings */}
-          <Card className="shadow-lg">
+          <Card className="w-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
-                  <Languages className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                </div>
+              <CardTitle className="flex items-center gap-3">
+                <Languages className="h-5 w-5 text-purple-600" />
                 {t.language}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full h-12 text-base">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">🇺🇸</span>
+                      <span className="text-xl">🇺🇸</span>
                       English
                     </div>
                   </SelectItem>
                   <SelectItem value="fi">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">🇫🇮</span>
+                      <span className="text-xl">🇫🇮</span>
                       Suomi
                     </div>
                   </SelectItem>
@@ -330,15 +367,13 @@ const SettingsPage = () => {
           </Card>
 
           {/* Theme Settings */}
-          <Card className="shadow-lg">
+          <Card className="w-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900">
-                  {theme === 'dark' ? 
-                    <Moon className="h-6 w-6 text-orange-600 dark:text-orange-400" /> :
-                    <Sun className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                  }
-                </div>
+              <CardTitle className="flex items-center gap-3">
+                {theme === 'dark' ? 
+                  <Moon className="h-5 w-5 text-orange-600" /> :
+                  <Sun className="h-5 w-5 text-orange-600" />
+                }
                 {t.appearance}
               </CardTitle>
             </CardHeader>
@@ -350,15 +385,15 @@ const SettingsPage = () => {
               >
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value="light" id="light" />
-                  <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer text-base">
-                    <Sun className="h-5 w-5" />
+                  <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer">
+                    <Sun className="h-4 w-4" />
                     {t.light}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value="dark" id="dark" />
-                  <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer text-base">
-                    <Moon className="h-5 w-5" />
+                  <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer">
+                    <Moon className="h-4 w-4" />
                     {t.dark}
                   </Label>
                 </div>
@@ -367,23 +402,21 @@ const SettingsPage = () => {
           </Card>
 
           {/* Location Settings */}
-          <Card className="shadow-lg">
+          <Card className="w-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                  <MapPin className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
+              <CardTitle className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-green-600" />
                 {t.locationSettings}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">              
-                <Label htmlFor="location" className="text-base">{t.selectLocation}</Label>
+                <Label htmlFor="location">{t.selectLocation}</Label>
                 <Select 
                   value={location.id} 
                   onValueChange={handleLocationChange}
                 >
-                  <SelectTrigger className="w-full h-12 text-base">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent>
@@ -402,15 +435,13 @@ const SettingsPage = () => {
           </Card>
           
           {/* Prayer Notifications */}
-          <Card className="shadow-lg">
+          <Card className="w-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className={`p-3 rounded-full ${notifications ? 'bg-prayer-primary/20' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                  {notifications ? 
-                    <BellRing className={`h-6 w-6 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} /> :
-                    <Bell className={`h-6 w-6 ${notifications ? 'text-prayer-primary' : 'text-gray-500'}`} />
-                  }
-                </div>
+              <CardTitle className="flex items-center gap-3">
+                {notifications ? 
+                  <BellRing className="h-5 w-5 text-prayer-primary" /> :
+                  <Bell className="h-5 w-5 text-gray-500" />
+                }
                 {t.notificationSettings}
               </CardTitle>
             </CardHeader>
@@ -418,7 +449,7 @@ const SettingsPage = () => {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <Label htmlFor="notifications" className="text-base font-medium">{t.prayerNotifications}</Label>
+                    <Label htmlFor="notifications" className="font-medium">{t.prayerNotifications}</Label>
                     <p className="text-sm text-muted-foreground mt-1">{t.prayerNotificationsDesc}</p>
                   </div>
                   <Switch 
@@ -430,21 +461,82 @@ const SettingsPage = () => {
                 
                 {notifications && (
                   <div className="space-y-4 pt-4 border-t">
-                    <Label htmlFor="notification-timing" className="text-base">{t.notificationTiming}</Label>
-                    <Select 
-                      value={notificationTiming} 
-                      onValueChange={handleNotificationTimingChange}
-                    >
-                      <SelectTrigger className="w-full h-12 text-base">
-                        <SelectValue placeholder="Select timing" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
-                        <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div>
+                      <Label htmlFor="notification-timing">{t.notificationTiming}</Label>
+                      <Select 
+                        value={notificationTiming} 
+                        onValueChange={handleNotificationTimingChange}
+                      >
+                        <SelectTrigger className="w-full mt-2">
+                          <SelectValue placeholder="Select timing" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
+                          <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="sound" className="font-medium flex items-center gap-2">
+                          <Volume2 className="h-4 w-4" />
+                          Sound
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">Play sound with notifications</p>
+                      </div>
+                      <Switch 
+                        id="sound" 
+                        checked={soundEnabled} 
+                        onCheckedChange={handleSoundChange}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="vibration" className="font-medium flex items-center gap-2">
+                          <Vibrate className="h-4 w-4" />
+                          Vibration
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">Vibrate device on notifications</p>
+                      </div>
+                      <Switch 
+                        id="vibration" 
+                        checked={vibration} 
+                        onCheckedChange={handleVibrationChange}
+                      />
+                    </div>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacy & Security */}
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-red-600" />
+                Privacy & Security
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <Label className="font-medium">Auto Location Detection</Label>
+                    <p className="text-sm text-muted-foreground mt-1">Automatically detect your location for accurate prayer times</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <Label className="font-medium">Data Usage</Label>
+                    <p className="text-sm text-muted-foreground mt-1">Use mobile data for prayer time updates</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -56,11 +56,31 @@ const AdhanSoundModal = ({
 
   const playSound = async (soundId: string) => {
     try {
+      // Stop any currently playing audio
+      const existingAudio = document.querySelector('audio');
+      if (existingAudio) {
+        existingAudio.pause();
+        existingAudio.currentTime = 0;
+      }
+
       const audio = new Audio(`/audio/${soundId}.mp3`);
       audio.volume = 0.7;
-      await audio.play();
+      
+      // Add event listeners for better error handling
+      audio.addEventListener('canplaythrough', () => {
+        audio.play().catch(error => {
+          console.error('Error playing sound:', error);
+        });
+      });
+
+      audio.addEventListener('error', (error) => {
+        console.error('Audio loading error:', error);
+      });
+
+      // Load the audio
+      audio.load();
     } catch (error) {
-      console.error('Error playing sound:', error);
+      console.error('Error setting up sound:', error);
     }
   };
 
@@ -131,7 +151,7 @@ const AdhanSoundModal = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => playSound(option.id)}
-                      className="ml-2 p-2 h-8 w-8"
+                      className="ml-2 p-2 h-8 w-8 hover:bg-prayer-primary/10"
                     >
                       <Play className="h-4 w-4" />
                     </Button>
