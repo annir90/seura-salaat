@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -149,7 +150,7 @@ const SettingsPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-left mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">
             {t.settings}
           </h1>
