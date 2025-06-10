@@ -19,15 +19,25 @@ const SocialShare = () => {
     setIsSharing(true);
     
     try {
-      // Check if native sharing is available (mobile devices)
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      // Check if native sharing is available
+      if (navigator.share) {
         await navigator.share(shareData);
         toast.success("App shared successfully! 🎉");
-      } else {
-        // Fallback: copy to clipboard for desktop
+      } else if (navigator.clipboard) {
+        // Fallback: copy to clipboard
         const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
         await navigator.clipboard.writeText(shareText);
         toast.success("Link copied to clipboard! 📋");
+      } else {
+        // Final fallback for older browsers
+        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast.success("Link copied! 📋");
       }
     } catch (error) {
       // Handle user cancellation or other errors
@@ -36,7 +46,16 @@ const SocialShare = () => {
         // Final fallback: copy to clipboard
         try {
           const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-          await navigator.clipboard.writeText(shareText);
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(shareText);
+          } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = shareText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+          }
           toast.success("Link copied to clipboard! 📋");
         } catch (clipboardError) {
           console.error('Clipboard error:', clipboardError);
@@ -52,7 +71,7 @@ const SocialShare = () => {
     <Button 
       onClick={handleNativeShare}
       disabled={isSharing}
-      className="bg-gradient-to-r from-prayer-primary to-prayer-secondary hover:from-prayer-primary/90 hover:to-prayer-secondary/90 text-white flex items-center justify-center gap-3 w-full h-12 text-base font-medium shadow-lg rounded-xl transition-all duration-300"
+      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 dark:from-purple-500 dark:to-blue-500 dark:hover:from-purple-600 dark:hover:to-blue-600 text-white flex items-center justify-center gap-3 w-full h-12 text-base font-medium shadow-lg rounded-xl transition-all duration-300"
     >
       {isSharing ? (
         <>
