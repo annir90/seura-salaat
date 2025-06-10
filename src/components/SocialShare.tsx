@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Share2, Copy, ExternalLink } from "lucide-react";
+import { Share2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getTranslation } from "@/services/translationService";
@@ -20,47 +20,25 @@ const SocialShare = () => {
     
     try {
       // Check if native sharing is available
-      if (navigator.share) {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
         toast.success("App shared successfully! 🎉");
-      } else if (navigator.clipboard) {
-        // Fallback: copy to clipboard
-        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast.success("Link copied to clipboard! 📋");
+      } else if (navigator.share) {
+        // Try sharing without checking canShare (for broader compatibility)
+        await navigator.share(shareData);
+        toast.success("App shared successfully! 🎉");
       } else {
-        // Final fallback for older browsers
-        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        const textArea = document.createElement('textarea');
-        textArea.value = shareText;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        toast.success("Link copied! 📋");
+        // Show user that native sharing is not available
+        toast.error("Native sharing not supported on this device. Please share manually: " + shareData.url);
       }
     } catch (error) {
-      // Handle user cancellation or other errors
-      if (error.name !== 'AbortError') {
+      // Handle user cancellation gracefully
+      if (error.name === 'AbortError') {
+        // User cancelled the share - don't show error
+        console.log('Share cancelled by user');
+      } else {
         console.error('Error sharing:', error);
-        // Final fallback: copy to clipboard
-        try {
-          const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-          if (navigator.clipboard) {
-            await navigator.clipboard.writeText(shareText);
-          } else {
-            const textArea = document.createElement('textarea');
-            textArea.value = shareText;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-          }
-          toast.success("Link copied to clipboard! 📋");
-        } catch (clipboardError) {
-          console.error('Clipboard error:', clipboardError);
-          toast.error("Failed to share. Please try again.");
-        }
+        toast.error("Sharing failed. Native sharing may not be available on this device.");
       }
     } finally {
       setIsSharing(false);
