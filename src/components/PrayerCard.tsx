@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
@@ -46,6 +45,92 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       console.error("Error loading prayer preferences:", error);
     }
   }, [prayer?.id]);
+
+  // Set up prayer reminder when component mounts or settings change
+  useEffect(() => {
+    if (notificationEnabled && selectedSound && prayer?.time && prayer?.id) {
+      setupPrayerReminder();
+    }
+  }, [notificationEnabled, selectedSound, prayer?.time, prayer?.id]);
+
+  const setupPrayerReminder = async () => {
+    try {
+      console.log(`Setting up reminder for ${prayer.name} prayer`);
+      
+      // Request notification permission
+      if ('Notification' in window && Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          console.log('Notification permission denied');
+          return;
+        }
+      }
+
+      if (Notification.permission !== 'granted') {
+        console.log('Notifications not permitted');
+        return;
+      }
+
+      // Get notification timing from settings
+      const notificationTimingSetting = localStorage.getItem('prayer-notification-timing') || "5";
+      const timingMinutes = parseInt(notificationTimingSetting, 10);
+      
+      // Parse prayer time
+      const [hours, minutes] = prayer.time.split(':').map(Number);
+      
+      // Calculate notification time (minutes before prayer)
+      const now = new Date();
+      const prayerDate = new Date();
+      prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
+      
+      // If the reminder time has passed for today, skip
+      if (prayerDate <= now) {
+        console.log(`Prayer reminder time has passed for ${prayer.name}`);
+        return;
+      }
+      
+      const delay = prayerDate.getTime() - now.getTime();
+      console.log(`Scheduling ${prayer.name} reminder in ${delay}ms`);
+      
+      // Clear any existing timeout for this prayer
+      const existingTimeoutId = localStorage.getItem(`timeout_${prayer.id}`);
+      if (existingTimeoutId) {
+        clearTimeout(parseInt(existingTimeoutId));
+      }
+      
+      // Schedule the reminder
+      const timeoutId = setTimeout(async () => {
+        console.log(`Playing ${prayer.name} prayer reminder`);
+        
+        // Show notification
+        const notification = new Notification(`${prayer.name} Prayer Reminder`, {
+          body: `${prayer.name} prayer is in ${timingMinutes} minutes at ${prayer.time}`,
+          icon: '/favicon.ico',
+          tag: `prayer-${prayer.id}`,
+          requireInteraction: true
+        });
+        
+        // Play sound
+        try {
+          const audio = new Audio(`/audio/${selectedSound}.mp3`);
+          audio.volume = 0.8;
+          await audio.play();
+          console.log(`Successfully played ${selectedSound} for ${prayer.name}`);
+        } catch (error) {
+          console.error('Error playing prayer sound:', error);
+        }
+        
+        // Clean up
+        localStorage.removeItem(`timeout_${prayer.id}`);
+      }, delay);
+      
+      // Store timeout ID for cleanup
+      localStorage.setItem(`timeout_${prayer.id}`, timeoutId.toString());
+      
+    } catch (error) {
+      console.error('Error setting up prayer reminder:', error);
+    }
+  };
 
   const isPast = () => {
     try {
@@ -107,9 +192,9 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       localStorage.setItem(`${STORAGE_KEY_PREFIX}${prayer.id}`, soundId);
       console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
       
-      // Register notification with service worker for mobile
-      if (notificationEnabled && 'serviceWorker' in navigator) {
-        registerPrayerReminderWithServiceWorker(prayer, soundId);
+      // Re-setup reminder with new sound
+      if (notificationEnabled) {
+        setupPrayerReminder();
       }
     } catch (error) {
       console.error("Error saving sound preference:", error);
@@ -127,53 +212,18 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       localStorage.setItem(`${NOTIFICATION_TOGGLE_PREFIX}${prayer.id}`, enabled.toString());
       console.log(`Notification ${enabled ? 'enabled' : 'disabled'} for prayer ${prayer.name}`);
       
-      // Register or unregister notification with service worker
-      if (enabled && 'serviceWorker' in navigator) {
-        registerPrayerReminderWithServiceWorker(prayer, selectedSound);
-      }
-    } catch (error) {
-      console.error("Error saving notification preference:", error);
-    }
-  };
-
-  // Register prayer notification with service worker for better mobile support
-  const registerPrayerReminderWithServiceWorker = (prayer: PrayerTime, soundId: string | undefined) => {
-    try {
-      if (!prayer.time || !prayer.id) return;
-      
-      const notificationTimingSetting = localStorage.getItem('prayer-notification-timing') || "5";
-      const timingMinutes = parseInt(notificationTimingSetting, 10);
-      
-      // Parse prayer time
-      const [hours, minutes] = prayer.time.split(':').map(Number);
-      
-      // Calculate notification time (minutes before prayer)
-      const prayerDate = new Date();
-      prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
-      
-      const now = new Date();
-      
-      // Only schedule if it's in the future
-      if (prayerDate > now) {
-        const delay = prayerDate.getTime() - now.getTime();
-        
-        // Send message to service worker to schedule notification
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'SCHEDULE_PRAYER_NOTIFICATION',
-            prayerName: prayer.name,
-            prayerId: prayer.id,
-            time: prayer.time,
-            delay: delay,
-            soundId: soundId || 'none',
-            minutesBefore: timingMinutes
-          });
-          
-          console.log(`Prayer notification scheduled: ${prayer.name} at ${prayer.time}, ${timingMinutes} minutes before`);
+      if (enabled) {
+        setupPrayerReminder();
+      } else {
+        // Clear existing timeout
+        const existingTimeoutId = localStorage.getItem(`timeout_${prayer.id}`);
+        if (existingTimeoutId) {
+          clearTimeout(parseInt(existingTimeoutId));
+          localStorage.removeItem(`timeout_${prayer.id}`);
         }
       }
     } catch (error) {
-      console.error("Failed to register prayer reminder:", error);
+      console.error("Error saving notification preference:", error);
     }
   };
 

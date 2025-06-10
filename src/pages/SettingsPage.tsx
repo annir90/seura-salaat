@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -39,7 +38,6 @@ import {
   getTranslation, 
   LanguageCode 
 } from "@/services/translationService";
-import { getPrayerTimes } from "@/services/prayerTimeService";
 import SocialShare from "@/components/SocialShare";
 
 const SettingsPage = () => {
@@ -78,90 +76,7 @@ const SettingsPage = () => {
         setLocation(detectedLocation);
       }
     });
-    
-    // Setup prayer notifications if enabled
-    if (savedNotifications === 'true') {
-      setupPrayerNotifications();
-    }
   }, []);
-
-  const setupPrayerNotifications = async () => {
-    if (!('Notification' in window)) {
-      console.log('This browser does not support notifications');
-      return;
-    }
-
-    // Request permission
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        toast.error('Notification permission denied');
-        return;
-      }
-    }
-
-    if (Notification.permission === 'granted') {
-      try {
-        // Register service worker for background notifications
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker registered:', registration);
-        }
-
-        // Schedule notifications for today's prayers
-        const prayerTimes = await getPrayerTimes();
-        const timingMinutes = parseInt(notificationTiming);
-        
-        // Clear existing timeouts
-        if (window.prayerTimeouts) {
-          window.prayerTimeouts.forEach(timeout => clearTimeout(timeout));
-        }
-        window.prayerTimeouts = [];
-        
-        prayerTimes.forEach(prayer => {
-          if (prayer.time && prayer.time !== "00:00") {
-            const [hours, minutes] = prayer.time.split(':').map(Number);
-            const prayerDate = new Date();
-            prayerDate.setHours(hours, minutes - timingMinutes, 0, 0);
-            
-            const now = new Date();
-            if (prayerDate > now) {
-              const timeUntilNotification = prayerDate.getTime() - now.getTime();
-              
-              const timeoutId = setTimeout(async () => {
-                // Check if notifications are still enabled for this prayer
-                const prayerEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
-                if (prayerEnabled && notifications) {
-                  // Show notification
-                  new Notification(`${prayer.name} Prayer Reminder`, {
-                    body: `${prayer.name} prayer is in ${timingMinutes} minutes at ${prayer.time}`,
-                    icon: '/favicon.ico',
-                    tag: `prayer-${prayer.id}`,
-                    requireInteraction: true
-                  });
-
-                  // Play adhan sound
-                  try {
-                    const selectedSound = localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'traditional-adhan';
-                    const audio = new Audio(`/audio/${selectedSound}.mp3`);
-                    audio.volume = 0.7;
-                    await audio.play();
-                  } catch (error) {
-                    console.error('Error playing adhan sound:', error);
-                  }
-                }
-              }, timeUntilNotification);
-              
-              window.prayerTimeouts.push(timeoutId);
-            }
-          }
-        });
-      } catch (error) {
-        console.error('Error setting up notifications:', error);
-        toast.error('Failed to setup prayer notifications');
-      }
-    }
-  };
 
   // Check if user is signed in
   const checkUserStatus = () => {
@@ -202,13 +117,8 @@ const SettingsPage = () => {
     localStorage.setItem('prayer-notifications-enabled', enabled.toString());
     
     if (enabled) {
-      setupPrayerNotifications();
       toast.success('Prayer notifications enabled');
     } else {
-      if (window.prayerTimeouts) {
-        window.prayerTimeouts.forEach(timeout => clearTimeout(timeout));
-        window.prayerTimeouts = [];
-      }
       toast.success('Prayer notifications disabled');
     }
   };
@@ -217,10 +127,6 @@ const SettingsPage = () => {
     setNotificationTiming(timing);
     localStorage.setItem('prayer-notification-timing', timing);
     toast.success(`Notification timing set to ${timing} ${t.minutesBefore}`);
-    
-    if (notifications) {
-      setupPrayerNotifications();
-    }
   };
 
   const handleLanguageChange = (languageCode: string) => {
@@ -250,10 +156,10 @@ const SettingsPage = () => {
           <p className="text-gray-600 dark:text-gray-400 text-sm">Customize your prayer experience</p>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* User Profile Card */}
-          <Card className="shadow-md border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
-            <CardHeader className="pb-4">
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
                   <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -264,7 +170,7 @@ const SettingsPage = () => {
             <CardContent className="pt-0">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium mb-1 truncate text-gray-900 dark:text-gray-100">
+                  <p className="font-medium mb-1 truncate text-gray-900 dark:text-gray-100 break-words">
                     {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
                   </p>
                   <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -276,7 +182,7 @@ const SettingsPage = () => {
                     variant="outline" 
                     size="sm"
                     onClick={handleSignOut}
-                    className="ml-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950 dark:border-red-800"
+                    className="ml-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950 dark:border-red-800 shrink-0"
                   >
                     <LogOut className="h-4 w-4 mr-1" />
                     {t.signOut}
@@ -287,8 +193,8 @@ const SettingsPage = () => {
           </Card>
 
           {/* Share App Card */}
-          <Card className="shadow-md border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
-            <CardHeader className="pb-4">
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
                   <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -305,8 +211,8 @@ const SettingsPage = () => {
           </Card>
 
           {/* Language Settings */}
-          <Card className="shadow-md border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
-            <CardHeader className="pb-4">
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
                   <Languages className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -316,7 +222,7 @@ const SettingsPage = () => {
             </CardHeader>
             <CardContent className="pt-0">
               <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl">
+                <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
@@ -338,8 +244,8 @@ const SettingsPage = () => {
           </Card>
 
           {/* Theme Settings */}
-          <Card className="shadow-md border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
-            <CardHeader className="pb-4">
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-full">
                   {theme === 'dark' ? 
@@ -375,8 +281,8 @@ const SettingsPage = () => {
           </Card>
 
           {/* Location Settings */}
-          <Card className="shadow-md border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
-            <CardHeader className="pb-4">
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-full">
                   <MapPin className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -391,7 +297,7 @@ const SettingsPage = () => {
                   value={location.id} 
                   onValueChange={handleLocationChange}
                 >
-                  <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl">
+                  <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg">
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent>
@@ -410,8 +316,8 @@ const SettingsPage = () => {
           </Card>
           
           {/* Prayer Notifications */}
-          <Card className="shadow-md border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl">
-            <CardHeader className="pb-4">
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
                   {notifications ? 
@@ -444,7 +350,7 @@ const SettingsPage = () => {
                         value={notificationTiming} 
                         onValueChange={handleNotificationTimingChange}
                       >
-                        <SelectTrigger className="w-full mt-2 h-10 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl">
+                        <SelectTrigger className="w-full mt-2 h-10 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg">
                           <SelectValue placeholder="Select timing" />
                         </SelectTrigger>
                         <SelectContent>
