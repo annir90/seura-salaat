@@ -368,7 +368,6 @@ const SettingsPage = () => {
           {/* App Info */}
           <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-6 pb-2">
             <p className="font-medium">PrayConnect v1.0</p>
-            <p>Made with ❤️ for the Muslim community</p>
           </div>
         </div>
       </div>
@@ -377,3 +376,5 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+
+}
