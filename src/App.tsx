@@ -11,6 +11,7 @@ import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import QuranPage from "./pages/QuranPage";
 import WelcomePage from "./pages/WelcomePage";
+import TasbihPage from "./pages/TasbihPage";
 import Layout from "./components/Layout";
 import { useEffect, useState } from "react";
 
@@ -53,6 +54,11 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="/tasbih" element={
+                <ProtectedRoute>
+                  <TasbihPage />
+                </ProtectedRoute>
+              } />
               <Route path="/" element={
                 <ProtectedRoute>
                   <Layout />
