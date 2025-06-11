@@ -176,17 +176,26 @@ class NotificationService {
       audio.volume = 0.8;
       
       return new Promise((resolve, reject) => {
-        audio.addEventListener('canplaythrough', () => {
+        const handleCanPlay = () => {
           audio.play()
             .then(() => {
               console.log(`Successfully played ${soundId} for prayer notification`);
               resolve();
             })
             .catch(reject);
-        });
+        };
 
-        audio.addEventListener('error', reject);
-        audio.addEventListener('ended', resolve);
+        const handleError = () => {
+          reject(new Error('Audio failed to load'));
+        };
+
+        const handleEnded = () => {
+          resolve();
+        };
+
+        audio.addEventListener('canplaythrough', handleCanPlay);
+        audio.addEventListener('error', handleError);
+        audio.addEventListener('ended', handleEnded);
         
         // Load and play
         audio.load();
