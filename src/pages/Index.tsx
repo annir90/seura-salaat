@@ -3,6 +3,7 @@ import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerT
 import PrayerCard from "@/components/PrayerCard";
 import { Loader2, CalendarDays, Clock } from "lucide-react";
 import { getTranslation } from "@/services/translationService";
+import { notificationService } from "@/services/notificationService";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState("");
@@ -155,6 +156,15 @@ const Index = () => {
   // Initial load
   useEffect(() => {
     loadPrayerTimes();
+    
+    // Request notification permission on first load
+    notificationService.requestPermission().then(granted => {
+      if (granted) {
+        console.log('Notification permission granted');
+      } else {
+        console.log('Notification permission denied');
+      }
+    });
   }, []);
   
   // Enhanced update for automatic prayer timing with 10-second delay

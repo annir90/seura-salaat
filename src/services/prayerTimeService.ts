@@ -1,8 +1,8 @@
-
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
 import { getTranslation } from "./translationService";
+import { notificationService } from "./notificationService";
 
 // Prayer time service using API for Espoo, Finland
 export interface PrayerTime {
@@ -125,6 +125,13 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
         date: today,
         times: apiTimes
       };
+      
+      // Schedule notifications for today's prayers
+      try {
+        await notificationService.scheduleAllPrayerNotifications(apiTimes);
+      } catch (error) {
+        console.error("Error scheduling notifications:", error);
+      }
     }
     
     return apiTimes;
@@ -137,6 +144,12 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
         console.log("Trying Rabita fallback");
         const rabitaTimes = await fetchRabitaPrayerTimes();
         if (rabitaTimes && rabitaTimes.length > 0) {
+          // Schedule notifications for fallback times too
+          try {
+            await notificationService.scheduleAllPrayerNotifications(rabitaTimes);
+          } catch (error) {
+            console.error("Error scheduling notifications for fallback times:", error);
+          }
           return rabitaTimes;
         }
       } catch (rabitaError) {
