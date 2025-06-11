@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Share2, ExternalLink } from "lucide-react";
+import { Share2, ExternalLink, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getTranslation } from "@/services/translationService";
@@ -20,25 +20,31 @@ const SocialShare = () => {
     
     try {
       // Check if native sharing is available
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success("App shared successfully! 🎉");
-      } else if (navigator.share) {
-        // Try sharing without checking canShare (for broader compatibility)
+      if (navigator.share) {
+        console.log("Native sharing available, attempting to share...");
         await navigator.share(shareData);
         toast.success("App shared successfully! 🎉");
       } else {
-        // Show user that native sharing is not available
-        toast.error("Native sharing not supported on this device. Please share manually: " + shareData.url);
+        console.log("Native sharing not available, falling back to copy URL");
+        // Fallback: copy URL to clipboard
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success("App URL copied to clipboard! Share it with your friends! 📋");
       }
     } catch (error) {
+      console.error('Error sharing:', error);
       // Handle user cancellation gracefully
       if (error.name === 'AbortError') {
-        // User cancelled the share - don't show error
         console.log('Share cancelled by user');
+        // Don't show error for user cancellation
       } else {
-        console.error('Error sharing:', error);
-        toast.error("Sharing failed. Native sharing may not be available on this device.");
+        // Try clipboard as fallback
+        try {
+          await navigator.clipboard.writeText(shareData.url);
+          toast.success("App URL copied to clipboard! 📋");
+        } catch (clipboardError) {
+          console.error('Clipboard error:', clipboardError);
+          toast.error("Unable to share. Please copy this URL manually: " + shareData.url);
+        }
       }
     } finally {
       setIsSharing(false);
