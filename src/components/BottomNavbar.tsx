@@ -1,12 +1,13 @@
 
 import { NavLink } from "react-router-dom";
-import { Home, BookOpen, Calendar, Settings } from "lucide-react";
+import { Home, BookOpen, Calendar, Settings, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNavbar = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Quran", path: "/quran" },
+    { icon: Calculator, label: "Tasbih", path: "/tasbih" },
     { icon: Calendar, label: "Calendar", path: "/calendar" },
     { icon: Settings, label: "Settings", path: "/settings" }
   ];
@@ -20,7 +21,7 @@ const BottomNavbar = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) => cn(
-                "flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors",
+                "flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-colors",
                 isActive 
                   ? "text-prayer-primary" 
                   : "text-muted-foreground hover:text-foreground"

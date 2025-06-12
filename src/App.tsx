@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
+import LanguageSettingsPage from "./pages/LanguageSettingsPage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
+import AboutPage from "./pages/AboutPage";
 import QuranPage from "./pages/QuranPage";
 import WelcomePage from "./pages/WelcomePage";
 import TasbihPage from "./pages/TasbihPage";
@@ -57,6 +60,21 @@ const App = () => {
               <Route path="/tasbih" element={
                 <ProtectedRoute>
                   <TasbihPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings/language" element={
+                <ProtectedRoute>
+                  <LanguageSettingsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings/notifications" element={
+                <ProtectedRoute>
+                  <NotificationSettingsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings/about" element={
+                <ProtectedRoute>
+                  <AboutPage />
                 </ProtectedRoute>
               } />
               <Route path="/" element={

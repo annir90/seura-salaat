@@ -235,11 +235,91 @@ const finnishTranslations: Translation = {
   success: "Onnistui"
 };
 
-export type LanguageCode = 'en' | 'fi';
+const albanianTranslations: Translation = {
+  // Navigation
+  home: "Shtëpia",
+  qibla: "Kibla",
+  calendar: "Kalendar",
+  quran: "Kuran", 
+  settings: "Cilësimet",
+  
+  // Home page
+  prayerSchedule: "Orari i Namazit",
+  jumaaPrayer: "Namazi i Xhumasë",
+  prayerTime: "Koha e namazit",
+  joinUsText: "Bashkohuni me ne për namazin e xhumasë në xhami. Kujtoni të mbërrini herët për hutbenë.",
+  
+  // Prayer names
+  fajr: "Sabahu",
+  sunrise: "Lindja e diellit",
+  dhuhr: "Dreka", 
+  asr: "Ikindia",
+  maghrib: "Akshami",
+  isha: "Jacia",
+  
+  // Settings page
+  userStatus: "Statusi i Përdoruesit",
+  signedIn: "Të kyçur",
+  visitor: "Vizitor",
+  notSignedIn: "Jo të kyçur",
+  visitorMode: "Modaliteti vizitor",
+  signOut: "Dalje",
+  appearance: "Pamja",
+  theme: "Tema",
+  light: "E çelët",
+  dark: "E errët",
+  locationSettings: "Cilësimet e Vendndodhjes",
+  autoDetectLocation: "Zbulo vendndodhjen automatikisht",
+  autoDetectLocationDesc: "Zbulo automatikisht vendndodhjen tuaj aktuale",
+  detect: "Zbulo",
+  selectLocation: "Zgjidhni vendndodhjen",
+  notificationSettings: "Cilësimet e Njoftimeve",
+  prayerNotifications: "Njoftimet e Namazit",
+  prayerNotificationsDesc: "Merrni njoftimet para kohës së namazit",
+  notificationTiming: "Koha e Njoftimit",
+  minutesBefore: "minuta para",
+  language: "Gjuha",
+  
+  // Share app section
+  shareApp: "Ndani Aplikacionin",
+  shareAppDesc: "Ndihmoni të tjerët të zbulojnë Seura Prayer! Ndani këtë aplikacion me miqtë dhe familjen tuaj.",
+  shareAppButton: "Ndani Aplikacionin",
+  qrCode: "Kodi QR",
+  
+  // Quran page
+  selectSurahToRead: "Zgjidhni një sure për të filluar leximin",
+  continueReading: "Vazhdoni Leximin",
+  endOfSurah: "Fundi i sures",
+  verses: "ajete",
+  
+  // Calendar page
+  prayerCalendar: "Kalendari i Namazit",
+  chooseDayPrompt: "Zgjidhni ditën që doni të dini!",
+  selectDatePrompt: "Zgjidhni një datë nga kalendari më lart për të parë kohët e namazit për atë ditë.",
+  prayerTimesFor: "Kohët e namazit për",
+  noPrayerTimes: "Nuk ka kohë namazi të disponueshme për këtë datë.",
+  
+  // Qibla page
+  qiblaFinder: "Gjetuesi i Kiblës",
+  qiblaDirection: "Drejtimi i Kiblës",
+  deviceHeading: "Drejtimi i pajisjes",
+  calibrateCompass: "Kalibroni busullën",
+  compassCalibrated: "Busulla u kalibrua me sukses",
+  qiblaInstructions: "Mbajeni pajisjen tuaj të sheshtë dhe larg ndërhyrjeve magnetike. Lejoni qasjen në vendndodhje për drejtimin e saktë të Kiblës.",
+  fromNorth: "nga Veriu",
+  
+  // Common
+  loading: "Duke u ngarkuar...",
+  error: "Gabim",
+  success: "Sukses"
+};
+
+export type LanguageCode = 'en' | 'fi' | 'sq';
 
 const translations: Record<LanguageCode, Translation> = {
   en: englishTranslations,
-  fi: finnishTranslations
+  fi: finnishTranslations,
+  sq: albanianTranslations
 };
 
 let currentLanguage: LanguageCode = 'en';

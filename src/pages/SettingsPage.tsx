@@ -1,91 +1,38 @@
+
 import { useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { 
-  Moon, 
-  Sun, 
-  User, 
-  MapPin, 
-  LogOut, 
-  Languages, 
-  Bell, 
-  BellRing, 
-  Share2,
-  Clock,
+  ChevronRight,
+  Globe,
+  Bell,
   Info,
-  Calculator,
-  Mail,
-  Heart
+  LogOut,
+  User,
+  Languages
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
-import { 
-  getSelectedLocation, 
-  saveSelectedLocation, 
-  getAvailableLocations, 
-  Location,
-  autoDetectLocationSilently
-} from "@/services/locationService";
 import { 
   setLanguage, 
   getCurrentLanguage, 
   getTranslation, 
   LanguageCode 
 } from "@/services/translationService";
-import SocialShare from "@/components/SocialShare";
 import { useNavigate } from "react-router-dom";
 
 const SettingsPage = () => {
   const navigate = useNavigate();
-  
-  const [notifications, setNotifications] = useState(true);
-  const [notificationTiming, setNotificationTiming] = useState("5");
-  const [location, setLocation] = useState<Location>(getSelectedLocation());
-  const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(getCurrentLanguage());
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const t = getTranslation();
-  
-  // Load settings on component mount
+
   useEffect(() => {
-    setAvailableLocations(getAvailableLocations());
-    
-    // Load notifications setting
-    const savedNotifications = localStorage.getItem('prayer-notifications-enabled');
-    if (savedNotifications) {
-      setNotifications(savedNotifications === 'true');
-    }
-    
-    // Load notification timing
-    const savedTiming = localStorage.getItem('prayer-notification-timing');
-    if (savedTiming) {
-      setNotificationTiming(savedTiming);
-    }
-    
-    // Check user authentication status
     checkUserStatus();
-    
-    // Auto-detect location silently
-    autoDetectLocationSilently().then((detectedLocation) => {
-      if (detectedLocation) {
-        setLocation(detectedLocation);
-      }
-    });
   }, []);
 
-  // Check if user is signed in
   const checkUserStatus = () => {
     const authToken = localStorage.getItem('auth-token');
     const userData = localStorage.getItem('user-data');
@@ -110,40 +57,6 @@ const SettingsPage = () => {
     }
   };
 
-  const handleLocationChange = (locationId: string) => {
-    const selectedLocation = availableLocations.find(l => l.id === locationId);
-    if (selectedLocation) {
-      setLocation(selectedLocation);
-      saveSelectedLocation(selectedLocation);
-      toast.success(`Location updated to ${selectedLocation.name}`);
-    }
-  };
-
-  const handleNotificationsChange = (enabled: boolean) => {
-    setNotifications(enabled);
-    localStorage.setItem('prayer-notifications-enabled', enabled.toString());
-    
-    if (enabled) {
-      toast.success('Prayer notifications enabled');
-    } else {
-      toast.success('Prayer notifications disabled');
-    }
-  };
-
-  const handleNotificationTimingChange = (timing: string) => {
-    setNotificationTiming(timing);
-    localStorage.setItem('prayer-notification-timing', timing);
-    toast.success(`Notification timing set to ${timing} ${t.minutesBefore}`);
-  };
-
-  const handleLanguageChange = (languageCode: string) => {
-    const newLanguage = languageCode as LanguageCode;
-    setLanguage(newLanguage);
-    setCurrentLanguage(newLanguage);
-    toast.success(`Language updated to ${newLanguage === 'fi' ? 'Suomi' : 'English'}`);
-    setTimeout(() => window.location.reload(), 500);
-  };
-
   const handleSignOut = () => {
     localStorage.removeItem('auth-token');
     localStorage.removeItem('user-data');
@@ -151,297 +64,143 @@ const SettingsPage = () => {
     toast.success("Signed out successfully");
     window.location.href = "/welcome";
   };
-  
+
+  const handleLanguageNavigation = () => {
+    navigate('/settings/language');
+  };
+
+  const handleNotificationsNavigation = () => {
+    navigate('/settings/notifications');
+  };
+
+  const handleAboutNavigation = () => {
+    navigate('/settings/about');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <div className="text-left mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             {t.settings}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">Customize your prayer experience</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Manage your app preferences
+          </p>
         </div>
-        
-        <div className="space-y-4">
-          {/* User Profile Card */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
-                  <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                </div>
-                {t.userStatus}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+
+        {/* User Profile Section */}
+        <Card className="mb-6 shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
+                <User className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                  {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
+                </h3>
+                <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Settings Options */}
+        <div className="space-y-3">
+          {/* General Settings */}
+          <Card 
+            className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleLanguageNavigation}
+          >
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium mb-1 truncate text-gray-900 dark:text-gray-100 break-words">
-                    {isSignedIn && userEmail ? userEmail : (userEmail === t.visitor ? t.visitor : t.notSignedIn)}
-                  </p>
-                  <p className={`text-sm ${isSignedIn ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {isSignedIn ? t.signedIn : (userEmail === t.visitor ? t.visitorMode : t.notSignedIn)}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                    <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">General</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Language settings</p>
+                  </div>
                 </div>
-                {(isSignedIn || userEmail === t.visitor) && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleSignOut}
-                    className="ml-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950 dark:border-red-800 shrink-0"
-                  >
-                    <LogOut className="h-4 w-4 mr-1" />
-                    {t.signOut}
-                  </Button>
-                )}
+                <ChevronRight className="h-5 w-5 text-gray-400" />
               </div>
             </CardContent>
           </Card>
 
-          {/* Tasbih Counter Card */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-cyan-100 dark:bg-cyan-900/50 rounded-full">
-                  <Calculator className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+          {/* Notifications */}
+          <Card 
+            className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleNotificationsNavigation}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                    <Bell className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Block, Allow, priorities</p>
+                  </div>
                 </div>
-                Tasbih Counter
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                Count your dhikr and tasbih with our digital counter
-              </p>
-              <Button 
-                onClick={() => navigate('/tasbih')}
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white"
-              >
-                Open Tasbih Counter
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Share App Card */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
-                  <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                {t.shareApp}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                Share PrayConnect with your friends and family
-              </p>
-              <SocialShare />
-            </CardContent>
-          </Card>
-
-          {/* Language Settings */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
-                  <Languages className="h-5 w-5 text-green-600 dark:text-green-400" />
-                </div>
-                {t.language}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">🇺🇸</span>
-                      English
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="fi">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">🇫🇮</span>
-                      Suomi
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* Theme Settings */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-full">
-                  {theme === 'dark' ? 
-                    <Moon className="h-5 w-5 text-orange-600 dark:text-orange-400" /> :
-                    <Sun className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                  }
-                </div>
-                {t.appearance}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <RadioGroup
-                value={theme}
-                onValueChange={(value) => setTheme(value as any)}
-                className="flex gap-6"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="light" id="light" />
-                  <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer text-sm text-gray-900 dark:text-gray-100">
-                    <Sun className="h-4 w-4" />
-                    {t.light}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="dark" id="dark" />
-                  <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer text-sm text-gray-900 dark:text-gray-100">
-                    <Moon className="h-4 w-4" />
-                    {t.dark}
-                  </Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          {/* Location Settings */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-full">
-                  <MapPin className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                {t.locationSettings}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">              
-                <Label htmlFor="location" className="text-sm font-medium text-gray-900 dark:text-gray-100">{t.selectLocation}</Label>
-                <Select 
-                  value={location.id} 
-                  onValueChange={handleLocationChange}
-                >
-                  <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg">
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableLocations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          {loc.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
               </div>
             </CardContent>
           </Card>
-          
-          {/* Prayer Notifications */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
-                  {notifications ? 
-                    <BellRing className="h-5 w-5 text-purple-600 dark:text-purple-400" /> :
-                    <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  }
+
+          {/* About */}
+          <Card 
+            className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleAboutNavigation}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+                    <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">About</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Know about our app</p>
+                  </div>
                 </div>
-                {t.notificationSettings}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-4">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Log out */}
+          {(isSignedIn || userEmail === t.visitor) && (
+            <Card 
+              className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+              onClick={handleSignOut}
+            >
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <Label htmlFor="notifications" className="font-medium text-sm text-gray-900 dark:text-gray-100">{t.prayerNotifications}</Label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.prayerNotificationsDesc}</p>
-                  </div>
-                  <Switch 
-                    id="notifications" 
-                    checked={notifications} 
-                    onCheckedChange={handleNotificationsChange}
-                  />
-                </div>
-                
-                {notifications && (
-                  <div className="space-y-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center">
+                      <LogOut className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    </div>
                     <div>
-                      <Label htmlFor="notification-timing" className="text-sm font-medium text-gray-900 dark:text-gray-100">{t.notificationTiming}</Label>
-                      <Select 
-                        value={notificationTiming} 
-                        onValueChange={handleNotificationTimingChange}
-                      >
-                        <SelectTrigger className="w-full mt-2 h-10 bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg">
-                          <SelectValue placeholder="Select timing" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
-                          <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <h3 className="font-medium text-red-600 dark:text-red-400">Log out</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Log out from app</p>
                     </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <ChevronRight className="h-5 w-5 text-red-400" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-          {/* About Us Section */}
-          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-full">
-                  <Info className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                About Us
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Heart className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Our Purpose</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                      PrayConnect is designed to help Muslims maintain their daily prayers with accurate prayer times, 
-                      Qibla direction, and spiritual tools. We strive to make Islamic practices more accessible in the digital age.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Contact Us</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      We'd love to hear from you! Reach out for support, feedback, or suggestions.
-                    </p>
-                    <a 
-                      href="mailto:support@prayconnect.app" 
-                      className="inline-flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                    >
-                      <Mail className="h-4 w-4" />
-                      support@prayconnect.app
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* App Info */}
-          <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-6 pb-2">
-            <p className="font-medium">PrayConnect v1.0</p>
-          </div>
+        {/* App Version */}
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-8 pb-2">
+          <p className="font-medium">PrayConnect v1.0</p>
         </div>
       </div>
     </div>
