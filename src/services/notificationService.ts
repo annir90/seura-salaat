@@ -10,9 +10,11 @@ interface ScheduledNotification {
 class NotificationService {
   private scheduledNotifications: Map<string, ScheduledNotification> = new Map();
   private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
+  private audioContext: AudioContext | null = null;
 
   constructor() {
     this.initializeServiceWorker();
+    this.initializeAudioContext();
   }
 
   private async initializeServiceWorker() {
@@ -23,6 +25,16 @@ class NotificationService {
       } catch (error) {
         console.error('Service Worker registration failed:', error);
       }
+    }
+  }
+
+  private async initializeAudioContext() {
+    try {
+      // Create AudioContext only when needed and after user interaction
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('AudioContext initialized');
+    } catch (error) {
+      console.warn('AudioContext not supported:', error);
     }
   }
 
@@ -129,8 +141,8 @@ class NotificationService {
     try {
       console.log(`Showing notification for ${prayer.name} prayer`);
 
-      // Play sound first
-      await this.playAdhanSound(soundId);
+      // Play sound first - with better mobile support
+      await this.playAdhanSoundMobile(soundId);
 
       // Show notification
       const notification = new Notification(`${prayer.name} Prayer Time`, {
@@ -162,8 +174,16 @@ class NotificationService {
     }
   }
 
-  private async playAdhanSound(soundId: string): Promise<void> {
+  private async playAdhanSoundMobile(soundId: string): Promise<void> {
     try {
+      console.log(`Attempting to play sound: ${soundId}`);
+
+      // Resume AudioContext if suspended (required for mobile)
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+        console.log('AudioContext resumed');
+      }
+
       // Stop any currently playing audio
       const existingAudio = document.querySelector('audio.adhan-notification');
       if (existingAudio) {
@@ -171,38 +191,105 @@ class NotificationService {
         existingAudio.remove();
       }
 
-      const audio = new Audio(`/audio/${soundId}.mp3`);
+      // Create audio element with better mobile support
+      const audio = new Audio();
       audio.className = 'adhan-notification';
+      audio.preload = 'auto';
       audio.volume = 0.8;
       
-      return new Promise((resolve, reject) => {
-        const handleCanPlay = () => {
-          audio.play()
-            .then(() => {
-              console.log(`Successfully played ${soundId} for prayer notification`);
-              resolve();
-            })
-            .catch(reject);
-        };
+      // Add multiple source formats for better compatibility
+      const audioSources = [
+        `/audio/${soundId}.mp3`,
+        `/audio/${soundId}.wav`,
+        `/audio/${soundId}.ogg`
+      ];
 
-        const handleError = () => {
-          reject(new Error('Audio failed to load'));
-        };
+      // Try different audio sources
+      let audioLoaded = false;
+      for (const source of audioSources) {
+        try {
+          audio.src = source;
+          await new Promise((resolve, reject) => {
+            const handleCanPlay = () => {
+              audio.removeEventListener('canplaythrough', handleCanPlay);
+              audio.removeEventListener('error', handleError);
+              audioLoaded = true;
+              resolve(void 0);
+            };
 
-        const handleEnded = () => {
-          resolve();
-        };
+            const handleError = () => {
+              audio.removeEventListener('canplaythrough', handleCanPlay);
+              audio.removeEventListener('error', handleError);
+              reject(new Error(`Failed to load audio: ${source}`));
+            };
 
-        audio.addEventListener('canplaythrough', handleCanPlay);
-        audio.addEventListener('error', handleError);
-        audio.addEventListener('ended', handleEnded);
-        
-        // Load and play
-        audio.load();
-      });
+            audio.addEventListener('canplaythrough', handleCanPlay);
+            audio.addEventListener('error', handleError);
+            
+            audio.load();
+          });
+          
+          if (audioLoaded) break;
+        } catch (error) {
+          console.warn(`Failed to load audio source: ${source}`, error);
+          continue;
+        }
+      }
+
+      if (!audioLoaded) {
+        throw new Error('No audio sources could be loaded');
+      }
+
+      // Play the audio with mobile-friendly approach
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        await playPromise;
+        console.log(`Successfully played ${soundId} for prayer notification`);
+      }
+
+      // Add vibration for mobile devices
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200]);
+        console.log('Vibration triggered');
+      }
 
     } catch (error) {
       console.error('Error playing adhan sound:', error);
+      
+      // Fallback: Try to play a simple beep sound
+      try {
+        if (this.audioContext) {
+          const oscillator = this.audioContext.createOscillator();
+          const gainNode = this.audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(this.audioContext.destination);
+          
+          oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 1);
+          
+          oscillator.start(this.audioContext.currentTime);
+          oscillator.stop(this.audioContext.currentTime + 1);
+          
+          console.log('Fallback beep sound played');
+        }
+      } catch (fallbackError) {
+        console.error('Fallback sound also failed:', fallbackError);
+      }
+      
+      throw error;
+    }
+  }
+
+  // Public method to test sound playback
+  async testSound(soundId: string = 'traditional-adhan'): Promise<void> {
+    try {
+      console.log('Testing sound playback...');
+      await this.playAdhanSoundMobile(soundId);
+    } catch (error) {
+      console.error('Sound test failed:', error);
       throw error;
     }
   }
