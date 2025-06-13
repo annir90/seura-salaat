@@ -70,8 +70,8 @@ const NotificationSettingsPage = () => {
     try {
       await notificationService.testSound('traditional-adhan');
       toast({
-        title: "Sound & Vibration Test",
-        description: "Adhan sound and haptic feedback triggered successfully!",
+        title: "Sound Test",
+        description: "Adhan sound triggered successfully!",
       });
     } catch (error) {
       console.error('Sound test failed:', error);
@@ -149,10 +149,10 @@ const NotificationSettingsPage = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Volume2 className="h-5 w-5 text-prayer-primary" />
-                    Sound & Vibration Test
+                    Sound Test
                   </CardTitle>
                   <CardDescription>
-                    Test if prayer reminder sounds and haptic feedback work on your device
+                    Test if prayer reminder sounds work on your device
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -161,13 +161,13 @@ const NotificationSettingsPage = () => {
                     disabled={testingSound}
                     className="w-full"
                   >
-                    {testingSound ? "Testing..." : "Test Sound & Vibration"}
+                    {testingSound ? "Testing..." : "Test Sound"}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Make sure your device volume is up, not in silent mode, and haptic feedback is enabled
+                    Make sure your device volume is up and not in silent mode
                   </p>
                 </CardContent>
-              </Card>
+                </Card>
             </>
           )}
         </div>
