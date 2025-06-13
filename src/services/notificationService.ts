@@ -118,10 +118,9 @@ class NotificationService {
       const prayerDate = new Date();
       prayerDate.setHours(hours, minutes - minutesBefore, 0, 0);
 
-      // If the notification time has passed, skip
+      // If notification time has passed today, schedule for tomorrow
       if (prayerDate <= now) {
-        console.log(`Notification time has passed for ${prayer.name}`);
-        return;
+        prayerDate.setDate(prayerDate.getDate() + 1);
       }
 
       const delay = prayerDate.getTime() - now.getTime();
@@ -136,20 +135,23 @@ class NotificationService {
         return;
       }
 
-      // Schedule through service worker for background execution
-      if (this.serviceWorkerRegistration) {
-        this.serviceWorkerRegistration.active?.postMessage({
+      // Use service worker for background notifications that work when app is closed
+      if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+        this.serviceWorkerRegistration.active.postMessage({
           type: 'SCHEDULE_PRAYER_NOTIFICATION',
           prayerName: prayer.name,
           prayerId: prayer.id,
           time: prayer.time,
           delay: delay,
           soundId: selectedSound,
-          minutesBefore: minutesBefore
+          minutesBefore: minutesBefore,
+          scheduledFor: prayerDate.getTime()
         });
+
+        console.log(`Background notification scheduled for ${prayer.name} at ${prayerDate.toLocaleString()}`);
       }
 
-      // Also schedule in main thread as fallback
+      // Also schedule in main thread as fallback for when app is open
       const timeoutId = setTimeout(async () => {
         await this.showNotification(prayer, minutesBefore, selectedSound);
         this.scheduledNotifications.delete(prayer.id);
@@ -177,30 +179,43 @@ class NotificationService {
       // Trigger haptic feedback
       this.triggerHapticFeedback();
 
-      // Show notification
-      const notification = new Notification(`${prayer.name} Prayer Time`, {
+      // Show notification with proper settings for background operation
+      const notificationOptions: NotificationOptions = {
         body: `${prayer.name} prayer is in ${minutesBefore} minutes (${prayer.time})`,
         icon: '/favicon.ico',
         tag: `prayer-${prayer.id}`,
         requireInteraction: true,
         badge: '/favicon.ico',
+        vibrate: [200, 100, 200, 100, 200],
+        silent: false, // Make sure sound is enabled
         data: {
           prayerId: prayer.id,
           time: prayer.time,
           soundId: soundId
         }
-      });
-
-      // Handle notification click
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
       };
 
-      // Auto-close after 30 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 30000);
+      if ('serviceWorker' in navigator && this.serviceWorkerRegistration) {
+        // Use service worker to show notification for better background support
+        await this.serviceWorkerRegistration.showNotification(
+          `${prayer.name} Prayer Time`,
+          notificationOptions
+        );
+      } else {
+        // Fallback to regular notification
+        const notification = new Notification(`${prayer.name} Prayer Time`, notificationOptions);
+        
+        // Handle notification click
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+
+        // Auto-close after 30 seconds
+        setTimeout(() => {
+          notification.close();
+        }, 30000);
+      }
 
     } catch (error) {
       console.error('Error showing notification:', error);
@@ -211,14 +226,9 @@ class NotificationService {
     try {
       // Vibration API for haptic feedback
       if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200, 100, 200]);
+        // Strong vibration pattern for prayer notification
+        navigator.vibrate([300, 100, 300, 100, 300]);
         console.log('Haptic feedback triggered');
-      }
-
-      // Web Vibration API alternative patterns
-      if ('vibrate' in navigator) {
-        // Short vibration pattern for prayer notification
-        navigator.vibrate(300);
       }
     } catch (error) {
       console.error('Haptic feedback failed:', error);
@@ -248,50 +258,30 @@ class NotificationService {
       audio.preload = 'auto';
       audio.volume = 0.9;
       
-      // Add multiple source formats for better compatibility
-      const audioSources = [
-        `/audio/${soundId}.mp3`,
-        `/audio/${soundId}.wav`,
-        `/audio/${soundId}.ogg`
-      ];
+      // Set the audio source
+      audio.src = `/audio/${soundId}.mp3`;
 
-      // Try different audio sources
-      let audioLoaded = false;
-      for (const source of audioSources) {
-        try {
-          audio.src = source;
-          await new Promise((resolve, reject) => {
-            const handleCanPlay = () => {
-              audio.removeEventListener('canplaythrough', handleCanPlay);
-              audio.removeEventListener('error', handleError);
-              audioLoaded = true;
-              resolve(void 0);
-            };
+      // Load and play the audio
+      await new Promise((resolve, reject) => {
+        const handleCanPlay = () => {
+          audio.removeEventListener('canplaythrough', handleCanPlay);
+          audio.removeEventListener('error', handleError);
+          resolve(void 0);
+        };
 
-            const handleError = () => {
-              audio.removeEventListener('canplaythrough', handleCanPlay);
-              audio.removeEventListener('error', handleError);
-              reject(new Error(`Failed to load audio: ${source}`));
-            };
+        const handleError = () => {
+          audio.removeEventListener('canplaythrough', handleCanPlay);
+          audio.removeEventListener('error', handleError);
+          reject(new Error(`Failed to load audio: ${audio.src}`));
+        };
 
-            audio.addEventListener('canplaythrough', handleCanPlay);
-            audio.addEventListener('error', handleError);
-            
-            audio.load();
-          });
-          
-          if (audioLoaded) break;
-        } catch (error) {
-          console.warn(`Failed to load audio source: ${source}`, error);
-          continue;
-        }
-      }
+        audio.addEventListener('canplaythrough', handleCanPlay);
+        audio.addEventListener('error', handleError);
+        
+        audio.load();
+      });
 
-      if (!audioLoaded) {
-        throw new Error('No audio sources could be loaded');
-      }
-
-      // Play the audio with mobile-friendly approach
+      // Play the audio
       const playPromise = audio.play();
       
       if (playPromise !== undefined) {
@@ -331,7 +321,7 @@ class NotificationService {
   // Public method to test sound playback with haptic feedback
   async testSound(soundId: string = 'traditional-adhan'): Promise<void> {
     try {
-      console.log('Testing sound playback...');
+      console.log('Testing sound playback and haptic feedback...');
       await this.playAdhanSoundMobile(soundId);
       this.triggerHapticFeedback();
     } catch (error) {
@@ -348,9 +338,20 @@ class NotificationService {
     this.scheduledNotifications.clear();
 
     // Clear service worker notifications
-    if (this.serviceWorkerRegistration) {
-      this.serviceWorkerRegistration.active?.postMessage({
+    if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+      this.serviceWorkerRegistration.active.postMessage({
         type: 'CLEAR_ALL_NOTIFICATIONS'
+      });
+    }
+
+    // Clear any pending browser notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+          registration.getNotifications().then(notifications => {
+            notifications.forEach(notification => notification.close());
+          });
+        });
       });
     }
 
