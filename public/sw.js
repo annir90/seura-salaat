@@ -48,14 +48,29 @@ self.addEventListener('message', (event) => {
     
     // Schedule new notification
     const timeoutId = setTimeout(() => {
-      console.log(`Showing notification for ${prayerName} prayer`);
+      console.log(`Showing background notification for ${prayerName} prayer`);
       
+      // Send message to main thread to play sound and vibrate
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'PRAYER_NOTIFICATION',
+            prayerName,
+            prayerId,
+            soundId,
+            time
+          });
+        });
+      });
+      
+      // Show notification
       self.registration.showNotification(`${prayerName} Prayer Time`, {
         body: `${prayerName} prayer time is in ${minutesBefore} minutes (${time})`,
         icon: '/favicon.ico',
         tag: `prayer-${prayerId}`,
         requireInteraction: true,
         badge: '/favicon.ico',
+        vibrate: [200, 100, 200, 100, 200],
         data: {
           prayerId: prayerId,
           soundId: soundId,
@@ -71,6 +86,15 @@ self.addEventListener('message', (event) => {
     scheduledNotifications.set(prayerId, timeoutId);
     
     console.log(`Prayer notification scheduled: ${prayerName} at ${time}, ${minutesBefore} minutes before`);
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_ALL_NOTIFICATIONS') {
+    // Clear all scheduled notifications
+    scheduledNotifications.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    scheduledNotifications.clear();
+    console.log('All scheduled notifications cleared from service worker');
   }
 });
 

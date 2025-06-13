@@ -59,12 +59,12 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
     
     // Map API response to our format with translations and null checks
     const prayers = [
-      { id: "fajr", name: t.fajr || "Fajr", time: formatTime(timings.Fajr) },
-      { id: "sunrise", name: t.sunrise || "Sunrise", time: formatTime(timings.Sunrise) },
-      { id: "dhuhr", name: t.dhuhr || "Dhuhr", time: formatTime(timings.Dhuhr) },
-      { id: "asr", name: t.asr || "Asr", time: formatTime(timings.Asr) },
-      { id: "maghrib", name: t.maghrib || "Maghrib", time: formatTime(timings.Maghrib) },
-      { id: "isha", name: t.isha || "Isha", time: formatTime(timings.Isha) }
+      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr) },
+      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise) },
+      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr) },
+      { id: "asr", name: t.asr, time: formatTime(timings.Asr) },
+      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib) },
+      { id: "isha", name: t.isha, time: formatTime(timings.Isha) }
     ];
     
     console.log("Processed prayers:", prayers);

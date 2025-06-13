@@ -22,6 +22,13 @@ class NotificationService {
       try {
         this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
         console.log('Service Worker registered successfully');
+        
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'PRAYER_NOTIFICATION') {
+            this.handleBackgroundNotification(event.data);
+          }
+        });
       } catch (error) {
         console.error('Service Worker registration failed:', error);
       }
@@ -35,6 +42,15 @@ class NotificationService {
       console.log('AudioContext initialized');
     } catch (error) {
       console.warn('AudioContext not supported:', error);
+    }
+  }
+
+  private async handleBackgroundNotification(data: any) {
+    try {
+      await this.playAdhanSoundMobile(data.soundId);
+      this.triggerHapticFeedback();
+    } catch (error) {
+      console.error('Error handling background notification:', error);
     }
   }
 
@@ -120,6 +136,20 @@ class NotificationService {
         return;
       }
 
+      // Schedule through service worker for background execution
+      if (this.serviceWorkerRegistration) {
+        this.serviceWorkerRegistration.active?.postMessage({
+          type: 'SCHEDULE_PRAYER_NOTIFICATION',
+          prayerName: prayer.name,
+          prayerId: prayer.id,
+          time: prayer.time,
+          delay: delay,
+          soundId: selectedSound,
+          minutesBefore: minutesBefore
+        });
+      }
+
+      // Also schedule in main thread as fallback
       const timeoutId = setTimeout(async () => {
         await this.showNotification(prayer, minutesBefore, selectedSound);
         this.scheduledNotifications.delete(prayer.id);
@@ -141,8 +171,11 @@ class NotificationService {
     try {
       console.log(`Showing notification for ${prayer.name} prayer`);
 
-      // Play sound first - with better mobile support
+      // Play sound first
       await this.playAdhanSoundMobile(soundId);
+
+      // Trigger haptic feedback
+      this.triggerHapticFeedback();
 
       // Show notification
       const notification = new Notification(`${prayer.name} Prayer Time`, {
@@ -174,6 +207,24 @@ class NotificationService {
     }
   }
 
+  private triggerHapticFeedback(): void {
+    try {
+      // Vibration API for haptic feedback
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+        console.log('Haptic feedback triggered');
+      }
+
+      // Web Vibration API alternative patterns
+      if ('vibrate' in navigator) {
+        // Short vibration pattern for prayer notification
+        navigator.vibrate(300);
+      }
+    } catch (error) {
+      console.error('Haptic feedback failed:', error);
+    }
+  }
+
   private async playAdhanSoundMobile(soundId: string): Promise<void> {
     try {
       console.log(`Attempting to play sound: ${soundId}`);
@@ -195,7 +246,7 @@ class NotificationService {
       const audio = new Audio();
       audio.className = 'adhan-notification';
       audio.preload = 'auto';
-      audio.volume = 0.8;
+      audio.volume = 0.9;
       
       // Add multiple source formats for better compatibility
       const audioSources = [
@@ -248,12 +299,6 @@ class NotificationService {
         console.log(`Successfully played ${soundId} for prayer notification`);
       }
 
-      // Add vibration for mobile devices
-      if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200]);
-        console.log('Vibration triggered');
-      }
-
     } catch (error) {
       console.error('Error playing adhan sound:', error);
       
@@ -283,11 +328,12 @@ class NotificationService {
     }
   }
 
-  // Public method to test sound playback
+  // Public method to test sound playback with haptic feedback
   async testSound(soundId: string = 'traditional-adhan'): Promise<void> {
     try {
       console.log('Testing sound playback...');
       await this.playAdhanSoundMobile(soundId);
+      this.triggerHapticFeedback();
     } catch (error) {
       console.error('Sound test failed:', error);
       throw error;
@@ -300,6 +346,14 @@ class NotificationService {
       clearTimeout(notification.timeoutId);
     });
     this.scheduledNotifications.clear();
+
+    // Clear service worker notifications
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'CLEAR_ALL_NOTIFICATIONS'
+      });
+    }
+
     console.log('All scheduled notifications cleared');
   }
 
