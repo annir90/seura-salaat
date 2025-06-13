@@ -186,8 +186,7 @@ class NotificationService {
         tag: `prayer-${prayer.id}`,
         requireInteraction: true,
         badge: '/favicon.ico',
-        vibrate: [200, 100, 200, 100, 200],
-        silent: false, // Make sure sound is enabled
+        silent: false,
         data: {
           prayerId: prayer.id,
           time: prayer.time,
@@ -216,6 +215,9 @@ class NotificationService {
           notification.close();
         }, 30000);
       }
+
+      // Trigger vibration after showing notification
+      this.triggerHapticFeedback();
 
     } catch (error) {
       console.error('Error showing notification:', error);
