@@ -1,18 +1,18 @@
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Bell, Clock, Volume2 } from "lucide-react";
+import { ArrowLeft, Bell, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { notificationService } from "@/services/notificationService";
+import { getTranslation } from "@/services/translationService";
 
 const NotificationSettingsPage = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationTiming, setNotificationTiming] = useState("5");
-  const [testingSound, setTestingSound] = useState(false);
+  const t = getTranslation();
 
   useEffect(() => {
     // Load saved preferences
@@ -65,26 +65,6 @@ const NotificationSettingsPage = () => {
     });
   };
 
-  const testNotificationSound = async () => {
-    setTestingSound(true);
-    try {
-      await notificationService.testSound('traditional-adhan');
-      toast({
-        title: "Sound Test",
-        description: "Adhan sound triggered successfully!",
-      });
-    } catch (error) {
-      console.error('Sound test failed:', error);
-      toast({
-        title: "Sound Test Failed",
-        description: "Unable to play adhan sound. Check your device settings.",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingSound(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-md mx-auto px-4 py-6">
@@ -92,7 +72,7 @@ const NotificationSettingsPage = () => {
           <Link to="/settings" className="mr-4">
             <ArrowLeft className="h-6 w-6 text-foreground" />
           </Link>
-          <h1 className="text-xl font-semibold text-foreground">Notification Settings</h1>
+          <h1 className="text-xl font-semibold text-foreground">{t.notificationSettings}</h1>
         </div>
 
         <div className="space-y-4">
@@ -100,10 +80,10 @@ const NotificationSettingsPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-prayer-primary" />
-                Prayer Notifications
+                {t.prayerNotifications}
               </CardTitle>
               <CardDescription>
-                Receive reminders for prayer times
+                {t.prayerNotificationsDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -118,57 +98,31 @@ const NotificationSettingsPage = () => {
           </Card>
 
           {notificationsEnabled && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-prayer-primary" />
-                    Notification Timing
-                  </CardTitle>
-                  <CardDescription>
-                    How many minutes before prayer time to notify
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Select value={notificationTiming} onValueChange={handleTimingChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 minute before</SelectItem>
-                      <SelectItem value="5">5 minutes before</SelectItem>
-                      <SelectItem value="10">10 minutes before</SelectItem>
-                      <SelectItem value="15">15 minutes before</SelectItem>
-                      <SelectItem value="30">30 minutes before</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Volume2 className="h-5 w-5 text-prayer-primary" />
-                    Sound Test
-                  </CardTitle>
-                  <CardDescription>
-                    Test if prayer reminder sounds work on your device
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={testNotificationSound}
-                    disabled={testingSound}
-                    className="w-full"
-                  >
-                    {testingSound ? "Testing..." : "Test Sound"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Make sure your device volume is up and not in silent mode
-                  </p>
-                </CardContent>
-                </Card>
-            </>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-prayer-primary" />
+                  {t.notificationTiming}
+                </CardTitle>
+                <CardDescription>
+                  How many minutes before prayer time to notify
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Select value={notificationTiming} onValueChange={handleTimingChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 {t.minutesBefore}</SelectItem>
+                    <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
+                    <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
+                    <SelectItem value="15">15 {t.minutesBefore}</SelectItem>
+                    <SelectItem value="30">30 {t.minutesBefore}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

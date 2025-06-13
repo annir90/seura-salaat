@@ -1,3 +1,4 @@
+
 export interface Translation {
   // Navigation
   home: string;
@@ -42,6 +43,8 @@ export interface Translation {
   notificationTiming: string;
   minutesBefore: string;
   language: string;
+  enableNotifications: string;
+  howManyMinutesBefore: string;
   
   // Share app section
   shareApp: string;
@@ -121,6 +124,8 @@ const englishTranslations: Translation = {
   notificationTiming: "Notification Timing",
   minutesBefore: "minutes before",
   language: "Language",
+  enableNotifications: "Enable Notifications",
+  howManyMinutesBefore: "How many minutes before prayer time to notify",
   
   // Share app section
   shareApp: "Share the App",
@@ -200,6 +205,8 @@ const finnishTranslations: Translation = {
   notificationTiming: "Ilmoituksen ajoitus",
   minutesBefore: "minuuttia ennen",
   language: "Kieli",
+  enableNotifications: "Ota ilmoitukset käyttöön",
+  howManyMinutesBefore: "Kuinka monta minuuttia ennen rukousaikaa ilmoitetaan",
   
   // Share app section
   shareApp: "Jaa sovellus",
@@ -279,6 +286,8 @@ const albanianTranslations: Translation = {
   notificationTiming: "Koha e Njoftimit",
   minutesBefore: "minuta para",
   language: "Gjuha",
+  enableNotifications: "Aktivizo njoftimet",
+  howManyMinutesBefore: "Sa minuta para kohës së namazit të njoftohet",
   
   // Share app section
   shareApp: "Ndani Aplikacionin",
