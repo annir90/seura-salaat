@@ -157,7 +157,7 @@ class NotificationService {
 
       // Also schedule in main thread as fallback for when app is open
       const timeoutId = setTimeout(async () => {
-        await this.showNotification(prayer, minutesBefore, selectedSound);
+        await this.showPopupNotification(prayer, minutesBefore, selectedSound);
         this.scheduledNotifications.delete(prayer.id);
       }, delay);
 
@@ -173,9 +173,9 @@ class NotificationService {
     }
   }
 
-  private async showNotification(prayer: PrayerTime, minutesBefore: number, soundId: string): Promise<void> {
+  private async showPopupNotification(prayer: PrayerTime, minutesBefore: number, soundId: string): Promise<void> {
     try {
-      console.log(`Showing notification for ${prayer.name} prayer`);
+      console.log(`Showing pop-up notification for ${prayer.name} prayer`);
 
       // Play sound first
       await this.playAdhanSoundMobile(soundId);
@@ -183,30 +183,51 @@ class NotificationService {
       // Trigger haptic feedback
       this.triggerHapticFeedback();
 
-      // Show notification with proper settings for background operation
+      // Calculate remaining time until prayer
+      const now = new Date();
+      const [hours, minutes] = prayer.time.split(':').map(Number);
+      const prayerTime = new Date();
+      prayerTime.setHours(hours, minutes, 0, 0);
+      
+      const timeDiff = prayerTime.getTime() - now.getTime();
+      const minutesLeft = Math.max(0, Math.round(timeDiff / (1000 * 60)));
+
+      // Show notification with proper settings for pop-up appearance
       const notificationOptions: NotificationOptions = {
-        body: `${prayer.name} prayer is in ${minutesBefore} minutes (${prayer.time})`,
+        body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
         icon: '/favicon.ico',
         tag: `prayer-${prayer.id}`,
         requireInteraction: true,
         badge: '/favicon.ico',
         silent: false,
+        vibrate: [300, 100, 300, 100, 300],
+        actions: [
+          {
+            action: 'dismiss',
+            title: 'Dismiss'
+          },
+          {
+            action: 'open',
+            title: 'Open App'
+          }
+        ],
         data: {
           prayerId: prayer.id,
           time: prayer.time,
-          soundId: soundId
+          soundId: soundId,
+          minutesLeft: minutesLeft
         }
       };
 
       if ('serviceWorker' in navigator && this.serviceWorkerRegistration) {
         // Use service worker to show notification for better background support
         await this.serviceWorkerRegistration.showNotification(
-          `${prayer.name} Prayer Time`,
+          `${prayer.name} Prayer Reminder`,
           notificationOptions
         );
       } else {
         // Fallback to regular notification
-        const notification = new Notification(`${prayer.name} Prayer Time`, notificationOptions);
+        const notification = new Notification(`${prayer.name} Prayer Reminder`, notificationOptions);
         
         // Handle notification click
         notification.onclick = () => {
@@ -224,7 +245,7 @@ class NotificationService {
       this.triggerHapticFeedback();
 
     } catch (error) {
-      console.error('Error showing notification:', error);
+      console.error('Error showing pop-up notification:', error);
     }
   }
 

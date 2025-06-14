@@ -53,9 +53,18 @@ self.addEventListener('message', (event) => {
       console.log(`Service Worker: Showing background notification for ${prayerName} prayer`);
       
       try {
+        // Calculate remaining time until prayer
+        const now = new Date();
+        const [hours, minutes] = time.split(':').map(Number);
+        const prayerTime = new Date();
+        prayerTime.setHours(hours, minutes, 0, 0);
+        
+        const timeDiff = prayerTime.getTime() - now.getTime();
+        const minutesLeft = Math.max(0, Math.round(timeDiff / (1000 * 60)));
+
         // Show persistent notification that works in background
-        await self.registration.showNotification(`${prayerName} Prayer Time`, {
-          body: `${prayerName} prayer time is in ${minutesBefore} minutes (${time})`,
+        await self.registration.showNotification(`${prayerName} Prayer Reminder`, {
+          body: `${prayerName} prayer starts in ${minutesLeft} minutes at ${time}`,
           icon: '/favicon.ico',
           tag: `prayer-${prayerId}`,
           requireInteraction: true,
@@ -76,7 +85,8 @@ self.addEventListener('message', (event) => {
             prayerId: prayerId,
             soundId: soundId,
             time: time,
-            prayerName: prayerName
+            prayerName: prayerName,
+            minutesLeft: minutesLeft
           }
         });
 
@@ -89,7 +99,8 @@ self.addEventListener('message', (event) => {
               prayerName,
               prayerId,
               soundId,
-              time
+              time,
+              minutesLeft
             });
           });
         }

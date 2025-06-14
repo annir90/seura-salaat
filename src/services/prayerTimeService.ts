@@ -33,6 +33,36 @@ let prayerTimesCache: {
   times: PrayerTime[];
 } | null = null;
 
+// Function to determine next prayer with accurate transition
+const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  
+  // Find the next prayer that hasn't passed yet today
+  let nextPrayerIndex = prayers.findIndex(prayer => {
+    if (!prayer.time || prayer.time === "00:00") return false;
+    try {
+      const [hours, minutes] = prayer.time.split(":").map(Number);
+      const prayerTime = hours * 60 + minutes;
+      return prayerTime > currentTime;
+    } catch (error) {
+      console.error("Error parsing prayer time:", prayer.time, error);
+      return false;
+    }
+  });
+  
+  // If no prayer found for today, next prayer is tomorrow's Fajr
+  if (nextPrayerIndex === -1) {
+    nextPrayerIndex = 0; // Fajr is the first prayer
+  }
+  
+  // Mark the next prayer
+  return prayers.map((prayer, index) => ({
+    ...prayer,
+    isNext: index === nextPrayerIndex
+  }));
+};
+
 // Function to fetch prayer times from Aladhan API
 const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
   try {
@@ -59,43 +89,23 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
     
     // Map API response to our format with translations and null checks
     const prayers = [
-      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr) },
-      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise) },
-      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr) },
-      { id: "asr", name: t.asr, time: formatTime(timings.Asr) },
-      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib) },
-      { id: "isha", name: t.isha, time: formatTime(timings.Isha) }
+      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr), isNext: false },
+      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise), isNext: false },
+      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr), isNext: false },
+      { id: "asr", name: t.asr, time: formatTime(timings.Asr), isNext: false },
+      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib), isNext: false },
+      { id: "isha", name: t.isha, time: formatTime(timings.Isha), isNext: false }
     ];
     
     console.log("Processed prayers:", prayers);
     
-    // Determine next prayer only for today's times
+    // Determine next prayer only for today's times with accurate transition
     const isToday = date.toDateString() === new Date().toDateString();
-    let nextPrayerIndex = -1;
-    
     if (isToday) {
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      
-      nextPrayerIndex = prayers.findIndex(prayer => {
-        if (!prayer.time || prayer.time === "00:00") return false;
-        try {
-          const [hours, minutes] = prayer.time.split(":").map(Number);
-          const prayerTime = hours * 60 + minutes;
-          return prayerTime > currentTime;
-        } catch (error) {
-          console.error("Error parsing prayer time:", prayer.time, error);
-          return false;
-        }
-      });
-      
-      if (nextPrayerIndex === -1) nextPrayerIndex = 0; // Next day's Fajr
+      return determineNextPrayer(prayers);
     }
     
-    return prayers.map((prayer, index) => ({
-      ...prayer,
-      isNext: isToday && index === nextPrayerIndex
-    }));
+    return prayers;
     
   } catch (error) {
     console.error("Error fetching from Aladhan API:", error);
@@ -110,10 +120,12 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
   
   console.log("getPrayerTimes called for date:", requestedDate);
   
-  // If date is today and we have cached data, return it
+  // If date is today and we have cached data, update next prayer status and return
   if (requestedDate === today && prayerTimesCache && prayerTimesCache.date === today) {
-    console.log("Returning cached prayer times");
-    return prayerTimesCache.times;
+    console.log("Returning cached prayer times with updated next prayer status");
+    const updatedTimes = determineNextPrayer(prayerTimesCache.times);
+    prayerTimesCache.times = updatedTimes;
+    return updatedTimes;
   }
   
   try {
@@ -144,13 +156,14 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
         console.log("Trying Rabita fallback");
         const rabitaTimes = await fetchRabitaPrayerTimes();
         if (rabitaTimes && rabitaTimes.length > 0) {
+          const updatedRabitaTimes = determineNextPrayer(rabitaTimes);
           // Schedule notifications for fallback times too
           try {
-            await notificationService.scheduleAllPrayerNotifications(rabitaTimes);
+            await notificationService.scheduleAllPrayerNotifications(updatedRabitaTimes);
           } catch (error) {
             console.error("Error scheduling notifications for fallback times:", error);
           }
-          return rabitaTimes;
+          return updatedRabitaTimes;
         }
       } catch (rabitaError) {
         console.error("Rabita fallback also failed:", rabitaError);
