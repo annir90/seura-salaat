@@ -29,19 +29,19 @@ interface SoundOption {
 const soundOptions: SoundOption[] = [
   {
     id: "traditional-adhan",
-    name: "Adhan",
+    name: "Traditional Adhan",
     file: "/audio/traditional-adhan.mp3",
     description: "Traditional call to prayer"
   },
   {
     id: "makkah-adhan", 
-    name: "Beep",
+    name: "Makkah Adhan",
     file: "/audio/makkah-adhan.mp3",
-    description: "Simple beep sound"
+    description: "Adhan from Makkah"
   },
   {
     id: "soft-notification",
-    name: "Soft",
+    name: "Soft Notification",
     file: "/audio/soft-notification.mp3", 
     description: "Gentle notification tone"
   }
@@ -118,6 +118,7 @@ const AdhanSoundModal = ({
 
   const handleSoundSelect = (soundId: string) => {
     onSelect(soundId);
+    console.log(`Selected sound: ${soundId} for native notifications`);
   };
 
   return (
@@ -154,6 +155,7 @@ const AdhanSoundModal = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="5">5 minutes before</SelectItem>
                   <SelectItem value="10">10 minutes before</SelectItem>
                   <SelectItem value="15">15 minutes before</SelectItem>
                   <SelectItem value="20">20 minutes before</SelectItem>

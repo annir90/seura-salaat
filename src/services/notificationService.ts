@@ -66,7 +66,20 @@ export class NotificationService {
     }
   }
 
-  async scheduleNotification(prayer: PrayerTime, minutesBefore: number = 5, soundId: string = 'soft'): Promise<void> {
+  private getSoundFileName(soundId: string): string {
+    // Map sound IDs to actual .wav filenames for native Android
+    switch (soundId) {
+      case 'makkah-adhan':
+        return 'makkah_adhan.wav';
+      case 'soft-notification':
+        return 'soft_notification.wav';
+      case 'traditional-adhan':
+      default:
+        return 'traditional_adhan.wav';
+    }
+  }
+
+  async scheduleNotification(prayer: PrayerTime, minutesBefore: number = 5, soundId: string = 'traditional-adhan'): Promise<void> {
     if (!this.permission) {
       console.warn('Notification permission has not been granted.');
       return;
@@ -99,13 +112,17 @@ export class NotificationService {
         // Use Capacitor local notifications for native apps
         const notificationId = parseInt(prayer.id.replace(/\D/g, '') || '0') + Date.now() % 1000;
         
+        const soundFileName = this.getSoundFileName(soundId);
+        
         const notification: ScheduleOptions = {
           notifications: [{
             title: `${prayer.name} Prayer Reminder`,
             body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: soundId === 'loud' ? 'adhan-loud.wav' : 'adhan-soft.wav',
+            sound: soundFileName, // Use the .wav filename directly
+            smallIcon: 'ic_stat_icon_config_sample',
+            iconColor: '#488AFF',
             attachments: [],
             actionTypeId: '',
             extra: {
@@ -121,28 +138,24 @@ export class NotificationService {
         await LocalNotifications.schedule(notification);
         this.scheduledNotificationIds.add(notificationId);
         
-        console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()}`);
+        console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()} with sound: ${soundFileName}`);
       } else {
-        // Web fallback using setTimeout
-        const delay = notificationTime.getTime() - now.getTime();
-        
-        setTimeout(async () => {
-          try {
-            new Notification(`${prayer.name} Prayer Reminder`, {
-              body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-              icon: '/favicon.ico',
-              tag: `prayer-${prayer.id}`,
-              requireInteraction: true,
-              badge: '/favicon.ico',
-              silent: false
-            });
+        // Web fallback - immediate notification
+        try {
+          new Notification(`${prayer.name} Prayer Reminder`, {
+            body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
+            icon: '/favicon.ico',
+            tag: `prayer-${prayer.id}`,
+            requireInteraction: true,
+            badge: '/favicon.ico',
+            silent: false
+          });
 
-            this.playNotificationSound(soundId);
-            this.vibrateDevice();
-          } catch (error) {
-            console.error('Error showing web notification:', error);
-          }
-        }, delay);
+          this.playNotificationSound(soundId);
+          this.vibrateDevice();
+        } catch (error) {
+          console.error('Error showing web notification:', error);
+        }
       }
       
     } catch (error) {
@@ -154,8 +167,6 @@ export class NotificationService {
     if (Capacitor.isNativePlatform()) {
       try {
         // For native apps, we need to find and cancel the specific notification
-        // Since we can't easily track individual prayer notifications by prayer ID,
-        // we'll get all pending notifications and cancel those that match
         const pending = await LocalNotifications.getPending();
         const notificationToCancel = pending.notifications.find(
           notification => notification.extra?.prayerId === prayerId
@@ -177,7 +188,12 @@ export class NotificationService {
   async cancelAllNotifications(): Promise<void> {
     if (Capacitor.isNativePlatform()) {
       try {
-        await LocalNotifications.cancel({ notifications: [] }); // Cancel all
+        const pending = await LocalNotifications.getPending();
+        if (pending.notifications.length > 0) {
+          await LocalNotifications.cancel({ 
+            notifications: pending.notifications.map(n => ({ id: n.id }))
+          });
+        }
         this.scheduledNotificationIds.clear();
         console.log('All native notifications cancelled.');
       } catch (error) {
@@ -191,10 +207,12 @@ export class NotificationService {
   async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> {
     const storedMinutesBefore = localStorage.getItem('prayerapp-notification-minutes-before');
     const minutesBefore = storedMinutesBefore ? parseInt(storedMinutesBefore, 10) : 5;
-    const soundId = localStorage.getItem('prayerapp-notification-sound') || 'soft';
+    const soundId = localStorage.getItem('prayerapp-notification-sound') || 'traditional-adhan';
 
     // Cancel existing notifications first
     await this.cancelAllNotifications();
+
+    console.log(`Scheduling notifications for ${prayers.length} prayers with sound: ${soundId}`);
 
     for (const prayer of prayers) {
       try {
@@ -205,11 +223,11 @@ export class NotificationService {
     }
   }
 
-  playNotificationSound(soundId: string = 'soft'): void {
+  playNotificationSound(soundId: string = 'traditional-adhan'): void {
     if (!Capacitor.isNativePlatform()) {
       // Only play sound on web, native notifications handle sound automatically
-      const soundFile = soundId === 'loud' ? 'adhan-loud.mp3' : 'adhan-soft.mp3';
-      const audio = new Audio(`/sounds/${soundFile}`);
+      const soundFile = this.getSoundFileName(soundId).replace('.wav', '.mp3');
+      const audio = new Audio(`/audio/${soundFile}`);
       audio.play()
         .catch(error => console.error("Error playing sound:", error));
     }
