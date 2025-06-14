@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
@@ -178,9 +177,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
           )}
         </div>
         <p className="font-medium text-lg md:text-xl text-prayer-primary">{prayerTime}</p>
-        {notificationEnabled && (
-          <p className="text-xs text-muted-foreground mt-1">{notificationTiming} min before</p>
-        )}
       </div>
       
       <div className="flex items-center gap-2">
