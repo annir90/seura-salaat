@@ -86,7 +86,7 @@ const SettingsPage = () => {
             {t.settings}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Manage your app preferences
+            {t.manageAppPreferences}
           </p>
         </div>
 
@@ -123,8 +123,8 @@ const SettingsPage = () => {
                     <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">General</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Language settings</p>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.general}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.languageSettings}</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -144,8 +144,8 @@ const SettingsPage = () => {
                     <Bell className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Block, Allow, priorities</p>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.notifications}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.blockAllowPriorities}</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -165,8 +165,8 @@ const SettingsPage = () => {
                     <Info className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">About</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Know about our app</p>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.about}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.knowAboutApp}</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -187,8 +187,8 @@ const SettingsPage = () => {
                       <LogOut className="h-5 w-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-red-600 dark:text-red-400">Log out</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Log out from app</p>
+                      <h3 className="font-medium text-red-600 dark:text-red-400">{t.logOut}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t.logOutFromApp}</p>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-red-400" />
@@ -200,7 +200,7 @@ const SettingsPage = () => {
 
         {/* App Version */}
         <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-8 pb-2">
-          <p className="font-medium">PrayConnect v1.0</p>
+          <p className="font-medium">{t.appVersion}</p>
         </div>
       </div>
     </div>

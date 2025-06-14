@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Minus, RotateCcw, Vibrate } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getTranslation } from "@/services/translationService";
 
 const TasbihPage = () => {
   const navigate = useNavigate();
   const [count, setCount] = useState(0);
   const [isVibrationEnabled, setIsVibrationEnabled] = useState(true);
+  const t = getTranslation();
 
   // Load saved count from localStorage
   useEffect(() => {
@@ -50,7 +52,7 @@ const TasbihPage = () => {
   const resetCount = () => {
     setCount(0);
     vibrate();
-    toast.success("Tasbih counter reset to 0");
+    toast.success(t.tasbihCounterReset);
   };
 
   const toggleVibration = () => {
@@ -59,13 +61,13 @@ const TasbihPage = () => {
     localStorage.setItem('tasbih-vibration', newValue.toString());
     
     if (newValue) {
-      toast.success("Vibration enabled");
+      toast.success(t.vibrationEnabled);
       // Test vibration when enabled
       if ('vibrate' in navigator) {
         navigator.vibrate(100);
       }
     } else {
-      toast.success("Vibration disabled");
+      toast.success(t.vibrationDisabled);
     }
   };
 
@@ -88,9 +90,9 @@ const TasbihPage = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
-              Tasbih Counter
+              {t.tasbihCounter}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">Digital dhikr and tasbih counter</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">{t.digitalDhikr}</p>
           </div>
         </div>
 
@@ -99,7 +101,7 @@ const TasbihPage = () => {
           <Card className="shadow-lg border-0 bg-white dark:bg-gray-800 rounded-2xl">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Current Count
+                {t.currentCount}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-8">
@@ -110,7 +112,7 @@ const TasbihPage = () => {
                 </div>
                 {count >= 33 && count % 33 === 0 && (
                   <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-                    ✨ {Math.floor(count / 33)} cycle{Math.floor(count / 33) > 1 ? 's' : ''} of 33 completed
+                    ✨ {Math.floor(count / 33)} {Math.floor(count / 33) > 1 ? t.cycles : t.cycle} {t.completed}
                   </div>
                 )}
               </div>
@@ -147,8 +149,8 @@ const TasbihPage = () => {
 
               {/* Helper Text */}
               <div className="text-center text-sm text-gray-500 dark:text-gray-400 space-y-1">
-                <p>Tap the + button to count your dhikr</p>
-                <p>Traditional cycle: 33 repetitions</p>
+                <p>{t.tapPlusToCount}</p>
+                <p>{t.traditionalCycle}</p>
               </div>
             </CardContent>
           </Card>
@@ -160,15 +162,15 @@ const TasbihPage = () => {
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
                   <Vibrate className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
-                Counter Settings
+                {t.counterSettings}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Haptic Feedback</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{t.hapticFeedback}</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Vibrate on each tap for better feedback
+                    {t.vibrateOnTap}
                   </p>
                 </div>
                 <Button
@@ -178,7 +180,7 @@ const TasbihPage = () => {
                   className={isVibrationEnabled ? "bg-purple-600 hover:bg-purple-700" : ""}
                 >
                   <Vibrate className="h-4 w-4 mr-2" />
-                  {isVibrationEnabled ? "On" : "Off"}
+                  {isVibrationEnabled ? t.on : t.off}
                 </Button>
               </div>
             </CardContent>
@@ -188,22 +190,22 @@ const TasbihPage = () => {
           <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
-                Common Dhikr
+                {t.commonDhikr}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-4">
               <div className="space-y-3 text-sm">
                 <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
                   <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">سُبْحَانَ اللَّهِ</p>
-                  <p className="text-gray-600 dark:text-gray-400">Subhan Allah (Glory be to Allah)</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t.subhanAllah}</p>
                 </div>
                 <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
                   <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">الْحَمْدُ لِلَّهِ</p>
-                  <p className="text-gray-600 dark:text-gray-400">Alhamdulillah (Praise be to Allah)</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t.alhamdulillah}</p>
                 </div>
                 <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
                   <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">اللَّهُ أَكْبَرُ</p>
-                  <p className="text-gray-600 dark:text-gray-400">Allahu Akbar (Allah is Greatest)</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t.allahuAkbar}</p>
                 </div>
               </div>
             </CardContent>

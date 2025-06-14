@@ -1,4 +1,3 @@
-
 export interface Translation {
   // Navigation
   home: string;
@@ -73,6 +72,42 @@ export interface Translation {
   compassCalibrated: string;
   qiblaInstructions: string;
   fromNorth: string;
+  
+  // Tasbih page
+  tasbihCounter: string;
+  digitalDhikr: string;
+  currentCount: string;
+  cyclesCompleted: string;
+  cycle: string;
+  cycles: string;
+  completed: string;
+  tapPlusToCount: string;
+  traditionalCycle: string;
+  repetitions: string;
+  counterSettings: string;
+  hapticFeedback: string;
+  vibrateOnTap: string;
+  vibrationEnabled: string;
+  vibrationDisabled: string;
+  on: string;
+  off: string;
+  commonDhikr: string;
+  subhanAllah: string;
+  alhamdulillah: string;
+  allahuAkbar: string;
+  tasbihCounterReset: string;
+  
+  // Settings page additional
+  manageAppPreferences: string;
+  general: string;
+  languageSettings: string;
+  notifications: string;
+  blockAllowPriorities: string;
+  about: string;
+  knowAboutApp: string;
+  logOut: string;
+  logOutFromApp: string;
+  appVersion: string;
   
   // Common
   loading: string;
@@ -155,6 +190,42 @@ const englishTranslations: Translation = {
   qiblaInstructions: "Hold your device flat and away from magnetic interference. Allow location access for accurate Qibla direction.",
   fromNorth: "from North",
   
+  // Tasbih page
+  tasbihCounter: "Tasbih Counter",
+  digitalDhikr: "Digital dhikr and tasbih counter",
+  currentCount: "Current Count",
+  cyclesCompleted: "cycle completed",
+  cycle: "cycle",
+  cycles: "cycles",
+  completed: "completed",
+  tapPlusToCount: "Tap the + button to count your dhikr",
+  traditionalCycle: "Traditional cycle: 33 repetitions",
+  repetitions: "repetitions",
+  counterSettings: "Counter Settings",
+  hapticFeedback: "Haptic Feedback",
+  vibrateOnTap: "Vibrate on each tap for better feedback",
+  vibrationEnabled: "Vibration enabled",
+  vibrationDisabled: "Vibration disabled",
+  on: "On",
+  off: "Off",
+  commonDhikr: "Common Dhikr",
+  subhanAllah: "Subhan Allah (Glory be to Allah)",
+  alhamdulillah: "Alhamdulillah (Praise be to Allah)",
+  allahuAkbar: "Allahu Akbar (Allah is Greatest)",
+  tasbihCounterReset: "Tasbih counter reset to 0",
+  
+  // Settings page additional
+  manageAppPreferences: "Manage your app preferences",
+  general: "General",
+  languageSettings: "Language settings",
+  notifications: "Notifications",
+  blockAllowPriorities: "Block, Allow, priorities",
+  about: "About",
+  knowAboutApp: "Know about our app",
+  logOut: "Log out",
+  logOutFromApp: "Log out from app",
+  appVersion: "PrayConnect v1.0",
+  
   // Common
   loading: "Loading...",
   error: "Error",
@@ -230,11 +301,47 @@ const finnishTranslations: Translation = {
   // Qibla page
   qiblaFinder: "Qibla-etsijä",
   qiblaDirection: "Qibla-suunta",
-  deviceHeading: "Laitteen suunta",
+  deviceHeading: "Drejtimi pajisjes",
   calibrateCompass: "Kalibroi kompassi",
   compassCalibrated: "Kompassi kalibroitu onnistuneesti",
   qiblaInstructions: "Pidä laitetta tasaisena ja kaukana magneettisista häiriöistä. Salli sijaintipääsy tarkkaa Qibla-suuntaa varten.",
   fromNorth: "pohjoisesta",
+  
+  // Tasbih page
+  tasbihCounter: "Tasbih-laskuri",
+  digitalDhikr: "Digitaalinen dhikr ja tasbih-laskuri",
+  currentCount: "Nykyinen määrä",
+  cyclesCompleted: "kierros suoritettu",
+  cycle: "kierros",
+  cycles: "kierrosta",
+  completed: "suoritettu",
+  tapPlusToCount: "Napauta + -painiketta laskeaksesi dhikr",
+  traditionalCycle: "Perinteinen kierros: 33 toistoa",
+  repetitions: "toistoa",
+  counterSettings: "Laskurin asetukset",
+  hapticFeedback: "Haptinen palaute",
+  vibrateOnTap: "Värinä jokaisella napautuksella paremman palautteen saamiseksi",
+  vibrationEnabled: "Värinä käytössä",
+  vibrationDisabled: "Värinä pois käytöstä",
+  on: "Päällä",
+  off: "Pois",
+  commonDhikr: "Yleinen dhikr",
+  subhanAllah: "Subhan Allah (Kunnia Allahille)",
+  alhamdulillah: "Alhamdulillah (Kiitos Allahille)",
+  allahuAkbar: "Allahu Akbar (Allah on suurin)",
+  tasbihCounterReset: "Tasbih-laskuri nollattu",
+  
+  // Settings page additional
+  manageAppPreferences: "Hallitse sovelluksen asetuksia",
+  general: "Yleinen",
+  languageSettings: "Kieliasetukset",
+  notifications: "Ilmoitukset",
+  blockAllowPriorities: "Estä, salli, prioritetetit",
+  about: "Tietoja",
+  knowAboutApp: "Tietoja sovelluksestamme",
+  logOut: "Kirjaudu ulos",
+  logOutFromApp: "Kirjaudu ulos sovelluksesta",
+  appVersion: "PrayConnect v1.0",
   
   // Common
   loading: "Ladataan...",
@@ -316,6 +423,42 @@ const albanianTranslations: Translation = {
   compassCalibrated: "Busulla u kalibrua me sukses",
   qiblaInstructions: "Mbajeni pajisjen tuaj të sheshtë dhe larg ndërhyrjeve magnetike. Lejoni qasjen në vendndodhje për drejtimin e saktë të Kiblës.",
   fromNorth: "nga Veriu",
+  
+  // Tasbih page
+  tasbihCounter: "Numëruesi i Tesbihut",
+  digitalDhikr: "Numëruesi dixhital i dhikrit dhe tesbihut",
+  currentCount: "Numërimi Aktual",
+  cyclesCompleted: "cikël i kompletuar",
+  cycle: "cikël",
+  cycles: "cikle",
+  completed: "të kompletuar",
+  tapPlusToCount: "Prekni butonin + për të numëruar dhikrin tuaj",
+  traditionalCycle: "Cikli tradicional: 33 përsëritje",
+  repetitions: "përsëritje",
+  counterSettings: "Cilësimet e Numëruesit",
+  hapticFeedback: "Reagimi Haptik",
+  vibrateOnTap: "Dridhje në çdo prekje për reagim më të mirë",
+  vibrationEnabled: "Dridhja u aktivizua",
+  vibrationDisabled: "Dridhja u çaktivizua",
+  on: "On",
+  off: "Off",
+  commonDhikr: "Dhikri i Përgjithshëm",
+  subhanAllah: "Subhan Allah (Lavdi Allahut)",
+  alhamdulillah: "Alhamdulillah (Falënderimi i Allahut)",
+  allahuAkbar: "Allahu Akbar (Allahu është më i Madhi)",
+  tasbihCounterReset: "Numëruesi i tesbihut u rivendos në 0",
+  
+  // Settings page additional
+  manageAppPreferences: "Menaxhoni preferencat e aplikacionit",
+  general: "E përgjithshme",
+  languageSettings: "Cilësimet e gjuhës",
+  notifications: "Njoftimet",
+  blockAllowPriorities: "Bllokoni, lejoni, prioritetet",
+  about: "Rreth",
+  knowAboutApp: "Njihuni me aplikacionin tonë",
+  logOut: "Dalje",
+  logOutFromApp: "Dilni nga aplikacioni",
+  appVersion: "PrayConnect v1.0",
   
   // Common
   loading: "Duke u ngarkuar...",
