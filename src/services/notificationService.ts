@@ -1,403 +1,226 @@
-
 import { PrayerTime } from "./prayerTimeService";
+import { t } from "./translationService";
 
-interface ScheduledNotification {
-  prayerId: string;
-  timeoutId: number;
-  scheduledTime: string;
+export interface NotificationOptions {
+  body: string;
+  icon: string;
+  tag: string;
+  requireInteraction: boolean;
+  badge: string;
+  silent: boolean;
+  actions: { action: string; title: string; }[];
+  data: any;
+  title: string;
 }
 
-class NotificationService {
-  private scheduledNotifications: Map<string, ScheduledNotification> = new Map();
-  private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
-  private audioContext: AudioContext | null = null;
+export class NotificationService {
+  private isSupported: boolean = false;
+  private permission: NotificationPermission = 'default';
+  private scheduledNotifications: Map<string, number> = new Map();
 
   constructor() {
-    this.initializeServiceWorker();
-    this.initializeAudioContext();
-  }
-
-  private async initializeServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      try {
-        this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registered successfully');
-        
-        // Listen for messages from service worker
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data && event.data.type === 'PRAYER_NOTIFICATION') {
-            this.handleBackgroundNotification(event.data);
-          }
-        });
-      } catch (error) {
-        console.error('Service Worker registration failed:', error);
-      }
-    }
-  }
-
-  private async initializeAudioContext() {
-    try {
-      // Create AudioContext only when needed and after user interaction
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      console.log('AudioContext initialized');
-    } catch (error) {
-      console.warn('AudioContext not supported:', error);
-    }
-  }
-
-  private async handleBackgroundNotification(data: any) {
-    try {
-      await this.playAdhanSoundMobile(data.soundId);
-      this.triggerHapticFeedback();
-    } catch (error) {
-      console.error('Error handling background notification:', error);
+    this.isSupported = 'Notification' in window;
+    if (this.isSupported) {
+      Notification.requestPermission().then(permission => {
+        this.permission = permission;
+      });
     }
   }
 
   async requestPermission(): Promise<boolean> {
-    if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
+    if (!this.isSupported) {
+      console.warn('Notifications are not supported in this browser.');
       return false;
     }
 
-    if (Notification.permission === 'granted') {
+    if (this.permission === 'granted') {
       return true;
     }
 
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      return permission === 'granted';
+    if (this.permission === 'denied') {
+      console.warn('The user has previously denied notifications.');
+      return false;
     }
 
-    return false;
-  }
-
-  async scheduleAllPrayerNotifications(prayerTimes: PrayerTime[]): Promise<void> {
-    const hasPermission = await this.requestPermission();
-    if (!hasPermission) {
-      console.warn('Notification permission not granted');
-      return;
-    }
-
-    // Clear all existing notifications
-    this.clearAllNotifications();
-
-    // Get global notification setting
-    const globalNotificationsEnabled = localStorage.getItem('prayer-notifications-enabled') !== 'false';
-
-    if (!globalNotificationsEnabled) {
-      console.log('Prayer notifications are disabled globally');
-      return;
-    }
-
-    const now = new Date();
-    const today = now.toDateString();
-
-    // Check if we already scheduled for today
-    const lastScheduledDate = localStorage.getItem('last-scheduled-date');
-    if (lastScheduledDate === today) {
-      console.log('Notifications already scheduled for today');
-      return;
-    }
-
-    for (const prayer of prayerTimes) {
-      await this.schedulePrayerNotification(prayer);
-    }
-
-    // Mark as scheduled for today
-    localStorage.setItem('last-scheduled-date', today);
-    console.log('All prayer notifications scheduled for today');
-  }
-
-  private async schedulePrayerNotification(prayer: PrayerTime): Promise<void> {
     try {
-      // Check if notifications are enabled for this specific prayer
-      const prayerNotificationEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
-      
-      if (!prayerNotificationEnabled) {
-        console.log(`Notifications disabled for ${prayer.name}`);
-        return;
-      }
-
-      // Get timing for this specific prayer (default to 10 if not set)
-      const minutesBefore = parseInt(localStorage.getItem(`prayer-timing-${prayer.id}`) || '10', 10);
-      
-      const now = new Date();
-      const [hours, minutes] = prayer.time.split(':').map(Number);
-      
-      const prayerDate = new Date();
-      prayerDate.setHours(hours, minutes - minutesBefore, 0, 0);
-
-      // If notification time has passed today, schedule for tomorrow
-      if (prayerDate <= now) {
-        prayerDate.setDate(prayerDate.getDate() + 1);
-      }
-
-      const delay = prayerDate.getTime() - now.getTime();
-      console.log(`Scheduling ${prayer.name} notification in ${Math.round(delay / 1000)} seconds (${minutesBefore} min before prayer)`);
-
-      // Get user's selected sound for this prayer
-      const selectedSound = localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'traditional-adhan';
-
-      // Use service worker for background notifications that work when app is closed
-      if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
-        this.serviceWorkerRegistration.active.postMessage({
-          type: 'SCHEDULE_PRAYER_NOTIFICATION',
-          prayerName: prayer.name,
-          prayerId: prayer.id,
-          time: prayer.time,
-          delay: delay,
-          soundId: selectedSound,
-          minutesBefore: minutesBefore,
-          scheduledFor: prayerDate.getTime()
-        });
-
-        console.log(`Background notification scheduled for ${prayer.name} at ${prayerDate.toLocaleString()}`);
-      }
-
-      // Also schedule in main thread as fallback for when app is open
-      const timeoutId = setTimeout(async () => {
-        await this.showPopupNotification(prayer, minutesBefore, selectedSound);
-        this.scheduledNotifications.delete(prayer.id);
-      }, delay);
-
-      // Store the scheduled notification
-      this.scheduledNotifications.set(prayer.id, {
-        prayerId: prayer.id,
-        timeoutId: timeoutId as any,
-        scheduledTime: prayerDate.toISOString()
-      });
-
+      this.permission = await Notification.requestPermission();
+      return this.permission === 'granted';
     } catch (error) {
-      console.error(`Error scheduling notification for ${prayer.name}:`, error);
+      console.error('Failed to request notification permission:', error);
+      return false;
     }
   }
 
-  private async showPopupNotification(prayer: PrayerTime, minutesBefore: number, soundId: string): Promise<void> {
+  async scheduleNotification(prayer: PrayerTime, minutesBefore: number = 5, soundId: string = 'soft'): Promise<void> {
+    if (!this.isSupported) {
+      console.warn('Notifications are not supported in this browser.');
+      return;
+    }
+
+    if (this.permission !== 'granted') {
+      console.warn('Notification permission has not been granted.');
+      return;
+    }
+
     try {
-      console.log(`Showing pop-up notification for ${prayer.name} prayer`);
-
-      // Play sound first
-      await this.playAdhanSoundMobile(soundId);
-
-      // Trigger haptic feedback
-      this.triggerHapticFeedback();
-
-      // Calculate remaining time until prayer
+      // Calculate notification time
       const now = new Date();
       const [hours, minutes] = prayer.time.split(':').map(Number);
       const prayerTime = new Date();
       prayerTime.setHours(hours, minutes, 0, 0);
       
-      const timeDiff = prayerTime.getTime() - now.getTime();
-      const minutesLeft = Math.max(0, Math.round(timeDiff / (1000 * 60)));
+      // If prayer time is tomorrow, add a day
+      if (prayerTime <= now) {
+        prayerTime.setDate(prayerTime.getDate() + 1);
+      }
+      
+      const delay = prayerTime.getTime() - now.getTime() - (minutesBefore * 60 * 1000);
+      const notificationTime = new Date(now.getTime() + delay);
 
-      // Show notification with proper settings for pop-up appearance
-      const notificationOptions: NotificationOptions = {
-        body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-        icon: '/favicon.ico',
-        tag: `prayer-${prayer.id}`,
-        requireInteraction: true,
-        badge: '/favicon.ico',
-        silent: false,
-        vibrate: [300, 100, 300, 100, 300],
-        actions: [
-          {
-            action: 'dismiss',
-            title: 'Dismiss'
-          },
-          {
-            action: 'open',
-            title: 'Open App'
-          }
-        ],
-        data: {
-          prayerId: prayer.id,
-          time: prayer.time,
-          soundId: soundId,
-          minutesLeft: minutesLeft
-        }
+      if (delay <= 0) {
+        console.log(`Time for ${prayer.name} is in the past, skipping notification.`);
+        return;
+      }
+
+      const notificationData = {
+        type: 'SCHEDULE_PRAYER_NOTIFICATION',
+        prayerName: prayer.name,
+        prayerId: prayer.id,
+        time: prayer.time,
+        delay: delay,
+        soundId: soundId,
+        minutesBefore: minutesBefore,
+        scheduledFor: notificationTime.getTime()
       };
 
-      if ('serviceWorker' in navigator && this.serviceWorkerRegistration) {
-        // Use service worker to show notification for better background support
-        await this.serviceWorkerRegistration.showNotification(
-          `${prayer.name} Prayer Reminder`,
-          notificationOptions
-        );
-      } else {
-        // Fallback to regular notification
-        const notification = new Notification(`${prayer.name} Prayer Reminder`, notificationOptions);
-        
-        // Handle notification click
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-
-        // Auto-close after 30 seconds
-        setTimeout(() => {
-          notification.close();
-        }, 30000);
+      // Send to service worker for background handling
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage(notificationData);
       }
 
-      // Trigger vibration after showing notification
-      this.triggerHapticFeedback();
-
-    } catch (error) {
-      console.error('Error showing pop-up notification:', error);
-    }
-  }
-
-  private triggerHapticFeedback(): void {
-    try {
-      // Vibration API for haptic feedback
-      if ('vibrate' in navigator) {
-        // Strong vibration pattern for prayer notification
-        navigator.vibrate([300, 100, 300, 100, 300]);
-        console.log('Haptic feedback triggered');
-      }
-    } catch (error) {
-      console.error('Haptic feedback failed:', error);
-    }
-  }
-
-  private async playAdhanSoundMobile(soundId: string): Promise<void> {
-    try {
-      console.log(`Attempting to play sound: ${soundId}`);
-
-      // Resume AudioContext if suspended (required for mobile)
-      if (this.audioContext && this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-        console.log('AudioContext resumed');
-      }
-
-      // Stop any currently playing audio
-      const existingAudio = document.querySelector('audio.adhan-notification');
-      if (existingAudio) {
-        (existingAudio as HTMLAudioElement).pause();
-        existingAudio.remove();
-      }
-
-      // Create audio element with better mobile support
-      const audio = new Audio();
-      audio.className = 'adhan-notification';
-      audio.preload = 'auto';
-      audio.volume = 0.9;
-      
-      // Set the audio source
-      audio.src = `/audio/${soundId}.mp3`;
-
-      // Load and play the audio
-      await new Promise((resolve, reject) => {
-        const handleCanPlay = () => {
-          audio.removeEventListener('canplaythrough', handleCanPlay);
-          audio.removeEventListener('error', handleError);
-          resolve(void 0);
-        };
-
-        const handleError = () => {
-          audio.removeEventListener('canplaythrough', handleCanPlay);
-          audio.removeEventListener('error', handleError);
-          reject(new Error(`Failed to load audio: ${audio.src}`));
-        };
-
-        audio.addEventListener('canplaythrough', handleCanPlay);
-        audio.addEventListener('error', handleError);
-        
-        audio.load();
-      });
-
-      // Play the audio
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        await playPromise;
-        console.log(`Successfully played ${soundId} for prayer notification`);
-      }
-
-    } catch (error) {
-      console.error('Error playing adhan sound:', error);
-      
-      // Fallback: Try to play a simple beep sound
-      try {
-        if (this.audioContext) {
-          const oscillator = this.audioContext.createOscillator();
-          const gainNode = this.audioContext.createGain();
+      // Schedule in-app notification as backup
+      const timeoutId = setTimeout(async () => {
+        try {
+          // Calculate remaining time
+          const now = new Date();
+          const [hours, minutes] = prayer.time.split(':').map(Number);
+          const prayerTime = new Date();
+          prayerTime.setHours(hours, minutes, 0, 0);
           
-          oscillator.connect(gainNode);
-          gainNode.connect(this.audioContext.destination);
+          // If prayer time is tomorrow, add a day
+          if (prayerTime <= now) {
+            prayerTime.setDate(prayerTime.getDate() + 1);
+          }
           
-          oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
-          gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 1);
+          const timeDiff = prayerTime.getTime() - now.getTime();
+          const minutesLeft = Math.max(0, Math.round(timeDiff / (1000 * 60)));
+
+          // Show notification
+          await this.showNotification({
+            title: `${prayer.name} Prayer Reminder`,
+            body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
+            icon: '/favicon.ico',
+            tag: `prayer-${prayer.id}`,
+            requireInteraction: true,
+            badge: '/favicon.ico',
+            silent: false,
+            actions: [
+              { action: 'dismiss', title: 'Dismiss' },
+              { action: 'open', title: 'Open App' }
+            ],
+            data: {
+              prayerId: prayer.id,
+              soundId: soundId,
+              time: prayer.time,
+              prayerName: prayer.name,
+              minutesLeft: minutesLeft
+            }
+          });
+
+          // Play sound and vibrate
+          this.playNotificationSound(soundId);
+          this.vibrateDevice();
           
-          oscillator.start(this.audioContext.currentTime);
-          oscillator.stop(this.audioContext.currentTime + 1);
-          
-          console.log('Fallback beep sound played');
+        } catch (error) {
+          console.error('Error showing in-app notification:', error);
         }
-      } catch (fallbackError) {
-        console.error('Fallback sound also failed:', fallbackError);
-      }
+      }, delay);
+
+      // Store the timeout for potential cancellation
+      this.scheduledNotifications.set(prayer.id, timeoutId);
       
-      throw error;
-    }
-  }
-
-  // Public method to test sound playback with haptic feedback
-  async testSound(soundId: string = 'traditional-adhan'): Promise<void> {
-    try {
-      console.log('Testing sound playback and haptic feedback...');
-      await this.playAdhanSoundMobile(soundId);
-      this.triggerHapticFeedback();
+      console.log(`Notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()}`);
+      
     } catch (error) {
-      console.error('Sound test failed:', error);
-      throw error;
+      console.error('Error scheduling notification:', error);
     }
   }
 
-  clearAllNotifications(): void {
-    // Clear all scheduled timeouts
-    this.scheduledNotifications.forEach((notification) => {
-      clearTimeout(notification.timeoutId);
+  private async showNotification(options: NotificationOptions): Promise<void> {
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        // Use service worker to show notification
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(options.title, options);
+        });
+      } else {
+        // Show notification directly
+        new Notification(options.title, options);
+      }
+    } catch (error) {
+      console.error('Error showing notification:', error);
+    }
+  }
+
+  async cancelNotification(prayerId: string): Promise<void> {
+    if (this.scheduledNotifications.has(prayerId)) {
+      clearTimeout(this.scheduledNotifications.get(prayerId));
+      this.scheduledNotifications.delete(prayerId);
+      console.log(`Notification cancelled for prayer ID: ${prayerId}`);
+    } else {
+      console.log(`No notification found for prayer ID: ${prayerId}`);
+    }
+  }
+
+  async cancelAllNotifications(): Promise<void> {
+    this.scheduledNotifications.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
     });
     this.scheduledNotifications.clear();
 
-    // Clear service worker notifications
-    if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
-      this.serviceWorkerRegistration.active.postMessage({
-        type: 'CLEAR_ALL_NOTIFICATIONS'
-      });
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_ALL_NOTIFICATIONS' });
     }
 
-    // Clear any pending browser notifications
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(registration => {
-          registration.getNotifications().then(notifications => {
-            notifications.forEach(notification => notification.close());
-          });
-        });
-      });
-    }
-
-    console.log('All scheduled notifications cleared');
+    console.log('All notifications cancelled.');
   }
 
-  clearNotificationForPrayer(prayerId: string): void {
-    const notification = this.scheduledNotifications.get(prayerId);
-    if (notification) {
-      clearTimeout(notification.timeoutId);
-      this.scheduledNotifications.delete(prayerId);
-      console.log(`Cleared notification for prayer: ${prayerId}`);
+  async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> {
+    const storedMinutesBefore = localStorage.getItem('prayerapp-notification-minutes-before');
+    const minutesBefore = storedMinutesBefore ? parseInt(storedMinutesBefore, 10) : 5;
+    const soundId = localStorage.getItem('prayerapp-notification-sound') || 'soft';
+
+    for (const prayer of prayers) {
+      try {
+        await this.scheduleNotification(prayer, minutesBefore, soundId);
+      } catch (error) {
+        console.error(`Failed to schedule notification for ${prayer.name}:`, error);
+      }
     }
   }
 
-  getScheduledNotifications(): ScheduledNotification[] {
-    return Array.from(this.scheduledNotifications.values());
+  playNotificationSound(soundId: string = 'soft'): void {
+    const soundFile = soundId === 'loud' ? 'adhan-loud.mp3' : 'adhan-soft.mp3';
+    const audio = new Audio(`/sounds/${soundFile}`);
+    audio.play()
+      .catch(error => console.error("Error playing sound:", error));
+  }
+
+  vibrateDevice(): void {
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
   }
 }
 
-// Export singleton instance
 export const notificationService = new NotificationService();

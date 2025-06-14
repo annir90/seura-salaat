@@ -3,11 +3,13 @@ import { useEffect, useState, useCallback } from "react";
 import { Outlet } from "react-router-dom";
 import BottomNavbar from "./BottomNavbar";
 import { getSelectedLocation, Location } from "../services/locationService";
+import { getCurrentLanguage } from "../services/translationService";
 
 const Layout = () => {
   const [location, setLocation] = useState<Location | null>(null);
   const [calculationMethod, setCalculationMethod] = useState<string>("ISNA");
   const [dataSource, setDataSource] = useState<string>("Calculated");
+  const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
   
   // Memoize the storage change handler for better performance
   const handleStorageChange = useCallback((e: StorageEvent) => {
@@ -28,6 +30,11 @@ const Layout = () => {
       if (e.newValue) {
         setDataSource(e.newValue);
       }
+    } else if (e.key === 'app-language') {
+      // Force re-render when language changes
+      setCurrentLanguage(getCurrentLanguage());
+      // Force a full page reload to ensure all components update with new language
+      window.location.reload();
     }
   }, []);
   
@@ -35,6 +42,7 @@ const Layout = () => {
   useEffect(() => {
     // Initial load
     setLocation(getSelectedLocation());
+    setCurrentLanguage(getCurrentLanguage());
     
     // Get calculation method
     const savedMethod = localStorage.getItem('prayerapp-calculation-method');
@@ -56,7 +64,7 @@ const Layout = () => {
   }, [handleStorageChange]);
   
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background" key={currentLanguage}>
       <main className="flex-1 container max-w-md mx-auto px-4 pb-20 pt-6 relative">
         <Outlet />
       </main>

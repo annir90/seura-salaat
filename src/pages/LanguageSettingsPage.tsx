@@ -29,8 +29,21 @@ const LanguageSettingsPage = () => {
     const newLanguage = languageCode as LanguageCode;
     setLanguage(newLanguage);
     setCurrentLanguage(newLanguage);
-    toast.success(`Language updated to ${languages.find(l => l.code === newLanguage)?.name}`);
-    setTimeout(() => window.location.reload(), 500);
+    
+    const languageName = languages.find(l => l.code === newLanguage)?.name;
+    toast.success(`Language updated to ${languageName}`);
+    
+    // Trigger storage event for same-tab updates
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'app-language',
+      newValue: newLanguage,
+      oldValue: getCurrentLanguage()
+    }));
+    
+    // Small delay to show toast before reload
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   return (
