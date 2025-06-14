@@ -29,21 +29,21 @@ interface SoundOption {
 const soundOptions: SoundOption[] = [
   {
     id: "traditional-adhan",
-    name: "Traditional Adhan",
+    name: "Adhan",
     file: "/audio/traditional-adhan.mp3",
-    description: "Classic call to prayer"
+    description: "Traditional call to prayer"
   },
   {
     id: "makkah-adhan", 
-    name: "Makkah Adhan",
+    name: "Beep",
     file: "/audio/makkah-adhan.mp3",
-    description: "From the Holy Mosque"
+    description: "Simple beep sound"
   },
   {
     id: "soft-notification",
-    name: "Soft Notification",
+    name: "Soft",
     file: "/audio/soft-notification.mp3", 
-    description: "Gentle reminder tone"
+    description: "Gentle notification tone"
   }
 ];
 

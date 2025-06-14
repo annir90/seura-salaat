@@ -82,12 +82,11 @@ class NotificationService {
     // Clear all existing notifications
     this.clearAllNotifications();
 
-    // Get user preferences
-    const notificationsEnabled = localStorage.getItem('prayer-notifications-enabled') !== 'false';
-    const notificationTiming = parseInt(localStorage.getItem('prayer-notification-timing') || '5', 10);
+    // Get global notification setting
+    const globalNotificationsEnabled = localStorage.getItem('prayer-notifications-enabled') !== 'false';
 
-    if (!notificationsEnabled) {
-      console.log('Prayer notifications are disabled');
+    if (!globalNotificationsEnabled) {
+      console.log('Prayer notifications are disabled globally');
       return;
     }
 
@@ -102,7 +101,7 @@ class NotificationService {
     }
 
     for (const prayer of prayerTimes) {
-      await this.schedulePrayerNotification(prayer, notificationTiming);
+      await this.schedulePrayerNotification(prayer);
     }
 
     // Mark as scheduled for today
@@ -110,8 +109,19 @@ class NotificationService {
     console.log('All prayer notifications scheduled for today');
   }
 
-  private async schedulePrayerNotification(prayer: PrayerTime, minutesBefore: number): Promise<void> {
+  private async schedulePrayerNotification(prayer: PrayerTime): Promise<void> {
     try {
+      // Check if notifications are enabled for this specific prayer
+      const prayerNotificationEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
+      
+      if (!prayerNotificationEnabled) {
+        console.log(`Notifications disabled for ${prayer.name}`);
+        return;
+      }
+
+      // Get timing for this specific prayer (default to 10 if not set)
+      const minutesBefore = parseInt(localStorage.getItem(`prayer-timing-${prayer.id}`) || '10', 10);
+      
       const now = new Date();
       const [hours, minutes] = prayer.time.split(':').map(Number);
       
@@ -124,16 +134,10 @@ class NotificationService {
       }
 
       const delay = prayerDate.getTime() - now.getTime();
-      console.log(`Scheduling ${prayer.name} notification in ${Math.round(delay / 1000)} seconds`);
+      console.log(`Scheduling ${prayer.name} notification in ${Math.round(delay / 1000)} seconds (${minutesBefore} min before prayer)`);
 
       // Get user's selected sound for this prayer
       const selectedSound = localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'traditional-adhan';
-      const notificationEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
-
-      if (!notificationEnabled) {
-        console.log(`Notifications disabled for ${prayer.name}`);
-        return;
-      }
 
       // Use service worker for background notifications that work when app is closed
       if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {

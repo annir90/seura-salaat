@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Bell, Clock } from "lucide-react";
+import { ArrowLeft, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { notificationService } from "@/services/notificationService";
@@ -11,19 +10,14 @@ import { getTranslation } from "@/services/translationService";
 
 const NotificationSettingsPage = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [notificationTiming, setNotificationTiming] = useState("5");
   const t = getTranslation();
 
   useEffect(() => {
     // Load saved preferences
     const savedNotificationState = localStorage.getItem('prayer-notifications-enabled');
-    const savedTiming = localStorage.getItem('prayer-notification-timing');
     
     if (savedNotificationState !== null) {
       setNotificationsEnabled(savedNotificationState === 'true');
-    }
-    if (savedTiming) {
-      setNotificationTiming(savedTiming);
     }
   }, []);
 
@@ -54,15 +48,6 @@ const NotificationSettingsPage = () => {
         description: "Prayer reminders have been turned off.",
       });
     }
-  };
-
-  const handleTimingChange = (value: string) => {
-    setNotificationTiming(value);
-    localStorage.setItem('prayer-notification-timing', value);
-    toast({
-      title: "Timing Updated",
-      description: `Notifications will appear ${value} minutes before prayer time.`,
-    });
   };
 
   return (
@@ -96,34 +81,6 @@ const NotificationSettingsPage = () => {
               </div>
             </CardContent>
           </Card>
-
-          {notificationsEnabled && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-prayer-primary" />
-                  {t.notificationTiming}
-                </CardTitle>
-                <CardDescription>
-                  How many minutes before prayer time to notify
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Select value={notificationTiming} onValueChange={handleTimingChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 {t.minutesBefore}</SelectItem>
-                    <SelectItem value="5">5 {t.minutesBefore}</SelectItem>
-                    <SelectItem value="10">10 {t.minutesBefore}</SelectItem>
-                    <SelectItem value="15">15 {t.minutesBefore}</SelectItem>
-                    <SelectItem value="30">30 {t.minutesBefore}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

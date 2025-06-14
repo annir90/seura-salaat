@@ -19,7 +19,7 @@ const TasbihPage = () => {
     }
 
     const savedVibration = localStorage.getItem('tasbih-vibration');
-    if (savedVibration) {
+    if (savedVibration !== null) {
       setIsVibrationEnabled(savedVibration === 'true');
     }
   }, []);
@@ -60,10 +60,17 @@ const TasbihPage = () => {
     
     if (newValue) {
       toast.success("Vibration enabled");
-      vibrate();
+      // Test vibration when enabled
+      if ('vibrate' in navigator) {
+        navigator.vibrate(100);
+      }
     } else {
       toast.success("Vibration disabled");
     }
+  };
+
+  const handleBackClick = () => {
+    navigate('/');
   };
 
   return (
@@ -74,7 +81,7 @@ const TasbihPage = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/settings')}
+            onClick={handleBackClick}
             className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
             <ArrowLeft className="h-6 w-6" />
