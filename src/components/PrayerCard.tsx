@@ -15,11 +15,13 @@ interface PrayerCardProps {
 
 const STORAGE_KEY_PREFIX = "prayer_adhan_";
 const NOTIFICATION_TOGGLE_PREFIX = "prayer-notification-";
+const NOTIFICATION_TIMING_PREFIX = "prayer-timing-";
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan");
   const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [notificationTiming, setNotificationTiming] = useState("10");
 
   // Load saved preferences from localStorage on component mount
   useEffect(() => {
@@ -41,6 +43,12 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       const savedNotificationState = localStorage.getItem(`${NOTIFICATION_TOGGLE_PREFIX}${prayer.id}`);
       if (savedNotificationState !== null) {
         setNotificationEnabled(savedNotificationState === 'true');
+      }
+
+      // Load notification timing
+      const savedTiming = localStorage.getItem(`${NOTIFICATION_TIMING_PREFIX}${prayer.id}`);
+      if (savedTiming) {
+        setNotificationTiming(savedTiming);
       }
     } catch (error) {
       console.error("Error loading prayer preferences:", error);
@@ -131,6 +139,21 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     }
   };
 
+  const handleTimingChange = (timing: string) => {
+    try {
+      if (!prayer?.id) {
+        console.error("Cannot change timing: prayer id is missing");
+        return;
+      }
+      
+      setNotificationTiming(timing);
+      localStorage.setItem(`${NOTIFICATION_TIMING_PREFIX}${prayer.id}`, timing);
+      console.log(`Notification timing set to ${timing} minutes for prayer ${prayer.name}`);
+    } catch (error) {
+      console.error("Error saving notification timing:", error);
+    }
+  };
+
   const prayerName = prayer.name || "Unknown Prayer";
   const prayerTime = prayer.time || "00:00";
 
@@ -155,6 +178,9 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
           )}
         </div>
         <p className="font-medium text-lg md:text-xl text-prayer-primary">{prayerTime}</p>
+        {notificationEnabled && (
+          <p className="text-xs text-muted-foreground mt-1">{notificationTiming} min before</p>
+        )}
       </div>
       
       <div className="flex items-center gap-2">
@@ -187,6 +213,8 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         selectedSoundId={selectedSound}
         notificationEnabled={notificationEnabled}
         onNotificationToggle={handleNotificationToggle}
+        notificationTiming={notificationTiming}
+        onTimingChange={handleTimingChange}
       />
     </div>
   );
