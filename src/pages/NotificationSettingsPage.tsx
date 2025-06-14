@@ -42,7 +42,7 @@ const NotificationSettingsPage = () => {
         });
       }
     } else {
-      notificationService.clearAllNotifications();
+      notificationService.cancelAllNotifications();
       toast({
         title: "Notifications Disabled",
         description: "Prayer reminders have been turned off.",

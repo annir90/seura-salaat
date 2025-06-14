@@ -131,7 +131,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       
       if (!enabled) {
         // Clear any existing notification for this prayer
-        notificationService.clearNotificationForPrayer(prayer.id);
+        notificationService.cancelNotification(prayer.id);
       }
     } catch (error) {
       console.error("Error saving notification preference:", error);

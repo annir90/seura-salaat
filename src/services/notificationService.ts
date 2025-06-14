@@ -16,7 +16,7 @@ export interface NotificationOptions {
 export class NotificationService {
   private isSupported: boolean = false;
   private permission: NotificationPermission = 'default';
-  private scheduledNotifications: Map<string, number> = new Map();
+  private scheduledNotifications: Map<string, NodeJS.Timeout> = new Map();
 
   constructor() {
     this.isSupported = 'Notification' in window;
@@ -174,7 +174,10 @@ export class NotificationService {
 
   async cancelNotification(prayerId: string): Promise<void> {
     if (this.scheduledNotifications.has(prayerId)) {
-      clearTimeout(this.scheduledNotifications.get(prayerId));
+      const timeoutId = this.scheduledNotifications.get(prayerId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       this.scheduledNotifications.delete(prayerId);
       console.log(`Notification cancelled for prayer ID: ${prayerId}`);
     } else {
@@ -184,7 +187,9 @@ export class NotificationService {
 
   async cancelAllNotifications(): Promise<void> {
     this.scheduledNotifications.forEach((timeoutId) => {
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     });
     this.scheduledNotifications.clear();
 
