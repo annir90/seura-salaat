@@ -6,10 +6,8 @@ const config: CapacitorConfig = {
   appName: 'faith-flow-mobile',
   webDir: 'dist',
   bundledWebRuntime: false,
-  server: {
-    url: "https://d7360491-a249-4f6e-9474-c67ad3a482a2.lovableproject.com?forceHideBadge=true",
-    cleartext: true
-  },
+  // Remove the server configuration for native builds
+  // The server config is only needed for live reload during development
   plugins: {
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
