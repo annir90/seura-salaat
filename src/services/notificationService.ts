@@ -70,9 +70,9 @@ export class NotificationService {
     switch (soundId) {
       case 'adhan-traditional':
         return 'traditional_adhan.wav';
-      case 'adhan-mecca':
+      case 'adhan-soft':
         return 'soft_notification.wav';
-      case 'notification-tone':
+      case 'notification-beep':
         return 'makkah_adhan.wav';
       default:
         return 'traditional_adhan.wav';
@@ -260,10 +260,10 @@ export class NotificationService {
         case 'adhan-traditional':
           soundFile = 'traditional-adhan.mp3';
           break;
-        case 'adhan-mecca':
+        case 'adhan-soft':
           soundFile = 'soft-notification.mp3';
           break;
-        case 'notification-tone':
+        case 'notification-beep':
           soundFile = 'makkah-adhan.mp3';
           break;
         default:

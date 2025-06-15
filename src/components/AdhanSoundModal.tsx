@@ -34,13 +34,13 @@ const soundOptions: SoundOption[] = [
     description: "Traditional Adhan sound"
   },
   {
-    id: "adhan-mecca", 
+    id: "adhan-soft", 
     name: "Soft",
     file: "/audio/soft-notification.mp3",
     description: "Soft notification sound"
   },
   {
-    id: "notification-tone",
+    id: "notification-beep",
     name: "Beep",
     file: "/audio/makkah-adhan.mp3", 
     description: "Simple beep notification"
