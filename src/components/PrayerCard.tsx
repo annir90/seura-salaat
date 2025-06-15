@@ -113,6 +113,14 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       setSelectedSound(soundId);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}${prayer.id}`, soundId);
       console.log(`Selected sound ${soundId} for prayer ${prayer.name}`);
+      
+      // Reschedule notifications with new sound
+      if (notificationEnabled) {
+        notificationService.cancelNotification(prayer.id).then(() => {
+          const minutesBefore = parseInt(notificationTiming, 10);
+          notificationService.scheduleNotification(prayer, minutesBefore, soundId);
+        });
+      }
     } catch (error) {
       console.error("Error saving sound preference:", error);
     }
@@ -129,7 +137,11 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       localStorage.setItem(`${NOTIFICATION_TOGGLE_PREFIX}${prayer.id}`, enabled.toString());
       console.log(`Notification ${enabled ? 'enabled' : 'disabled'} for prayer ${prayer.name}`);
       
-      if (!enabled) {
+      if (enabled) {
+        // Schedule notification with current settings
+        const minutesBefore = parseInt(notificationTiming, 10);
+        notificationService.scheduleNotification(prayer, minutesBefore, selectedSound);
+      } else {
         // Clear any existing notification for this prayer
         notificationService.cancelNotification(prayer.id);
       }
@@ -148,6 +160,14 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       setNotificationTiming(timing);
       localStorage.setItem(`${NOTIFICATION_TIMING_PREFIX}${prayer.id}`, timing);
       console.log(`Notification timing set to ${timing} minutes for prayer ${prayer.name}`);
+      
+      // Reschedule notification with new timing
+      if (notificationEnabled) {
+        notificationService.cancelNotification(prayer.id).then(() => {
+          const minutesBefore = parseInt(timing, 10);
+          notificationService.scheduleNotification(prayer, minutesBefore, selectedSound);
+        });
+      }
     } catch (error) {
       console.error("Error saving notification timing:", error);
     }

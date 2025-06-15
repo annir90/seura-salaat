@@ -79,11 +79,43 @@ export class NotificationService {
     }
   }
 
-  async scheduleNotification(prayer: PrayerTime, minutesBefore: number = 5, soundId: string = 'traditional-adhan'): Promise<void> {
+  private isNotificationEnabledForPrayer(prayerId: string): boolean {
+    // Check if notifications are enabled globally
+    const globalNotificationState = localStorage.getItem('prayer-notifications-enabled');
+    if (globalNotificationState === 'false') {
+      return false;
+    }
+
+    // Check if notifications are enabled for this specific prayer
+    const prayerNotificationState = localStorage.getItem(`prayer-notification-${prayerId}`);
+    return prayerNotificationState !== 'false'; // Default to true if not set
+  }
+
+  private getNotificationTimingForPrayer(prayerId: string): number {
+    const prayerTiming = localStorage.getItem(`prayer-timing-${prayerId}`);
+    return prayerTiming ? parseInt(prayerTiming, 10) : 10; // Default to 10 minutes
+  }
+
+  private getSoundForPrayer(prayerId: string): string {
+    const prayerSound = localStorage.getItem(`prayer_adhan_${prayerId}`);
+    return prayerSound || 'traditional-adhan'; // Default to traditional adhan
+  }
+
+  async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> {
     if (!this.permission) {
       console.warn('Notification permission has not been granted.');
       return;
     }
+
+    // Check if notifications are enabled for this prayer
+    if (!this.isNotificationEnabledForPrayer(prayer.id)) {
+      console.log(`Notifications disabled for ${prayer.name}, skipping.`);
+      return;
+    }
+
+    // Use prayer-specific settings if not provided
+    const actualMinutesBefore = minutesBefore || this.getNotificationTimingForPrayer(prayer.id);
+    const actualSoundId = soundId || this.getSoundForPrayer(prayer.id);
 
     try {
       // Calculate notification time
@@ -97,7 +129,7 @@ export class NotificationService {
         prayerTime.setDate(prayerTime.getDate() + 1);
       }
       
-      const notificationTime = new Date(prayerTime.getTime() - (minutesBefore * 60 * 1000));
+      const notificationTime = new Date(prayerTime.getTime() - (actualMinutesBefore * 60 * 1000));
 
       if (notificationTime <= now) {
         console.log(`Time for ${prayer.name} notification is in the past, skipping.`);
@@ -112,7 +144,7 @@ export class NotificationService {
         // Use Capacitor local notifications for native apps
         const notificationId = parseInt(prayer.id.replace(/\D/g, '') || '0') + Date.now() % 1000;
         
-        const soundFileName = this.getSoundFileName(soundId);
+        const soundFileName = this.getSoundFileName(actualSoundId);
         
         const notification: ScheduleOptions = {
           notifications: [{
@@ -120,14 +152,14 @@ export class NotificationService {
             body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: soundFileName, // Use the .wav filename directly
+            sound: soundFileName, // Use the selected .wav filename
             smallIcon: 'ic_stat_icon_config_sample',
             iconColor: '#488AFF',
             attachments: [],
             actionTypeId: '',
             extra: {
               prayerId: prayer.id,
-              soundId: soundId,
+              soundId: actualSoundId,
               time: prayer.time,
               prayerName: prayer.name,
               minutesLeft: minutesLeft
@@ -151,7 +183,7 @@ export class NotificationService {
             silent: false
           });
 
-          this.playNotificationSound(soundId);
+          this.playNotificationSound(actualSoundId);
           this.vibrateDevice();
         } catch (error) {
           console.error('Error showing web notification:', error);
@@ -205,18 +237,15 @@ export class NotificationService {
   }
 
   async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> {
-    const storedMinutesBefore = localStorage.getItem('prayerapp-notification-minutes-before');
-    const minutesBefore = storedMinutesBefore ? parseInt(storedMinutesBefore, 10) : 5;
-    const soundId = localStorage.getItem('prayerapp-notification-sound') || 'traditional-adhan';
-
     // Cancel existing notifications first
     await this.cancelAllNotifications();
 
-    console.log(`Scheduling notifications for ${prayers.length} prayers with sound: ${soundId}`);
+    console.log(`Scheduling notifications for ${prayers.length} prayers`);
 
     for (const prayer of prayers) {
       try {
-        await this.scheduleNotification(prayer, minutesBefore, soundId);
+        // Each prayer will use its own settings
+        await this.scheduleNotification(prayer);
       } catch (error) {
         console.error(`Failed to schedule notification for ${prayer.name}:`, error);
       }
