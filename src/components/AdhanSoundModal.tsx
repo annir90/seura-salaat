@@ -28,22 +28,22 @@ interface SoundOption {
 
 const soundOptions: SoundOption[] = [
   {
-    id: "traditional-adhan",
-    name: "Traditional Adhan",
-    file: "/audio/traditional-adhan.mp3",
-    description: "Traditional call to prayer"
+    id: "adhan-mecca",
+    name: "Adhan Mecca",
+    file: "/audio/adhan-mecca.mp3",
+    description: "Beautiful Adhan from Mecca"
   },
   {
-    id: "makkah-adhan", 
-    name: "Makkah Adhan",
-    file: "/audio/makkah-adhan.mp3",
-    description: "Adhan from Makkah"
+    id: "adhan-traditional", 
+    name: "Adhan Traditional",
+    file: "/audio/adhan-traditional.mp3",
+    description: "Classic traditional Adhan"
   },
   {
-    id: "soft-notification",
-    name: "Soft Notification",
-    file: "/audio/soft-notification.mp3", 
-    description: "Gentle notification tone"
+    id: "notification-tone",
+    name: "Notification Tone",
+    file: "/audio/notification-tone.mp3", 
+    description: "Simple notification sound"
   }
 ];
 
@@ -80,8 +80,12 @@ const AdhanSoundModal = ({
       const audio = new Audio(soundOption.file);
       audioRef.current = audio;
       
+      // Set volume to ensure it's audible
+      audio.volume = 0.7;
+      
       audio.play().then(() => {
         setPlayingSound(soundOption.id);
+        console.log(`Playing sound: ${soundOption.name}`);
       }).catch(error => {
         console.error("Error playing sound:", error);
         setPlayingSound(null);
@@ -94,8 +98,8 @@ const AdhanSoundModal = ({
       });
 
       // Handle audio errors
-      audio.addEventListener('error', () => {
-        console.error("Audio error for:", soundOption.file);
+      audio.addEventListener('error', (e) => {
+        console.error("Audio error for:", soundOption.file, e);
         setPlayingSound(null);
         audioRef.current = null;
       });
@@ -118,7 +122,7 @@ const AdhanSoundModal = ({
 
   const handleSoundSelect = (soundId: string) => {
     onSelect(soundId);
-    console.log(`Selected sound: ${soundId} for native notifications`);
+    console.log(`Selected sound: ${soundId} for notifications`);
   };
 
   return (

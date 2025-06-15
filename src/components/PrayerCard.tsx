@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { PrayerTime } from "@/services/prayerTimeService";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ const NOTIFICATION_TIMING_PREFIX = "prayer-timing-";
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSound, setSelectedSound] = useState<string | undefined>("traditional-adhan");
+  const [selectedSound, setSelectedSound] = useState<string | undefined>("adhan-traditional");
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [notificationTiming, setNotificationTiming] = useState("10");
 

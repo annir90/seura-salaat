@@ -1,4 +1,3 @@
-
 import { PrayerTime } from "./prayerTimeService";
 import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
@@ -69,13 +68,13 @@ export class NotificationService {
   private getSoundFileName(soundId: string): string {
     // Map sound IDs to actual .wav filenames for native Android
     switch (soundId) {
-      case 'makkah-adhan':
-        return 'makkah_adhan.wav';
-      case 'soft-notification':
-        return 'soft_notification.wav';
-      case 'traditional-adhan':
+      case 'adhan-mecca':
+        return 'adhan_mecca.wav';
+      case 'notification-tone':
+        return 'notification_tone.wav';
+      case 'adhan-traditional':
       default:
-        return 'traditional_adhan.wav';
+        return 'adhan_traditional.wav';
     }
   }
 
@@ -98,7 +97,7 @@ export class NotificationService {
 
   private getSoundForPrayer(prayerId: string): string {
     const prayerSound = localStorage.getItem(`prayer_adhan_${prayerId}`);
-    return prayerSound || 'traditional-adhan'; // Default to traditional adhan
+    return prayerSound || 'adhan-traditional'; // Default to traditional adhan
   }
 
   async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> {
@@ -252,10 +251,23 @@ export class NotificationService {
     }
   }
 
-  playNotificationSound(soundId: string = 'traditional-adhan'): void {
+  playNotificationSound(soundId: string = 'adhan-traditional'): void {
     if (!Capacitor.isNativePlatform()) {
       // Only play sound on web, native notifications handle sound automatically
-      const soundFile = this.getSoundFileName(soundId).replace('.wav', '.mp3');
+      let soundFile: string;
+      switch (soundId) {
+        case 'adhan-mecca':
+          soundFile = 'adhan-mecca.mp3';
+          break;
+        case 'notification-tone':
+          soundFile = 'notification-tone.mp3';
+          break;
+        case 'adhan-traditional':
+        default:
+          soundFile = 'adhan-traditional.mp3';
+          break;
+      }
+      
       const audio = new Audio(`/audio/${soundFile}`);
       audio.play()
         .catch(error => console.error("Error playing sound:", error));
