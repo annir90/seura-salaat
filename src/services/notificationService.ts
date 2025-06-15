@@ -68,13 +68,14 @@ export class NotificationService {
   private getSoundFileName(soundId: string): string {
     // Map sound IDs to actual .wav filenames for native Android
     switch (soundId) {
-      case 'adhan-mecca':
-        return 'adhan_mecca.wav';
-      case 'notification-tone':
-        return 'notification_tone.wav';
       case 'adhan-traditional':
+        return 'traditional_adhan.wav';
+      case 'adhan-mecca':
+        return 'soft_notification.wav';
+      case 'notification-tone':
+        return 'makkah_adhan.wav';
       default:
-        return 'adhan_traditional.wav';
+        return 'traditional_adhan.wav';
     }
   }
 
@@ -256,15 +257,17 @@ export class NotificationService {
       // Only play sound on web, native notifications handle sound automatically
       let soundFile: string;
       switch (soundId) {
+        case 'adhan-traditional':
+          soundFile = 'traditional-adhan.mp3';
+          break;
         case 'adhan-mecca':
-          soundFile = 'adhan-mecca.mp3';
+          soundFile = 'soft-notification.mp3';
           break;
         case 'notification-tone':
-          soundFile = 'notification-tone.mp3';
+          soundFile = 'makkah-adhan.mp3';
           break;
-        case 'adhan-traditional':
         default:
-          soundFile = 'adhan-traditional.mp3';
+          soundFile = 'traditional-adhan.mp3';
           break;
       }
       
