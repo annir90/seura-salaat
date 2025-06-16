@@ -1,18 +1,9 @@
-import { PrayerTime } from "./prayerTimeService";
-import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
-import { Capacitor } from '@capacitor/core';
 
-export interface NotificationOptions {
-  body: string;
-  icon: string;
-  tag: string;
-  requireInteraction: boolean;
-  badge: string;
-  silent: boolean;
-  actions: { action: string; title: string; }[];
-  data: any;
-  title: string;
-}
+import { PrayerTime } from "./prayerTimeService";
+import { Capacitor } from '@capacitor/core';
+import { isNotificationEnabledForPrayer, getNotificationTimingForPrayer, getSoundForPrayer } from './notification/settingsHelper';
+import { showWebNotification, playNotificationSound, vibrateDevice } from './notification/webNotifications';
+import { scheduleNativeNotification, cancelNativeNotification, cancelAllNativeNotifications } from './notification/nativeNotifications';
 
 export class NotificationService {
   private isSupported: boolean = false;
@@ -40,6 +31,7 @@ export class NotificationService {
   async requestPermission(): Promise<boolean> {
     if (Capacitor.isNativePlatform()) {
       try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
         const permission = await LocalNotifications.requestPermissions();
         this.permission = permission.display === 'granted';
         return this.permission;
@@ -65,45 +57,6 @@ export class NotificationService {
     }
   }
 
-  private getSoundFileName(soundId: string): string {
-    // Map sound IDs to actual .wav filenames for native Android
-    console.log('Getting sound filename for soundId:', soundId);
-    switch (soundId) {
-      case 'adhan-traditional':
-        return 'adhan.wav';
-      case 'adhan-soft':
-        return 'soft.wav';
-      case 'notification-beep':
-        return 'beep.wav';
-      default:
-        console.log('Using default sound for unknown soundId:', soundId);
-        return 'adhan.wav';
-    }
-  }
-
-  private isNotificationEnabledForPrayer(prayerId: string): boolean {
-    // Check if notifications are enabled globally
-    const globalNotificationState = localStorage.getItem('prayer-notifications-enabled');
-    if (globalNotificationState === 'false') {
-      return false;
-    }
-
-    // Check if notifications are enabled for this specific prayer
-    const prayerNotificationState = localStorage.getItem(`prayer-notification-${prayerId}`);
-    return prayerNotificationState !== 'false'; // Default to true if not set
-  }
-
-  private getNotificationTimingForPrayer(prayerId: string): number {
-    const prayerTiming = localStorage.getItem(`prayer-timing-${prayerId}`);
-    return prayerTiming ? parseInt(prayerTiming, 10) : 10; // Default to 10 minutes
-  }
-
-  private getSoundForPrayer(prayerId: string): string {
-    const prayerSound = localStorage.getItem(`prayer_adhan_${prayerId}`);
-    console.log(`Retrieved sound for prayer ${prayerId}:`, prayerSound);
-    return prayerSound || 'adhan-traditional'; // Default to traditional adhan
-  }
-
   async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> {
     if (!this.permission) {
       console.warn('Notification permission has not been granted.');
@@ -111,14 +64,14 @@ export class NotificationService {
     }
 
     // Check if notifications are enabled for this prayer
-    if (!this.isNotificationEnabledForPrayer(prayer.id)) {
+    if (!isNotificationEnabledForPrayer(prayer.id)) {
       console.log(`Notifications disabled for ${prayer.name}, skipping.`);
       return;
     }
 
     // Use prayer-specific settings if not provided
-    const actualMinutesBefore = minutesBefore || this.getNotificationTimingForPrayer(prayer.id);
-    const actualSoundId = soundId || this.getSoundForPrayer(prayer.id);
+    const actualMinutesBefore = minutesBefore || getNotificationTimingForPrayer(prayer.id);
+    const actualSoundId = soundId || getSoundForPrayer(prayer.id);
 
     console.log(`Scheduling notification for ${prayer.name} with sound: ${actualSoundId}`);
 
@@ -146,54 +99,14 @@ export class NotificationService {
       const minutesLeft = Math.round(timeDiff / (1000 * 60));
 
       if (Capacitor.isNativePlatform()) {
-        // Use Capacitor local notifications for native apps
-        const notificationId = parseInt(prayer.id.replace(/\D/g, '') || '0') + Date.now() % 1000;
-        
-        const soundFileName = this.getSoundFileName(actualSoundId);
-        console.log(`Using sound file: ${soundFileName} for prayer: ${prayer.name}`);
-        
-        const notification: ScheduleOptions = {
-          notifications: [{
-            title: `${prayer.name} Prayer Reminder`,
-            body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-            id: notificationId,
-            schedule: { at: notificationTime },
-            sound: soundFileName, // Use the selected .wav filename
-            smallIcon: 'ic_stat_icon_config_sample',
-            iconColor: '#488AFF',
-            attachments: [],
-            actionTypeId: '',
-            extra: {
-              prayerId: prayer.id,
-              soundId: actualSoundId,
-              time: prayer.time,
-              prayerName: prayer.name,
-              minutesLeft: minutesLeft
-            }
-          }]
-        };
-
-        await LocalNotifications.schedule(notification);
-        this.scheduledNotificationIds.add(notificationId);
-        
-        console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()} with sound: ${soundFileName}`);
+        await scheduleNativeNotification(prayer, notificationTime, minutesLeft, actualSoundId, this.scheduledNotificationIds);
       } else {
         // Web fallback - immediate notification
-        try {
-          new Notification(`${prayer.name} Prayer Reminder`, {
-            body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-            icon: '/favicon.ico',
-            tag: `prayer-${prayer.id}`,
-            requireInteraction: true,
-            badge: '/favicon.ico',
-            silent: false
-          });
-
-          this.playNotificationSound(actualSoundId);
-          this.vibrateDevice();
-        } catch (error) {
-          console.error('Error showing web notification:', error);
-        }
+        showWebNotification(
+          `${prayer.name} Prayer Reminder`,
+          `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
+          actualSoundId
+        );
       }
       
     } catch (error) {
@@ -203,21 +116,7 @@ export class NotificationService {
 
   async cancelNotification(prayerId: string): Promise<void> {
     if (Capacitor.isNativePlatform()) {
-      try {
-        // For native apps, we need to find and cancel the specific notification
-        const pending = await LocalNotifications.getPending();
-        const notificationToCancel = pending.notifications.find(
-          notification => notification.extra?.prayerId === prayerId
-        );
-        
-        if (notificationToCancel) {
-          await LocalNotifications.cancel({ notifications: [{ id: notificationToCancel.id }] });
-          this.scheduledNotificationIds.delete(notificationToCancel.id);
-          console.log(`Native notification cancelled for prayer ID: ${prayerId}`);
-        }
-      } catch (error) {
-        console.error('Error cancelling native notification:', error);
-      }
+      await cancelNativeNotification(prayerId, this.scheduledNotificationIds);
     } else {
       console.log(`Web notification cancellation not implemented for prayer ID: ${prayerId}`);
     }
@@ -225,18 +124,7 @@ export class NotificationService {
 
   async cancelAllNotifications(): Promise<void> {
     if (Capacitor.isNativePlatform()) {
-      try {
-        const pending = await LocalNotifications.getPending();
-        if (pending.notifications.length > 0) {
-          await LocalNotifications.cancel({ 
-            notifications: pending.notifications.map(n => ({ id: n.id }))
-          });
-        }
-        this.scheduledNotificationIds.clear();
-        console.log('All native notifications cancelled.');
-      } catch (error) {
-        console.error('Error cancelling all native notifications:', error);
-      }
+      await cancelAllNativeNotifications(this.scheduledNotificationIds);
     } else {
       console.log('All web notifications cancelled.');
     }
@@ -261,31 +149,13 @@ export class NotificationService {
   playNotificationSound(soundId: string = 'adhan-traditional'): void {
     if (!Capacitor.isNativePlatform()) {
       // Only play sound on web, native notifications handle sound automatically
-      let soundFile: string;
-      switch (soundId) {
-        case 'adhan-traditional':
-          soundFile = 'traditional-adhan.mp3';
-          break;
-        case 'adhan-soft':
-          soundFile = 'soft-notification.mp3';
-          break;
-        case 'notification-beep':
-          soundFile = 'makkah-adhan.mp3';
-          break;
-        default:
-          soundFile = 'traditional-adhan.mp3';
-          break;
-      }
-      
-      const audio = new Audio(`/audio/${soundFile}`);
-      audio.play()
-        .catch(error => console.error("Error playing sound:", error));
+      playNotificationSound(soundId);
     }
   }
 
   vibrateDevice(): void {
-    if (!Capacitor.isNativePlatform() && navigator.vibrate) {
-      navigator.vibrate([200, 100, 200]);
+    if (!Capacitor.isNativePlatform()) {
+      vibrateDevice();
     }
     // Native apps handle vibration automatically with notifications
   }
