@@ -67,15 +67,17 @@ export class NotificationService {
 
   private getSoundFileName(soundId: string): string {
     // Map sound IDs to actual .wav filenames for native Android
+    console.log('Getting sound filename for soundId:', soundId);
     switch (soundId) {
       case 'adhan-traditional':
-        return 'traditional_adhan.wav';
+        return 'adhan.wav';
       case 'adhan-soft':
-        return 'soft_notification.wav';
+        return 'soft.wav';
       case 'notification-beep':
-        return 'makkah_adhan.wav';
+        return 'beep.wav';
       default:
-        return 'traditional_adhan.wav';
+        console.log('Using default sound for unknown soundId:', soundId);
+        return 'adhan.wav';
     }
   }
 
@@ -98,6 +100,7 @@ export class NotificationService {
 
   private getSoundForPrayer(prayerId: string): string {
     const prayerSound = localStorage.getItem(`prayer_adhan_${prayerId}`);
+    console.log(`Retrieved sound for prayer ${prayerId}:`, prayerSound);
     return prayerSound || 'adhan-traditional'; // Default to traditional adhan
   }
 
@@ -116,6 +119,8 @@ export class NotificationService {
     // Use prayer-specific settings if not provided
     const actualMinutesBefore = minutesBefore || this.getNotificationTimingForPrayer(prayer.id);
     const actualSoundId = soundId || this.getSoundForPrayer(prayer.id);
+
+    console.log(`Scheduling notification for ${prayer.name} with sound: ${actualSoundId}`);
 
     try {
       // Calculate notification time
@@ -145,6 +150,7 @@ export class NotificationService {
         const notificationId = parseInt(prayer.id.replace(/\D/g, '') || '0') + Date.now() % 1000;
         
         const soundFileName = this.getSoundFileName(actualSoundId);
+        console.log(`Using sound file: ${soundFileName} for prayer: ${prayer.name}`);
         
         const notification: ScheduleOptions = {
           notifications: [{

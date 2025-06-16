@@ -38,13 +38,29 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
   
+  console.log(`Current time: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTime} minutes)`);
+  
+  // Debug: Log all prayer times
+  prayers.forEach(prayer => {
+    if (prayer.time && prayer.time !== "00:00") {
+      const [hours, minutes] = prayer.time.split(":").map(Number);
+      const prayerTime = hours * 60 + minutes;
+      console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'}`);
+    }
+  });
+  
   // Find the next prayer that hasn't passed yet today
   let nextPrayerIndex = prayers.findIndex(prayer => {
-    if (!prayer.time || prayer.time === "00:00") return false;
+    if (!prayer.time || prayer.time === "00:00") {
+      console.log(`Skipping ${prayer.name} - invalid time: ${prayer.time}`);
+      return false;
+    }
     try {
       const [hours, minutes] = prayer.time.split(":").map(Number);
       const prayerTime = hours * 60 + minutes;
-      return prayerTime > currentTime;
+      const isNext = prayerTime > currentTime;
+      console.log(`Checking ${prayer.name}: ${prayer.time} - ${isNext ? 'NEXT CANDIDATE' : 'ALREADY PASSED'}`);
+      return isNext;
     } catch (error) {
       console.error("Error parsing prayer time:", prayer.time, error);
       return false;
@@ -54,6 +70,9 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   // If no prayer found for today, next prayer is tomorrow's Fajr
   if (nextPrayerIndex === -1) {
     nextPrayerIndex = 0; // Fajr is the first prayer
+    console.log('No more prayers today, next prayer is tomorrow\'s Fajr');
+  } else {
+    console.log(`Next prayer is: ${prayers[nextPrayerIndex].name} at ${prayers[nextPrayerIndex].time}`);
   }
   
   // Mark the next prayer
@@ -97,12 +116,14 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
       { id: "isha", name: t.isha, time: formatTime(timings.Isha), isNext: false }
     ];
     
-    console.log("Processed prayers:", prayers);
+    console.log("Processed prayers before determining next:", prayers);
     
     // Determine next prayer only for today's times with accurate transition
     const isToday = date.toDateString() === new Date().toDateString();
     if (isToday) {
-      return determineNextPrayer(prayers);
+      const updatedPrayers = determineNextPrayer(prayers);
+      console.log("Processed prayers after determining next:", updatedPrayers);
+      return updatedPrayers;
     }
     
     return prayers;
