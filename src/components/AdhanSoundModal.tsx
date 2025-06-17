@@ -76,29 +76,83 @@ const AdhanSoundModal = ({
         return;
       }
 
-      // Create new audio element
+      // Create new audio element with better mobile support
       const audio = new Audio();
       audioRef.current = audio;
       
-      // Set up audio with better error handling
-      audio.preload = 'auto';
+      // Enhanced audio setup for mobile devices
+      audio.preload = 'metadata';
       audio.volume = 0.8;
+      audio.crossOrigin = 'anonymous';
       
-      // Handle loading
+      // Add user interaction for mobile Safari
+      const playPromise = () => {
+        return new Promise<void>((resolve, reject) => {
+          const attemptPlay = () => {
+            audio.play()
+              .then(() => {
+                setPlayingSound(soundOption.id);
+                console.log(`Playing sound: ${soundOption.name}`);
+                resolve();
+              })
+              .catch((error) => {
+                console.error("Error playing sound:", error);
+                // Try to play with user gesture
+                if (error.name === 'NotAllowedError') {
+                  // Create a temporary button for user interaction
+                  const playButton = document.createElement('button');
+                  playButton.textContent = 'Tap to play sound';
+                  playButton.style.position = 'fixed';
+                  playButton.style.top = '50%';
+                  playButton.style.left = '50%';
+                  playButton.style.transform = 'translate(-50%, -50%)';
+                  playButton.style.zIndex = '9999';
+                  playButton.style.padding = '10px';
+                  playButton.style.backgroundColor = '#007bff';
+                  playButton.style.color = 'white';
+                  playButton.style.border = 'none';
+                  playButton.style.borderRadius = '5px';
+                  
+                  playButton.onclick = () => {
+                    audio.play().then(() => {
+                      setPlayingSound(soundOption.id);
+                      document.body.removeChild(playButton);
+                      resolve();
+                    }).catch(reject);
+                  };
+                  
+                  document.body.appendChild(playButton);
+                  
+                  // Auto-remove after 5 seconds
+                  setTimeout(() => {
+                    if (document.body.contains(playButton)) {
+                      document.body.removeChild(playButton);
+                      reject(new Error('User interaction timeout'));
+                    }
+                  }, 5000);
+                } else {
+                  reject(error);
+                }
+              });
+          };
+          
+          attemptPlay();
+        });
+      };
+
+      // Set up event listeners
       audio.addEventListener('loadstart', () => {
         console.log(`Loading sound: ${soundOption.name}`);
       });
 
-      // Handle successful load
-      audio.addEventListener('canplaythrough', () => {
-        console.log(`Sound loaded: ${soundOption.name}`);
-        audio.play().then(() => {
-          setPlayingSound(soundOption.id);
-          console.log(`Playing sound: ${soundOption.name}`);
-        }).catch(error => {
-          console.error("Error playing sound:", error);
+      audio.addEventListener('canplay', async () => {
+        console.log(`Sound ready to play: ${soundOption.name}`);
+        try {
+          await playPromise();
+        } catch (error) {
+          console.error("Failed to play after loading:", error);
           setPlayingSound(null);
-        });
+        }
       });
 
       // When audio ends, reset playing state
