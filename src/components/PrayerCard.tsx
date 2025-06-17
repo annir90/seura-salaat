@@ -46,22 +46,22 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
 
   return (
     <>
-      <Card className="prayer-card mb-4 border-border/50 hover:border-prayer-primary/30 transition-all duration-200">
+      <Card className="mb-4">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Clock className="h-5 w-5 text-prayer-primary" />
                 <div>
-                  <h3 className="font-semibold text-lg text-foreground flex items-center gap-2">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
                     {prayer.name}
                     {prayer.isNext && (
-                      <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs px-2 py-1">
-                        {t.next}
+                      <Badge variant="secondary" className="text-xs">
+                        Next
                       </Badge>
                     )}
                   </h3>
-                  <p className="prayer-time">{prayer.time}</p>
+                  <p className="text-muted-foreground">{prayer.time}</p>
                 </div>
               </div>
             </div>
@@ -71,7 +71,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowSoundModal(true)}
-                className="text-prayer-primary hover:bg-prayer-primary/10"
               >
                 <Volume2 className="h-5 w-5" />
               </Button>
