@@ -61,7 +61,7 @@ const AdhanSoundModal = ({
   const [playingSound, setPlayingSound] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handlePlaySound = (soundOption: SoundOption) => {
+  const handlePlaySound = async (soundOption: SoundOption) => {
     try {
       // Stop current audio if playing
       if (audioRef.current) {
@@ -76,19 +76,29 @@ const AdhanSoundModal = ({
         return;
       }
 
-      // Play new sound
-      const audio = new Audio(soundOption.file);
+      // Create new audio element
+      const audio = new Audio();
       audioRef.current = audio;
       
-      // Set volume to ensure it's audible
-      audio.volume = 0.7;
+      // Set up audio with better error handling
+      audio.preload = 'auto';
+      audio.volume = 0.8;
       
-      audio.play().then(() => {
-        setPlayingSound(soundOption.id);
-        console.log(`Playing sound: ${soundOption.name}`);
-      }).catch(error => {
-        console.error("Error playing sound:", error);
-        setPlayingSound(null);
+      // Handle loading
+      audio.addEventListener('loadstart', () => {
+        console.log(`Loading sound: ${soundOption.name}`);
+      });
+
+      // Handle successful load
+      audio.addEventListener('canplaythrough', () => {
+        console.log(`Sound loaded: ${soundOption.name}`);
+        audio.play().then(() => {
+          setPlayingSound(soundOption.id);
+          console.log(`Playing sound: ${soundOption.name}`);
+        }).catch(error => {
+          console.error("Error playing sound:", error);
+          setPlayingSound(null);
+        });
       });
 
       // When audio ends, reset playing state
@@ -103,6 +113,10 @@ const AdhanSoundModal = ({
         setPlayingSound(null);
         audioRef.current = null;
       });
+
+      // Set source and load
+      audio.src = soundOption.file;
+      audio.load();
 
     } catch (error) {
       console.error("Error in handlePlaySound:", error);
