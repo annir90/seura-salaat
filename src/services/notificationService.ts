@@ -69,9 +69,10 @@ export class NotificationService {
       return;
     }
 
-    // Use prayer-specific settings if not provided
+    // Use prayer-specific settings if not provided, with global sound preference as priority
     const actualMinutesBefore = minutesBefore || getNotificationTimingForPrayer(prayer.id);
-    const actualSoundId = soundId || getSoundForPrayer(prayer.id);
+    const globalSoundPreference = localStorage.getItem('prayerapp-notification-sound');
+    const actualSoundId = globalSoundPreference || soundId || getSoundForPrayer(prayer.id);
 
     console.log(`Scheduling notification for ${prayer.name} with sound: ${actualSoundId}`);
 
