@@ -11,6 +11,7 @@ export interface Translation {
   jumaaPrayer: string;
   prayerTime: string;
   joinUsText: string;
+  next: string;
   
   // Prayer names
   fajr: string;
@@ -128,6 +129,7 @@ const englishTranslations: Translation = {
   jumaaPrayer: "Jumaa Prayer",
   prayerTime: "Prayer time",
   joinUsText: "Join us for Friday prayer (Salat al-Jumaa) at the mosque. Remember to arrive early for the khutbah.",
+  next: "Next",
   
   // Prayer names
   fajr: "Fajr",
@@ -245,6 +247,7 @@ const finnishTranslations: Translation = {
   jumaaPrayer: "Jumaa-rukous",
   prayerTime: "Rukousaika",
   joinUsText: "Liity meihin perjantain rukouksessa (Salat al-Jumaa) moskeijassa. Muista saapua ajoissa khutbaa varten.",
+  next: "Seuraava",
   
   // Prayer names
   fajr: "Fajr",
@@ -287,7 +290,7 @@ const finnishTranslations: Translation = {
   
   // Quran page
   selectSurahToRead: "Valitse suura aloittaaksesi lukemisen",
-  continueReading: "Jatka lukemista",
+  continueReading: "Vazhdoni Leximin",
   endOfSurah: "Suuran loppu",
   verses: "säettä",
   
@@ -362,6 +365,7 @@ const albanianTranslations: Translation = {
   jumaaPrayer: "Namazi i Xhumasë",
   prayerTime: "Koha e namazit",
   joinUsText: "Bashkohuni me ne për namazin e xhumasë në xhami. Kujtoni të mbërrini herët për hutbenë.",
+  next: "Tjetër",
   
   // Prayer names
   fajr: "Sabahu",
