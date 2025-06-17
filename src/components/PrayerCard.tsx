@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Volume2 } from "lucide-react";
+import { Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AdhanSoundModal from "./AdhanSoundModal";
@@ -51,7 +51,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <Clock className="h-5 w-5 text-prayer-primary" />
                 <div>
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     {prayer.name}
@@ -71,8 +70,10 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowSoundModal(true)}
+                className="relative"
               >
-                <Volume2 className="h-5 w-5" />
+                <div className="absolute inset-0 bg-prayer-primary/20 rounded-full"></div>
+                <Volume2 className="h-5 w-5 relative z-10" />
               </Button>
             </div>
           </div>
