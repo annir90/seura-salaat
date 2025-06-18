@@ -14,45 +14,41 @@ interface PrayerCardProps {
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const [showSoundModal, setShowSoundModal] = useState(false);
-  const t = getTranslation();
-
-  // Get current settings for this prayer
-  const getNotificationEnabled = () => {
+  const [notificationEnabled, setNotificationEnabled] = useState(() => {
     const globalEnabled = localStorage.getItem('prayer-notifications-enabled') !== 'false';
     const prayerEnabled = localStorage.getItem(`prayer-notification-${prayer.id}`) !== 'false';
     return globalEnabled && prayerEnabled;
-  };
-
-  const getNotificationTiming = () => {
+  });
+  const [notificationTiming, setNotificationTiming] = useState(() => {
     return localStorage.getItem(`prayer-timing-${prayer.id}`) || '10';
-  };
-
-  const getSelectedSound = () => {
-    // First check global sound preference
+  });
+  const [selectedSound, setSelectedSound] = useState(() => {
     const globalSound = localStorage.getItem('prayerapp-notification-sound');
     if (globalSound) {
       return globalSound;
     }
-    // Fallback to prayer-specific sound
-    return localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'adhan-traditional';
-  };
+    return localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'adhan';
+  });
+
+  const t = getTranslation();
 
   const handleSoundSelect = (soundId: string) => {
-    // Store both globally and per-prayer for consistency
+    console.log(`Sound selected for ${prayer.name}: ${soundId}`);
+    setSelectedSound(soundId);
     localStorage.setItem('prayerapp-notification-sound', soundId);
     localStorage.setItem(`prayer_adhan_${prayer.id}`, soundId);
-    console.log(`Sound selected for ${prayer.name}: ${soundId}`);
-    console.log(`Global sound preference updated: ${soundId}`);
   };
 
   const handleNotificationToggle = (enabled: boolean) => {
-    localStorage.setItem(`prayer-notification-${prayer.id}`, enabled.toString());
     console.log(`Notification for ${prayer.name} ${enabled ? 'enabled' : 'disabled'}`);
+    setNotificationEnabled(enabled);
+    localStorage.setItem(`prayer-notification-${prayer.id}`, enabled.toString());
   };
 
   const handleTimingChange = (timing: string) => {
-    localStorage.setItem(`prayer-timing-${prayer.id}`, timing);
     console.log(`Notification timing for ${prayer.name} set to ${timing} minutes`);
+    setNotificationTiming(timing);
+    localStorage.setItem(`prayer-timing-${prayer.id}`, timing);
   };
 
   return (
@@ -71,7 +67,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                       </Badge>
                     )}
                   </h3>
-                  <p className="text-muted-foreground">{prayer.time}</p>
+                  <p className="text-prayer-primary font-semibold text-lg">{prayer.time}</p>
                 </div>
               </div>
             </div>
@@ -96,10 +92,10 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         onClose={() => setShowSoundModal(false)}
         prayerName={prayer.name}
         onSelect={handleSoundSelect}
-        selectedSoundId={getSelectedSound()}
-        notificationEnabled={getNotificationEnabled()}
+        selectedSoundId={selectedSound}
+        notificationEnabled={notificationEnabled}
         onNotificationToggle={handleNotificationToggle}
-        notificationTiming={getNotificationTiming()}
+        notificationTiming={notificationTiming}
         onTimingChange={handleTimingChange}
       />
     </>
