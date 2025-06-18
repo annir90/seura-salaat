@@ -11,12 +11,12 @@ export const scheduleNativeNotification = async (
 ): Promise<void> => {
   const notificationId = parseInt(prayer.id.replace(/\D/g, '') || '0') + Date.now() % 1000;
   
-  // Always use the global sound preference first
-  const globalSoundPreference = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
+  // Always get the current sound preference from localStorage
+  const selectedSound = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
   
   // Convert sound ID to filename for native notifications
-  const soundFileName = getSoundFileName(globalSoundPreference);
-  console.log(`Using global sound preference: ${globalSoundPreference} -> ${soundFileName} for prayer: ${prayer.name}`);
+  const soundFileName = getSoundFileName(selectedSound);
+  console.log(`Using selected sound: ${selectedSound} -> ${soundFileName} for prayer: ${prayer.name}`);
   
   const notification: ScheduleOptions = {
     notifications: [{
@@ -31,7 +31,7 @@ export const scheduleNativeNotification = async (
       actionTypeId: '',
       extra: {
         prayerId: prayer.id,
-        soundId: globalSoundPreference,
+        soundId: selectedSound,
         time: prayer.time,
         prayerName: prayer.name,
         minutesLeft: minutesLeft
@@ -42,7 +42,7 @@ export const scheduleNativeNotification = async (
   await LocalNotifications.schedule(notification);
   scheduledNotificationIds.add(notificationId);
   
-  console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()} with global sound: ${soundFileName}`);
+  console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()} with sound: ${soundFileName}`);
 };
 
 export const cancelNativeNotification = async (prayerId: string, scheduledNotificationIds: Set<number>): Promise<void> => {

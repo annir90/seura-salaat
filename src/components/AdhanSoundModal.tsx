@@ -47,10 +47,13 @@ const AdhanSoundModal = ({
   };
 
   const handleSoundPlay = (soundId: string) => {
+    const soundOption = soundOptions.find(s => s.id === soundId);
+    if (!soundOption) return;
+    
     if (playingSound === soundId) {
       stopCurrentAudio();
     } else {
-      playSound(soundId);
+      playSound(soundOption);
     }
   };
 
