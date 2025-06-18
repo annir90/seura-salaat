@@ -1,3 +1,4 @@
+
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -44,7 +45,13 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   prayers.forEach(prayer => {
     if (prayer.time && prayer.time !== "00:00") {
       const [hours, minutes] = prayer.time.split(":").map(Number);
-      const prayerTime = hours * 60 + minutes;
+      let prayerTime = hours * 60 + minutes;
+      
+      // Handle prayers that cross midnight (like Isha)
+      if (prayer.id === 'isha' && hours < 6) {
+        prayerTime = prayerTime + (24 * 60); // Add 24 hours for next day
+      }
+      
       console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'}`);
     }
   });
@@ -57,7 +64,13 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
     }
     try {
       const [hours, minutes] = prayer.time.split(":").map(Number);
-      const prayerTime = hours * 60 + minutes;
+      let prayerTime = hours * 60 + minutes;
+      
+      // Handle prayers that cross midnight (like Isha)
+      if (prayer.id === 'isha' && hours < 6) {
+        prayerTime = prayerTime + (24 * 60); // Add 24 hours for next day
+      }
+      
       const isNext = prayerTime > currentTime;
       console.log(`Checking ${prayer.name}: ${prayer.time} - ${isNext ? 'NEXT CANDIDATE' : 'ALREADY PASSED'}`);
       return isNext;

@@ -10,6 +10,7 @@ import { getTranslation } from "@/services/translationService";
 
 const NotificationSettingsPage = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const t = getTranslation();
 
   useEffect(() => {
@@ -22,31 +23,49 @@ const NotificationSettingsPage = () => {
   }, []);
 
   const handleNotificationToggle = async (enabled: boolean) => {
-    setNotificationsEnabled(enabled);
-    localStorage.setItem('prayer-notifications-enabled', enabled.toString());
+    setIsLoading(true);
+    console.log(`Toggling notifications: ${enabled}`);
     
-    if (enabled) {
-      const hasPermission = await notificationService.requestPermission();
-      if (!hasPermission) {
-        toast({
-          title: "Permission Required",
-          description: "Please allow notifications in your browser settings.",
-          variant: "destructive",
-        });
+    try {
+      if (enabled) {
+        console.log('Requesting notification permission...');
+        const hasPermission = await notificationService.requestPermission();
+        console.log('Permission result:', hasPermission);
+        
+        if (!hasPermission) {
+          toast({
+            title: "Permission Required",
+            description: "Please allow notifications in your browser settings.",
+            variant: "destructive",
+          });
+          setNotificationsEnabled(false);
+          localStorage.setItem('prayer-notifications-enabled', 'false');
+        } else {
+          setNotificationsEnabled(true);
+          localStorage.setItem('prayer-notifications-enabled', 'true');
+          toast({
+            title: "Notifications Enabled",
+            description: "You'll receive prayer time reminders.",
+          });
+        }
+      } else {
         setNotificationsEnabled(false);
         localStorage.setItem('prayer-notifications-enabled', 'false');
-      } else {
+        notificationService.cancelAllNotifications();
         toast({
-          title: "Notifications Enabled",
-          description: "You'll receive prayer time reminders.",
+          title: "Notifications Disabled",
+          description: "Prayer reminders have been turned off.",
         });
       }
-    } else {
-      notificationService.cancelAllNotifications();
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
       toast({
-        title: "Notifications Disabled",
-        description: "Prayer reminders have been turned off.",
+        title: "Error",
+        description: "Failed to update notification settings.",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,6 +96,7 @@ const NotificationSettingsPage = () => {
                 <Switch
                   checked={notificationsEnabled}
                   onCheckedChange={handleNotificationToggle}
+                  disabled={isLoading}
                 />
               </div>
             </CardContent>

@@ -28,20 +28,31 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   };
 
   const getSelectedSound = () => {
+    // First check global sound preference
+    const globalSound = localStorage.getItem('prayerapp-notification-sound');
+    if (globalSound) {
+      return globalSound;
+    }
+    // Fallback to prayer-specific sound
     return localStorage.getItem(`prayer_adhan_${prayer.id}`) || 'adhan-traditional';
   };
 
   const handleSoundSelect = (soundId: string) => {
+    // Store both globally and per-prayer for consistency
+    localStorage.setItem('prayerapp-notification-sound', soundId);
     localStorage.setItem(`prayer_adhan_${prayer.id}`, soundId);
     console.log(`Sound selected for ${prayer.name}: ${soundId}`);
+    console.log(`Global sound preference updated: ${soundId}`);
   };
 
   const handleNotificationToggle = (enabled: boolean) => {
     localStorage.setItem(`prayer-notification-${prayer.id}`, enabled.toString());
+    console.log(`Notification for ${prayer.name} ${enabled ? 'enabled' : 'disabled'}`);
   };
 
   const handleTimingChange = (timing: string) => {
     localStorage.setItem(`prayer-timing-${prayer.id}`, timing);
+    console.log(`Notification timing for ${prayer.name} set to ${timing} minutes`);
   };
 
   return (
