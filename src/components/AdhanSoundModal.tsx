@@ -45,6 +45,11 @@ const AdhanSoundModal = ({
     console.log(`Selected sound: ${soundId} for notifications`);
   };
 
+  const handleNotificationToggle = (checked: boolean) => {
+    console.log('Switch toggled:', checked);
+    onNotificationToggle(checked);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -62,7 +67,7 @@ const AdhanSoundModal = ({
               <span className="text-sm font-medium">Enable Notifications</span>
               <Switch
                 checked={notificationEnabled}
-                onCheckedChange={onNotificationToggle}
+                onCheckedChange={handleNotificationToggle}
               />
             </div>
           </div>
