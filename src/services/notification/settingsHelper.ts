@@ -17,7 +17,14 @@ export const getNotificationTimingForPrayer = (prayerId: string): number => {
 };
 
 export const getSoundForPrayer = (prayerId: string): string => {
+  // Always use global sound preference first
+  const globalSound = localStorage.getItem('prayerapp-notification-sound');
+  if (globalSound) {
+    return globalSound;
+  }
+  
+  // Fallback to prayer-specific sound (legacy)
   const prayerSound = localStorage.getItem(`prayer_adhan_${prayerId}`);
   console.log(`Retrieved sound for prayer ${prayerId}:`, prayerSound);
-  return prayerSound || 'adhan-traditional'; // Default to traditional adhan
+  return prayerSound || 'adhan'; // Default to 'adhan'
 };

@@ -1,7 +1,6 @@
-
 import { PrayerTime } from "./prayerTimeService";
 import { Capacitor } from '@capacitor/core';
-import { isNotificationEnabledForPrayer, getNotificationTimingForPrayer, getSoundForPrayer } from './notification/settingsHelper';
+import { isNotificationEnabledForPrayer, getNotificationTimingForPrayer } from './notification/settingsHelper';
 import { showWebNotification, playNotificationSound, vibrateDevice } from './notification/webNotifications';
 import { scheduleNativeNotification, cancelNativeNotification, cancelAllNativeNotifications } from './notification/nativeNotifications';
 
@@ -69,12 +68,11 @@ export class NotificationService {
       return;
     }
 
-    // Use prayer-specific settings if not provided, with global sound preference as priority
+    // Use prayer-specific timing settings and global sound preference
     const actualMinutesBefore = minutesBefore || getNotificationTimingForPrayer(prayer.id);
-    const globalSoundPreference = localStorage.getItem('prayerapp-notification-sound');
-    const actualSoundId = globalSoundPreference || soundId || getSoundForPrayer(prayer.id);
+    const globalSoundPreference = localStorage.getItem('prayerapp-notification-sound') || 'adhan';
 
-    console.log(`Scheduling notification for ${prayer.name} with sound: ${actualSoundId}`);
+    console.log(`Scheduling notification for ${prayer.name} with global sound: ${globalSoundPreference}`);
 
     try {
       // Calculate notification time
@@ -100,13 +98,13 @@ export class NotificationService {
       const minutesLeft = Math.round(timeDiff / (1000 * 60));
 
       if (Capacitor.isNativePlatform()) {
-        await scheduleNativeNotification(prayer, notificationTime, minutesLeft, actualSoundId, this.scheduledNotificationIds);
+        await scheduleNativeNotification(prayer, notificationTime, minutesLeft, globalSoundPreference, this.scheduledNotificationIds);
       } else {
         // Web fallback - immediate notification
         showWebNotification(
           `${prayer.name} Prayer Reminder`,
           `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-          actualSoundId
+          globalSoundPreference
         );
       }
       
@@ -147,10 +145,11 @@ export class NotificationService {
     }
   }
 
-  playNotificationSound(soundId: string = 'adhan-traditional'): void {
+  playNotificationSound(soundId: string = 'adhan'): void {
     if (!Capacitor.isNativePlatform()) {
-      // Only play sound on web, native notifications handle sound automatically
-      playNotificationSound(soundId);
+      // Use global sound preference if no soundId provided
+      const globalSound = localStorage.getItem('prayerapp-notification-sound') || soundId;
+      playNotificationSound(globalSound);
     }
   }
 
