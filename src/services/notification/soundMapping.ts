@@ -6,25 +6,23 @@ export const getSoundFileName = (soundId: string): string => {
   const selectedSound = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
   console.log('Selected sound from localStorage:', selectedSound);
   
+  // Map to actual filenames without extension for native notifications
   switch (selectedSound) {
     case 'adhan':
     case 'adhan-traditional':
-      return 'traditional_adhan.wav';
+    case 'traditional_adhan':
+      return 'adhan';
     case 'soft':
     case 'adhan-soft':
-      return 'soft_notification.wav';
+    case 'soft_notification':
+      return 'soft';
     case 'beep':
     case 'notification-beep':
-      return 'makkah_adhan.wav';
     case 'makkah_adhan':
-      return 'makkah_adhan.wav';
-    case 'soft_notification':
-      return 'soft_notification.wav';
-    case 'traditional_adhan':
-      return 'traditional_adhan.wav';
+      return 'beep';
     default:
       console.log('Using default sound for unknown soundId:', selectedSound);
-      return 'traditional_adhan.wav';
+      return 'adhan';
   }
 };
 
