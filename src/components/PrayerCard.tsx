@@ -91,6 +91,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
         isOpen={showSoundModal}
         onClose={() => setShowSoundModal(false)}
         prayerName={prayer.name}
+        prayerId={prayer.id}
         onSelect={handleSoundSelect}
         selectedSoundId={selectedSound}
         notificationEnabled={notificationEnabled}

@@ -11,12 +11,9 @@ export const scheduleNativeNotification = async (
 ): Promise<void> => {
   const notificationId = parseInt(prayer.id.replace(/\D/g, '') || '0') + Date.now() % 1000;
   
-  // Always get the current sound preference from localStorage
-  const selectedSound = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
-  
-  // Convert sound ID to filename for native notifications
-  const soundFileName = getSoundFileName(selectedSound);
-  console.log(`Using selected sound: ${selectedSound} -> ${soundFileName} for prayer: ${prayer.name}`);
+  // Get sound for this specific prayer (includes custom sounds)
+  const soundFileName = getSoundFileName(soundId, prayer.id);
+  console.log(`Using sound for ${prayer.name} (${prayer.id}): ${soundFileName}`);
   
   const notification: ScheduleOptions = {
     notifications: [{
@@ -27,11 +24,12 @@ export const scheduleNativeNotification = async (
       sound: soundFileName,
       smallIcon: 'ic_stat_icon_config_sample',
       iconColor: '#488AFF',
+      channelId: `prayer_${prayer.id.toLowerCase()}`, // Use prayer-specific channel
       attachments: [],
       actionTypeId: '',
       extra: {
         prayerId: prayer.id,
-        soundId: selectedSound,
+        soundId: soundFileName,
         time: prayer.time,
         prayerName: prayer.name,
         minutesLeft: minutesLeft

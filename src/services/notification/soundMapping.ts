@@ -1,6 +1,17 @@
 
-export const getSoundFileName = (soundId: string): string => {
-  console.log('Getting sound filename for soundId:', soundId);
+export const getSoundFileName = (soundId: string, prayerId?: string): string => {
+  console.log('Getting sound filename for soundId:', soundId, 'prayerId:', prayerId);
+  
+  // Check for custom sound first if prayerId is provided
+  if (prayerId) {
+    const customSoundPath = localStorage.getItem(`custom_sound_${prayerId}`);
+    if (customSoundPath) {
+      console.log('Using custom sound for prayer:', prayerId, customSoundPath);
+      // Extract filename without path and extension for Android
+      const fileName = customSoundPath.split('/').pop()?.split('.')[0] || 'adhan';
+      return fileName;
+    }
+  }
   
   // Get the selected sound from localStorage
   const selectedSound = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
@@ -26,7 +37,16 @@ export const getSoundFileName = (soundId: string): string => {
   }
 };
 
-export const getWebSoundFile = (soundId: string): string => {
+export const getWebSoundFile = (soundId: string, prayerId?: string): string => {
+  // Check for custom sound first if prayerId is provided
+  if (prayerId) {
+    const customSoundPath = localStorage.getItem(`custom_sound_${prayerId}`);
+    if (customSoundPath) {
+      console.log('Using custom web sound for prayer:', prayerId, customSoundPath);
+      return customSoundPath;
+    }
+  }
+  
   // Get the selected sound from localStorage
   const selectedSound = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
   
@@ -46,4 +66,20 @@ export const getWebSoundFile = (soundId: string): string => {
     default:
       return 'traditional-adhan.mp3';
   }
+};
+
+export const saveCustomSoundForPrayer = (prayerId: string, soundPath: string, fileName: string): void => {
+  localStorage.setItem(`custom_sound_${prayerId}`, soundPath);
+  localStorage.setItem(`custom_sound_filename_${prayerId}`, fileName);
+  console.log(`Saved custom sound for prayer ${prayerId}:`, soundPath);
+};
+
+export const getCustomSoundForPrayer = (prayerId: string): string | null => {
+  return localStorage.getItem(`custom_sound_${prayerId}`);
+};
+
+export const removeCustomSoundForPrayer = (prayerId: string): void => {
+  localStorage.removeItem(`custom_sound_${prayerId}`);
+  localStorage.removeItem(`custom_sound_filename_${prayerId}`);
+  console.log(`Removed custom sound for prayer ${prayerId}`);
 };
