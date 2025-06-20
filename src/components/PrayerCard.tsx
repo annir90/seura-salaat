@@ -77,12 +77,9 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowSoundModal(true)}
-                className="relative"
+                className={`relative ${notificationEnabled ? 'bg-prayer-primary/20' : ''}`}
               >
-                {notificationEnabled && (
-                  <div className="absolute inset-0 bg-prayer-primary/20 rounded-full"></div>
-                )}
-                <Volume2 className="h-5 w-5 relative z-10" />
+                <Volume2 className="h-5 w-5" />
               </Button>
             </div>
           </div>

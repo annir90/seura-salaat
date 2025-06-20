@@ -17,7 +17,7 @@ export const getNotificationTimingForPrayer = (prayerId: string): number => {
 };
 
 export const getSoundForPrayer = (prayerId: string): string => {
-  // Always use global sound preference first
+  // Always use global sound preference
   const globalSound = localStorage.getItem('prayerapp-notification-sound');
   if (globalSound) {
     return globalSound;
