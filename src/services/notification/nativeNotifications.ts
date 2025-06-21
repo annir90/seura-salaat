@@ -1,4 +1,3 @@
-
 import { PrayerTime } from "../prayerTimeService";
 import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
 import { getSoundFileName } from './soundMapping';
@@ -14,39 +13,34 @@ export const scheduleNativeNotification = async (
   
   // Get sound for this specific prayer (includes custom sounds)
   const soundFileName = getSoundFileName(soundId, prayer.id);
-  console.log(`Scheduling notification for ${prayer.name} (${prayer.id}) with sound: ${soundFileName}`);
+  console.log(`Using sound for ${prayer.name} (${prayer.id}): ${soundFileName}`);
   
-  try {
-    const notification: ScheduleOptions = {
-      notifications: [{
-        title: `${prayer.name} Prayer Reminder`,
-        body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-        id: notificationId,
-        schedule: { at: notificationTime },
-        sound: soundFileName, // Android expects just the filename without extension
-        smallIcon: 'ic_stat_icon_config_sample',
-        iconColor: '#488AFF',
-        channelId: `prayer_${prayer.id.toLowerCase()}`, // Use prayer-specific channel
-        attachments: [],
-        actionTypeId: '',
-        extra: {
-          prayerId: prayer.id,
-          soundId: soundFileName,
-          time: prayer.time,
-          prayerName: prayer.name,
-          minutesLeft: minutesLeft
-        }
-      }]
-    };
+  const notification: ScheduleOptions = {
+    notifications: [{
+      title: `${prayer.name} Prayer Reminder`,
+      body: `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
+      id: notificationId,
+      schedule: { at: notificationTime },
+      sound: soundFileName,
+      smallIcon: 'ic_stat_icon_config_sample',
+      iconColor: '#488AFF',
+      channelId: `prayer_${prayer.id.toLowerCase()}`, // Use prayer-specific channel
+      attachments: [],
+      actionTypeId: '',
+      extra: {
+        prayerId: prayer.id,
+        soundId: soundFileName,
+        time: prayer.time,
+        prayerName: prayer.name,
+        minutesLeft: minutesLeft
+      }
+    }]
+  };
 
-    await LocalNotifications.schedule(notification);
-    scheduledNotificationIds.add(notificationId);
-    
-    console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()} with sound: ${soundFileName}`);
-  } catch (error) {
-    console.error(`Error scheduling notification for ${prayer.name}:`, error);
-    throw error;
-  }
+  await LocalNotifications.schedule(notification);
+  scheduledNotificationIds.add(notificationId);
+  
+  console.log(`Native notification scheduled for ${prayer.name} at ${notificationTime.toLocaleString()} with sound: ${soundFileName}`);
 };
 
 export const cancelNativeNotification = async (prayerId: string, scheduledNotificationIds: Set<number>): Promise<void> => {

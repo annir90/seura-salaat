@@ -22,7 +22,6 @@ export const getSoundFileName = (soundId: string, prayerId?: string): string => 
     case 'adhan':
     case 'adhan-traditional':
     case 'traditional_adhan':
-    case 'makkah_adhan':
       return 'adhan';
     case 'soft':
     case 'adhan-soft':
@@ -30,10 +29,42 @@ export const getSoundFileName = (soundId: string, prayerId?: string): string => 
       return 'soft';
     case 'beep':
     case 'notification-beep':
+    case 'makkah_adhan':
       return 'beep';
     default:
       console.log('Using default sound for unknown soundId:', selectedSound);
       return 'adhan';
+  }
+};
+
+export const getWebSoundFile = (soundId: string, prayerId?: string): string => {
+  // Check for custom sound first if prayerId is provided
+  if (prayerId) {
+    const customSoundPath = localStorage.getItem(`custom_sound_${prayerId}`);
+    if (customSoundPath) {
+      console.log('Using custom web sound for prayer:', prayerId, customSoundPath);
+      return customSoundPath;
+    }
+  }
+  
+  // Get the selected sound from localStorage
+  const selectedSound = localStorage.getItem('prayerapp-notification-sound') || soundId || 'adhan';
+  
+  switch (selectedSound) {
+    case 'adhan':
+    case 'adhan-traditional':
+    case 'traditional_adhan':
+      return 'traditional-adhan.mp3';
+    case 'soft':
+    case 'adhan-soft':
+    case 'soft_notification':
+      return 'soft-notification.mp3';
+    case 'beep':
+    case 'notification-beep':
+    case 'makkah_adhan':
+      return 'makkah-adhan.mp3';
+    default:
+      return 'traditional-adhan.mp3';
   }
 };
 
