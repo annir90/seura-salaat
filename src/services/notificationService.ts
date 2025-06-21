@@ -14,7 +14,7 @@ export class NotificationService {
     this.initialize();
   }
 
-  private async initialize(): Promise<void> {
+  private async initialize(): Promise<void> => {
     if (Capacitor.isNativePlatform()) {
       this.isSupported = true;
       await this.requestPermission();
@@ -25,7 +25,7 @@ export class NotificationService {
     }
   }
 
-  private async setupChannels(): Promise<void> {
+  private async setupChannels(): Promise<void> => {
     try {
       await setupPrayerNotificationChannels();
       console.log('Prayer notification channels setup completed');
@@ -52,7 +52,7 @@ export class NotificationService {
     }
   }
 
-  async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> {
+  async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> => {
     if (!this.permission) {
       console.warn('Notification permission has not been granted.');
       return;
@@ -100,15 +100,15 @@ export class NotificationService {
     }
   }
 
-  async cancelNotification(prayerId: string): Promise<void> {
+  async cancelNotification(prayerId: string): Promise<void> => {
     await cancelNativeNotification(prayerId, this.scheduledNotificationIds);
   }
 
-  async cancelAllNotifications(): Promise<void> {
+  async cancelAllNotifications(): Promise<void> => {
     await cancelAllNativeNotifications(this.scheduledNotificationIds);
   }
 
-  async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> {
+  async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> => {
     // Cancel existing notifications first
     await this.cancelAllNotifications();
 

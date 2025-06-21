@@ -1,15 +1,33 @@
 
-// This file is kept for compatibility but contains no web functionality
-// since this app is Android-only
+import { getWebSoundFile } from './soundMapping';
 
 export const showWebNotification = (title: string, body: string, soundId: string): void => {
-  console.warn('Web notifications are not supported - this app is Android-only');
+  try {
+    new Notification(title, {
+      body,
+      icon: '/favicon.ico',
+      tag: `prayer-notification`,
+      requireInteraction: true,
+      badge: '/favicon.ico',
+      silent: false
+    });
+
+    playNotificationSound(soundId);
+    vibrateDevice();
+  } catch (error) {
+    console.error('Error showing web notification:', error);
+  }
 };
 
-export const playNotificationSound = (soundId: string = 'adhan'): void => {
-  console.warn('Web sound playback is not supported - this app is Android-only');
+export const playNotificationSound = (soundId: string = 'adhan-traditional'): void => {
+  const soundFile = getWebSoundFile(soundId);
+  const audio = new Audio(`/audio/${soundFile}`);
+  audio.play()
+    .catch(error => console.error("Error playing sound:", error));
 };
 
 export const vibrateDevice = (): void => {
-  console.warn('Web vibration is not supported - this app is Android-only');
+  if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
+  }
 };
