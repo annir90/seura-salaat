@@ -77,9 +77,9 @@ class NotificationService {
 
   private getSoundFile(soundId: string): string {
     const soundMap: Record<string, string> = {
-      'adhan-traditional': '/audio/traditional-adhan.mp3',
-      'adhan-soft': '/audio/soft-notification.mp3',
-      'notification-beep': '/audio/makkah-adhan.mp3'
+      'adhan-traditional': 'res://adhan.wav',
+      'adhan-soft': 'res://soft.wav',
+      'notification-beep': 'res://beep.wav'
     };
     return soundMap[soundId] || soundMap['adhan-traditional'];
   }
@@ -163,7 +163,7 @@ class NotificationService {
             }
           });
 
-          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()}`);
+          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with sound: ${this.getSoundFile(prayerSettings.sound)}`);
         } catch (error) {
           console.error(`Error scheduling notification for ${prayer.name}:`, error);
         }
@@ -205,6 +205,36 @@ class NotificationService {
       }
     } catch (error) {
       console.error(`Error cancelling notifications for ${prayerId}:`, error);
+    }
+  }
+
+  async sendTestNotification(): Promise<void> {
+    try {
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) {
+        console.log('No notification permission for test notification');
+        return;
+      }
+
+      const t = getTranslation();
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title: t.prayerReminder || 'Prayer Reminder',
+            body: t.testNotificationSent || 'This is a test notification',
+            id: 999999,
+            schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
+            sound: 'res://adhan.wav',
+            actionTypeId: '',
+            extra: {
+              isTest: true
+            }
+          }
+        ]
+      });
+      console.log('Test notification scheduled');
+    } catch (error) {
+      console.error('Error sending test notification:', error);
     }
   }
 }

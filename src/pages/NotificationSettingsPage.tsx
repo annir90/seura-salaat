@@ -208,7 +208,8 @@ const NotificationSettingsPage = () => {
           <Card className="mt-6 shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
             <CardContent className="p-4">
               <Button
-                onClick={() => {
+                onClick={async () => {
+                  await notificationService.sendTestNotification();
                   toast.success(t.testNotificationSent || "Test notification sent");
                 }}
                 className="w-full"
