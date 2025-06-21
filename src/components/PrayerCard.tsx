@@ -109,7 +109,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   ];
 
   return (
-    <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-orange-500' : ''}`}>
+    <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-primary' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -118,7 +118,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                 <h3 className="font-semibold text-lg flex items-center gap-2">
                   {prayer.name}
                   {prayer.isNext && (
-                    <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs animate-pulse">
+                    <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs animate-pulse">
                       Next
                     </Badge>
                   )}
@@ -131,11 +131,11 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
           {showNotificationBell && (
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
               <PopoverTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-orange-500/10 hover:bg-orange-500/20 flex items-center justify-center transition-colors">
+                <button className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors">
                   {isNotificationEnabled ? (
-                    <Bell className="h-5 w-5 text-orange-500" />
+                    <Bell className="h-5 w-5 text-primary" />
                   ) : (
-                    <BellOff className="h-5 w-5 text-orange-500" />
+                    <BellOff className="h-5 w-5 text-primary" />
                   )}
                 </button>
               </PopoverTrigger>
