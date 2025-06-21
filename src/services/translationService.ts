@@ -1,3 +1,4 @@
+
 export interface Translation {
   // Navigation
   home: string;
@@ -45,6 +46,20 @@ export interface Translation {
   language: string;
   enableNotifications: string;
   howManyMinutesBefore: string;
+  
+  // Notification settings - new additions
+  notificationPermissionGranted: string;
+  notificationPermissionDenied: string;
+  atPrayerTime: string;
+  manageNotificationSettings: string;
+  notificationPermissionRequired: string;
+  notificationPermissionDescription: string;
+  notificationSound: string;
+  testNotificationSent: string;
+  sendTestNotification: string;
+  prayerReminder: string;
+  in: string;
+  minutes: string;
   
   // Share app section
   shareApp: string;
@@ -164,6 +179,20 @@ const englishTranslations: Translation = {
   enableNotifications: "Enable Notifications",
   howManyMinutesBefore: "How many minutes before prayer time to notify",
   
+  // Notification settings - new additions
+  notificationPermissionGranted: "Notification permission granted",
+  notificationPermissionDenied: "Notification permission denied",
+  atPrayerTime: "At prayer time",
+  manageNotificationSettings: "Manage prayer notification settings",
+  notificationPermissionRequired: "Notification Permission Required",
+  notificationPermissionDescription: "Enable notifications to receive prayer reminders",
+  notificationSound: "Notification Sound",
+  testNotificationSent: "Test notification sent",
+  sendTestNotification: "Send Test Notification",
+  prayerReminder: "Prayer Reminder",
+  in: "in",
+  minutes: "minutes",
+  
   // Share app section
   shareApp: "Share the App",
   shareAppDesc: "Help others discover Seura Prayer! Share this app with your friends and family.",
@@ -282,6 +311,20 @@ const finnishTranslations: Translation = {
   enableNotifications: "Ota ilmoitukset käyttöön",
   howManyMinutesBefore: "Kuinka monta minuuttia ennen rukousaikaa ilmoitetaan",
   
+  // Notification settings - new additions
+  notificationPermissionGranted: "Ilmoituslupa myönnetty",
+  notificationPermissionDenied: "Ilmoituslupa evätty",
+  atPrayerTime: "Rukousaikaan",
+  manageNotificationSettings: "Hallitse rukousilmoitusasetuksia",
+  notificationPermissionRequired: "Ilmoituslupa vaaditaan",
+  notificationPermissionDescription: "Ota ilmoitukset käyttöön saadaksesi rukousmuistutuksia",
+  notificationSound: "Ilmoitusääni",
+  testNotificationSent: "Testi-ilmoitus lähetetty",
+  sendTestNotification: "Lähetä testi-ilmoitus",
+  prayerReminder: "Rukousmuistutus",
+  in: "om",
+  minutes: "minuuttia",
+  
   // Share app section
   shareApp: "Jaa sovellus",
   shareAppDesc: "Auta muita löytämään Seura Prayer! Jaa tämä sovellus ystävillesi ja perheellesi.",
@@ -399,6 +442,20 @@ const albanianTranslations: Translation = {
   language: "Gjuha",
   enableNotifications: "Aktivizo njoftimet",
   howManyMinutesBefore: "Sa minuta para kohës së namazit të njoftohet",
+  
+  // Notification settings - new additions
+  notificationPermissionGranted: "Leja e njoftimeve u dha",
+  notificationPermissionDenied: "Leja e njoftimeve u refuzua",
+  atPrayerTime: "Në kohën e namazit",
+  manageNotificationSettings: "Menaxho cilësimet e njoftimeve të namazit",
+  notificationPermissionRequired: "Leja e Njoftimeve e Nevojshme",
+  notificationPermissionDescription: "Aktivizo njoftimet për të marrë kujtues namazi",
+  notificationSound: "Zëri i Njoftimit",
+  testNotificationSent: "Njoftimi i testit u dërgua",
+  sendTestNotification: "Dërgo Njoftim Testi",
+  prayerReminder: "Kujtuesi i Namazit",
+  in: "në",
+  minutes: "minuta",
   
   // Share app section
   shareApp: "Ndani Aplikacionin",
