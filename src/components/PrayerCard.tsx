@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const { playSound } = useSoundPlayer();
   const [settings, setSettings] = useState<PrayerNotificationSettings>(notificationService.getSettings());
   const [hasPermission, setHasPermission] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   useEffect(() => {
     checkPermission();
@@ -125,15 +125,19 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
           </div>
           
           {showNotificationBell && (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <Popover>
               <PopoverTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                >
                   {isNotificationEnabled ? (
                     <Bell className="h-5 w-5 text-primary" />
                   ) : (
                     <BellOff className="h-5 w-5 text-primary" />
                   )}
-                </button>
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80" align="end">
                 <div className="space-y-4">
