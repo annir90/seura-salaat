@@ -102,42 +102,39 @@ const Index = () => {
       setLoading(true);
       const times = await getPrayerTimes();
       
-      // Apply 20-second early transition logic
-      const updatedTimes = times.map((prayer, index) => {
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes() * 60 + now.getSeconds();
-        const [hours, minutes] = prayer.time.split(":").map(Number);
-        const prayerTime = hours * 3600 + minutes * 60; // Convert to seconds
-        
-        // If we're within 20 seconds before prayer time, move to next prayer
-        const timeDiff = prayerTime - currentTime;
-        if (timeDiff > 0 && timeDiff <= 20) {
-          const nextIndex = (index + 1) % times.length;
-          return { ...prayer, isNext: false };
-        }
-        
-        return prayer;
-      });
-      
-      // Find the actual next prayer after applying transition logic
+      // Find the actual next prayer with proper sequence including Isha
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
-      let nextPrayerIndex = updatedTimes.findIndex(prayer => {
+      
+      let nextPrayerIndex = -1;
+      
+      // Check each prayer time to find the next one
+      for (let i = 0; i < times.length; i++) {
+        const prayer = times[i];
+        if (prayer.id === 'sunrise') continue; // Skip sunrise for next prayer logic
+        
         const [hours, minutes] = prayer.time.split(":").map(Number);
         const prayerTime = hours * 60 + minutes;
-        return prayerTime > currentTime + 0.33; // Add 20 seconds buffer (0.33 minutes)
-      });
+        
+        if (prayerTime > currentTime) {
+          nextPrayerIndex = i;
+          break;
+        }
+      }
       
-      if (nextPrayerIndex === -1) nextPrayerIndex = 0; // Next day's Fajr
+      // If no prayer found for today, next prayer is tomorrow's Fajr
+      if (nextPrayerIndex === -1) {
+        nextPrayerIndex = times.findIndex(prayer => prayer.id === 'fajr');
+      }
       
-      const finalTimes = updatedTimes.map((prayer, index) => ({
+      const finalTimes = times.map((prayer, index) => ({
         ...prayer,
-        isNext: index === nextPrayerIndex
+        isNext: index === nextPrayerIndex && prayer.id !== 'sunrise'
       }));
       
       setPrayerTimes(finalTimes);
       
-      // Set normal date instead of formatted date from service - reuse the existing 'now' variable
+      // Set normal date instead of formatted date from service
       const normalDate = now.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
