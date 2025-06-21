@@ -1,8 +1,9 @@
+
 import { PrayerTime } from "./prayerTimeService";
 import { Capacitor } from '@capacitor/core';
 import { isNotificationEnabledForPrayer, getNotificationTimingForPrayer } from './notification/settingsHelper';
-import { showWebNotification, playNotificationSound, vibrateDevice } from './notification/webNotifications';
 import { scheduleNativeNotification, cancelNativeNotification, cancelAllNativeNotifications } from './notification/nativeNotifications';
+import { setupPrayerNotificationChannels } from './notification/androidChannelManager';
 
 export class NotificationService {
   private isSupported: boolean = false;
@@ -13,50 +14,45 @@ export class NotificationService {
     this.initialize();
   }
 
-  private async initialize(): Promise<void> {
+  private async initialize(): Promise<void> => {
     if (Capacitor.isNativePlatform()) {
       this.isSupported = true;
       await this.requestPermission();
+      await this.setupChannels();
     } else {
-      // Fallback to web notifications for PWA
-      this.isSupported = 'Notification' in window;
-      if (this.isSupported) {
-        const permission = await Notification.requestPermission();
-        this.permission = permission === 'granted';
-      }
+      console.warn('This app is designed for Android only');
+      this.isSupported = false;
+    }
+  }
+
+  private async setupChannels(): Promise<void> => {
+    try {
+      await setupPrayerNotificationChannels();
+      console.log('Prayer notification channels setup completed');
+    } catch (error) {
+      console.error('Error setting up notification channels:', error);
     }
   }
 
   async requestPermission(): Promise<boolean> {
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const { LocalNotifications } = await import('@capacitor/local-notifications');
-        const permission = await LocalNotifications.requestPermissions();
-        this.permission = permission.display === 'granted';
-        return this.permission;
-      } catch (error) {
-        console.error('Failed to request notification permission:', error);
-        return false;
-      }
-    } else {
-      // Web fallback
-      if (!this.isSupported) {
-        console.warn('Notifications are not supported in this browser.');
-        return false;
-      }
+    if (!Capacitor.isNativePlatform()) {
+      console.warn('Notification permission only available on native platforms');
+      return false;
+    }
 
-      try {
-        const permission = await Notification.requestPermission();
-        this.permission = permission === 'granted';
-        return this.permission;
-      } catch (error) {
-        console.error('Failed to request notification permission:', error);
-        return false;
-      }
+    try {
+      const { LocalNotifications } = await import('@capacitor/local-notifications');
+      const permission = await LocalNotifications.requestPermissions();
+      this.permission = permission.display === 'granted';
+      console.log('Notification permission:', this.permission ? 'granted' : 'denied');
+      return this.permission;
+    } catch (error) {
+      console.error('Failed to request notification permission:', error);
+      return false;
     }
   }
 
-  async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> {
+  async scheduleNotification(prayer: PrayerTime, minutesBefore?: number, soundId?: string): Promise<void> => {
     if (!this.permission) {
       console.warn('Notification permission has not been granted.');
       return;
@@ -72,7 +68,7 @@ export class NotificationService {
     const actualMinutesBefore = minutesBefore || getNotificationTimingForPrayer(prayer.id);
     const globalSoundPreference = localStorage.getItem('prayerapp-notification-sound') || 'adhan';
 
-    console.log(`Scheduling notification for ${prayer.name} with global sound: ${globalSoundPreference}`);
+    console.log(`Scheduling notification for ${prayer.name} with sound: ${globalSoundPreference}, ${actualMinutesBefore} minutes before`);
 
     try {
       // Calculate notification time
@@ -97,39 +93,22 @@ export class NotificationService {
       const timeDiff = prayerTime.getTime() - notificationTime.getTime();
       const minutesLeft = Math.round(timeDiff / (1000 * 60));
 
-      if (Capacitor.isNativePlatform()) {
-        await scheduleNativeNotification(prayer, notificationTime, minutesLeft, globalSoundPreference, this.scheduledNotificationIds);
-      } else {
-        // Web fallback - immediate notification
-        showWebNotification(
-          `${prayer.name} Prayer Reminder`,
-          `${prayer.name} prayer starts in ${minutesLeft} minutes at ${prayer.time}`,
-          globalSoundPreference
-        );
-      }
+      await scheduleNativeNotification(prayer, notificationTime, minutesLeft, globalSoundPreference, this.scheduledNotificationIds);
       
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      console.error('Error scheduling notification for', prayer.name, ':', error);
     }
   }
 
-  async cancelNotification(prayerId: string): Promise<void> {
-    if (Capacitor.isNativePlatform()) {
-      await cancelNativeNotification(prayerId, this.scheduledNotificationIds);
-    } else {
-      console.log(`Web notification cancellation not implemented for prayer ID: ${prayerId}`);
-    }
+  async cancelNotification(prayerId: string): Promise<void> => {
+    await cancelNativeNotification(prayerId, this.scheduledNotificationIds);
   }
 
-  async cancelAllNotifications(): Promise<void> {
-    if (Capacitor.isNativePlatform()) {
-      await cancelAllNativeNotifications(this.scheduledNotificationIds);
-    } else {
-      console.log('All web notifications cancelled.');
-    }
+  async cancelAllNotifications(): Promise<void> => {
+    await cancelAllNativeNotifications(this.scheduledNotificationIds);
   }
 
-  async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> {
+  async scheduleAllPrayerNotifications(prayers: PrayerTime[]): Promise<void> => {
     // Cancel existing notifications first
     await this.cancelAllNotifications();
 
@@ -137,27 +116,11 @@ export class NotificationService {
 
     for (const prayer of prayers) {
       try {
-        // Each prayer will use its own settings
         await this.scheduleNotification(prayer);
       } catch (error) {
         console.error(`Failed to schedule notification for ${prayer.name}:`, error);
       }
     }
-  }
-
-  playNotificationSound(soundId: string = 'adhan'): void {
-    if (!Capacitor.isNativePlatform()) {
-      // Use global sound preference if no soundId provided
-      const globalSound = localStorage.getItem('prayerapp-notification-sound') || soundId;
-      playNotificationSound(globalSound);
-    }
-  }
-
-  vibrateDevice(): void {
-    if (!Capacitor.isNativePlatform()) {
-      vibrateDevice();
-    }
-    // Native apps handle vibration automatically with notifications
   }
 }
 
