@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { toast } from "sonner";
 import { 
   ChevronRight,
   Globe,
+  Bell,
   Info,
   LogOut,
   User,
@@ -68,6 +68,10 @@ const SettingsPage = () => {
     navigate('/settings/language');
   };
 
+  const handleNotificationsNavigation = () => {
+    navigate('/settings/notifications');
+  };
+
   const handleAboutNavigation = () => {
     navigate('/settings/about');
   };
@@ -120,6 +124,27 @@ const SettingsPage = () => {
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.general}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{t.languageSettings}</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notifications */}
+          <Card 
+            className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleNotificationsNavigation}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                    <Bell className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.notifications}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.blockAllowPriorities}</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />

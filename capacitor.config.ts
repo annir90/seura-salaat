@@ -6,6 +6,13 @@ const config: CapacitorConfig = {
   appName: 'faith-flow-mobile',
   webDir: 'dist',
   bundledWebRuntime: false,
+  plugins: {
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488AFF",
+      sound: "beep.wav",
+    },
+  },
   // Remove the server configuration for native builds
   // The server config is only needed for live reload during development
 };

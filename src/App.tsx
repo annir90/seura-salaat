@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import QuranPage from "./pages/QuranPage";
 import WelcomePage from "./pages/WelcomePage";
 import TasbihPage from "./pages/TasbihPage";
 import Layout from "./components/Layout";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -64,6 +64,11 @@ const App = () => {
               <Route path="/settings/language" element={
                 <ProtectedRoute>
                   <LanguageSettingsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings/notifications" element={
+                <ProtectedRoute>
+                  <NotificationSettingsPage />
                 </ProtectedRoute>
               } />
               <Route path="/settings/about" element={

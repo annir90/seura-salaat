@@ -1,0 +1,212 @@
+
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { PrayerTime } from './prayerTimeService';
+import { getTranslation } from './translationService';
+
+export interface NotificationSettings {
+  enabled: boolean;
+  timing: number; // minutes before prayer
+  sound: string;
+}
+
+export interface PrayerNotificationSettings {
+  fajr: NotificationSettings;
+  dhuhr: NotificationSettings;
+  asr: NotificationSettings;
+  maghrib: NotificationSettings;
+  isha: NotificationSettings;
+}
+
+const DEFAULT_SETTINGS: PrayerNotificationSettings = {
+  fajr: { enabled: true, timing: 5, sound: 'adhan-traditional' },
+  dhuhr: { enabled: true, timing: 5, sound: 'adhan-traditional' },
+  asr: { enabled: true, timing: 5, sound: 'adhan-traditional' },
+  maghrib: { enabled: true, timing: 5, sound: 'adhan-traditional' },
+  isha: { enabled: true, timing: 5, sound: 'adhan-traditional' }
+};
+
+class NotificationService {
+  private readonly STORAGE_KEY = 'prayer-notification-settings';
+
+  async requestPermissions(): Promise<boolean> {
+    try {
+      const result = await LocalNotifications.requestPermissions();
+      return result.display === 'granted';
+    } catch (error) {
+      console.error('Error requesting notification permissions:', error);
+      return false;
+    }
+  }
+
+  async checkPermissions(): Promise<boolean> {
+    try {
+      const result = await LocalNotifications.checkPermissions();
+      return result.display === 'granted';
+    } catch (error) {
+      console.error('Error checking notification permissions:', error);
+      return false;
+    }
+  }
+
+  getSettings(): PrayerNotificationSettings {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      }
+      return DEFAULT_SETTINGS;
+    } catch (error) {
+      console.error('Error loading notification settings:', error);
+      return DEFAULT_SETTINGS;
+    }
+  }
+
+  saveSettings(settings: PrayerNotificationSettings): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+    }
+  }
+
+  updatePrayerSettings(prayerId: keyof PrayerNotificationSettings, settings: NotificationSettings): void {
+    const currentSettings = this.getSettings();
+    currentSettings[prayerId] = settings;
+    this.saveSettings(currentSettings);
+  }
+
+  private getSoundFile(soundId: string): string {
+    const soundMap: Record<string, string> = {
+      'adhan-traditional': '/audio/traditional-adhan.mp3',
+      'adhan-soft': '/audio/soft-notification.mp3',
+      'notification-beep': '/audio/makkah-adhan.mp3'
+    };
+    return soundMap[soundId] || soundMap['adhan-traditional'];
+  }
+
+  private getPrayerIdFromName(prayerName: string): keyof PrayerNotificationSettings | null {
+    const nameMap: Record<string, keyof PrayerNotificationSettings> = {
+      'Fajr': 'fajr',
+      'Dhuhr': 'dhuhr', 
+      'Asr': 'asr',
+      'Maghrib': 'maghrib',
+      'Isha': 'isha'
+    };
+    
+    // Try direct lookup first
+    if (nameMap[prayerName]) {
+      return nameMap[prayerName];
+    }
+    
+    // Try case-insensitive lookup
+    const lowerName = prayerName.toLowerCase();
+    for (const [key, value] of Object.entries(nameMap)) {
+      if (key.toLowerCase() === lowerName) {
+        return value;
+      }
+    }
+    
+    return null;
+  }
+
+  async scheduleAllPrayerNotifications(prayerTimes: PrayerTime[]): Promise<void> {
+    try {
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) {
+        console.log('No notification permission, skipping scheduling');
+        return;
+      }
+
+      // Cancel existing notifications
+      await this.cancelAllNotifications();
+
+      const settings = this.getSettings();
+      const t = getTranslation();
+      const notifications = [];
+
+      for (const prayer of prayerTimes) {
+        // Skip sunrise as it's not a prayer time for notifications
+        if (prayer.id === 'sunrise') continue;
+
+        const prayerId = this.getPrayerIdFromName(prayer.name);
+        if (!prayerId) {
+          console.warn(`Unknown prayer name: ${prayer.name}`);
+          continue;
+        }
+
+        const prayerSettings = settings[prayerId];
+        if (!prayerSettings.enabled) continue;
+
+        try {
+          const [hours, minutes] = prayer.time.split(':').map(Number);
+          const notificationTime = new Date();
+          notificationTime.setHours(hours, minutes - prayerSettings.timing, 0, 0);
+
+          // If the notification time has passed for today, skip it
+          if (notificationTime <= new Date()) {
+            console.log(`Notification time for ${prayer.name} has passed, skipping`);
+            continue;
+          }
+
+          const notificationId = parseInt(`${prayerId.charCodeAt(0)}${notificationTime.getHours()}${notificationTime.getMinutes()}`);
+
+          notifications.push({
+            title: t.prayerReminder || 'Prayer Reminder',
+            body: `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`,
+            id: notificationId,
+            schedule: { at: notificationTime },
+            sound: this.getSoundFile(prayerSettings.sound),
+            actionTypeId: '',
+            extra: {
+              prayerName: prayer.name,
+              prayerId: prayerId
+            }
+          });
+
+          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()}`);
+        } catch (error) {
+          console.error(`Error scheduling notification for ${prayer.name}:`, error);
+        }
+      }
+
+      if (notifications.length > 0) {
+        await LocalNotifications.schedule({ notifications });
+        console.log(`Successfully scheduled ${notifications.length} prayer notifications`);
+      }
+    } catch (error) {
+      console.error('Error scheduling prayer notifications:', error);
+    }
+  }
+
+  async cancelAllNotifications(): Promise<void> {
+    try {
+      const pending = await LocalNotifications.getPending();
+      if (pending.notifications.length > 0) {
+        const ids = pending.notifications.map(n => ({ id: n.id }));
+        await LocalNotifications.cancel({ notifications: ids });
+        console.log(`Cancelled ${ids.length} pending notifications`);
+      }
+    } catch (error) {
+      console.error('Error cancelling notifications:', error);
+    }
+  }
+
+  async cancelPrayerNotification(prayerId: keyof PrayerNotificationSettings): Promise<void> {
+    try {
+      const pending = await LocalNotifications.getPending();
+      const prayerNotifications = pending.notifications.filter(n => 
+        n.extra?.prayerId === prayerId
+      );
+      
+      if (prayerNotifications.length > 0) {
+        const ids = prayerNotifications.map(n => ({ id: n.id }));
+        await LocalNotifications.cancel({ notifications: ids });
+        console.log(`Cancelled ${ids.length} notifications for ${prayerId}`);
+      }
+    } catch (error) {
+      console.error(`Error cancelling notifications for ${prayerId}:`, error);
+    }
+  }
+}
+
+export const notificationService = new NotificationService();
