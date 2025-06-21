@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,15 +100,12 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const showNotificationBell = prayer.id !== 'sunrise';
 
   const timingOptions = [
-    { value: 0, label: t.atPrayerTime || "At prayer time" },
-    { value: 5, label: "5 minutes before" },
     { value: 10, label: "10 minutes before" },
-    { value: 15, label: "15 minutes before" },
-    { value: 30, label: "30 minutes before" }
+    { value: 15, label: "15 minutes before" }
   ];
 
   return (
-    <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-primary' : ''}`}>
+    <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-orange-500' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -118,7 +114,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                 <h3 className="font-semibold text-lg flex items-center gap-2">
                   {prayer.name}
                   {prayer.isNext && (
-                    <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs animate-pulse">
+                    <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs animate-pulse">
                       Next
                     </Badge>
                   )}
