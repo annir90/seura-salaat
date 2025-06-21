@@ -8,13 +8,6 @@ const config: CapacitorConfig = {
   bundledWebRuntime: false,
   // Remove the server configuration for native builds
   // The server config is only needed for live reload during development
-  plugins: {
-    LocalNotifications: {
-      smallIcon: "ic_stat_icon_config_sample",
-      iconColor: "#488AFF",
-      sound: "beep.wav",
-    },
-  },
 };
 
 export default config;
