@@ -1,4 +1,3 @@
-
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PrayerTime } from './prayerTimeService';
 import { getTranslation } from './translationService';
@@ -18,11 +17,11 @@ export interface PrayerNotificationSettings {
 }
 
 const DEFAULT_SETTINGS: PrayerNotificationSettings = {
-  fajr: { enabled: true, timing: 5, sound: 'adhan-traditional' },
-  dhuhr: { enabled: true, timing: 5, sound: 'adhan-traditional' },
-  asr: { enabled: true, timing: 5, sound: 'adhan-traditional' },
-  maghrib: { enabled: true, timing: 5, sound: 'adhan-traditional' },
-  isha: { enabled: true, timing: 5, sound: 'adhan-traditional' }
+  fajr: { enabled: true, timing: 10, sound: 'adhan-traditional' },
+  dhuhr: { enabled: true, timing: 10, sound: 'adhan-traditional' },
+  asr: { enabled: true, timing: 10, sound: 'adhan-traditional' },
+  maghrib: { enabled: true, timing: 10, sound: 'adhan-traditional' },
+  isha: { enabled: true, timing: 10, sound: 'adhan-traditional' }
 };
 
 class NotificationService {
@@ -64,6 +63,7 @@ class NotificationService {
   saveSettings(settings: PrayerNotificationSettings): void {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+      console.log('Saved notification settings:', settings);
     } catch (error) {
       console.error('Error saving notification settings:', error);
     }
@@ -77,11 +77,13 @@ class NotificationService {
 
   private getSoundFile(soundId: string): string {
     const soundMap: Record<string, string> = {
-      'adhan-traditional': 'res://adhan.wav',
-      'adhan-soft': 'res://soft.wav',
-      'notification-beep': 'res://beep.wav'
+      'adhan-traditional': '/audio/traditional-adhan.mp3',
+      'adhan-soft': '/audio/soft-notification.mp3',
+      'notification-beep': '/audio/makkah-adhan.mp3'
     };
-    return soundMap[soundId] || soundMap['adhan-traditional'];
+    const soundFile = soundMap[soundId] || soundMap['adhan-traditional'];
+    console.log(`Getting sound file for ${soundId}: ${soundFile}`);
+    return soundFile;
   }
 
   private getPrayerIdFromName(prayerName: string): keyof PrayerNotificationSettings | null {
@@ -150,12 +152,15 @@ class NotificationService {
 
           const notificationId = parseInt(`${prayerId.charCodeAt(0)}${notificationTime.getHours()}${notificationTime.getMinutes()}`);
 
+          // Get the correct sound file based on user's selection
+          const soundFile = this.getSoundFile(prayerSettings.sound);
+
           notifications.push({
             title: t.prayerReminder || 'Prayer Reminder',
             body: `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: this.getSoundFile(prayerSettings.sound),
+            sound: soundFile,
             actionTypeId: '',
             extra: {
               prayerName: prayer.name,
@@ -163,7 +168,7 @@ class NotificationService {
             }
           });
 
-          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with sound: ${this.getSoundFile(prayerSettings.sound)}`);
+          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with sound: ${soundFile} (user selected: ${prayerSettings.sound})`);
         } catch (error) {
           console.error(`Error scheduling notification for ${prayer.name}:`, error);
         }
@@ -171,7 +176,7 @@ class NotificationService {
 
       if (notifications.length > 0) {
         await LocalNotifications.schedule({ notifications });
-        console.log(`Successfully scheduled ${notifications.length} prayer notifications`);
+        console.log(`Successfully scheduled ${notifications.length} prayer notifications with dynamic sounds`);
       }
     } catch (error) {
       console.error('Error scheduling prayer notifications:', error);
@@ -217,6 +222,11 @@ class NotificationService {
       }
 
       const t = getTranslation();
+      const settings = this.getSettings();
+      
+      // Use the Fajr sound setting for test notification
+      const testSoundFile = this.getSoundFile(settings.fajr.sound);
+      
       await LocalNotifications.schedule({
         notifications: [
           {
@@ -224,7 +234,7 @@ class NotificationService {
             body: t.testNotificationSent || 'This is a test notification',
             id: 999999,
             schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
-            sound: 'res://adhan.wav',
+            sound: testSoundFile,
             actionTypeId: '',
             extra: {
               isTest: true
@@ -232,7 +242,7 @@ class NotificationService {
           }
         ]
       });
-      console.log('Test notification scheduled');
+      console.log(`Test notification scheduled with sound: ${testSoundFile}`);
     } catch (error) {
       console.error('Error sending test notification:', error);
     }
