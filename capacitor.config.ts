@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
       iconColor: "#488AFF",
-      sound: "beep.wav",
+      // Remove default sound to let dynamic sound selection work
     },
   },
   // Remove the server configuration for native builds

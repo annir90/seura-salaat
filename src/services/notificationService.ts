@@ -1,3 +1,4 @@
+
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PrayerTime } from './prayerTimeService';
 import { getTranslation } from './translationService';
@@ -75,15 +76,17 @@ class NotificationService {
     this.saveSettings(currentSettings);
   }
 
-  private getSoundFile(soundId: string): string {
+  private getNativeSoundName(soundId: string): string {
+    // Map sound IDs to native resource names (without extension)
     const soundMap: Record<string, string> = {
-      'adhan-traditional': '/audio/traditional-adhan.mp3',
-      'adhan-soft': '/audio/soft-notification.mp3',
-      'notification-beep': '/audio/makkah-adhan.mp3'
+      'adhan-traditional': 'adhan',
+      'adhan-soft': 'soft', 
+      'notification-beep': 'beep'
     };
-    const soundFile = soundMap[soundId] || soundMap['adhan-traditional'];
-    console.log(`Getting sound file for ${soundId}: ${soundFile}`);
-    return soundFile;
+    
+    const nativeSoundName = soundMap[soundId] || soundMap['adhan-traditional'];
+    console.log(`Mapping sound ID ${soundId} to native sound: ${nativeSoundName}`);
+    return nativeSoundName;
   }
 
   private getPrayerIdFromName(prayerName: string): keyof PrayerNotificationSettings | null {
@@ -152,15 +155,15 @@ class NotificationService {
 
           const notificationId = parseInt(`${prayerId.charCodeAt(0)}${notificationTime.getHours()}${notificationTime.getMinutes()}`);
 
-          // Get the correct sound file based on user's selection
-          const soundFile = this.getSoundFile(prayerSettings.sound);
+          // Get the native sound name for the selected sound
+          const nativeSoundName = this.getNativeSoundName(prayerSettings.sound);
 
           notifications.push({
             title: t.prayerReminder || 'Prayer Reminder',
             body: `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: soundFile,
+            sound: nativeSoundName, // Use native sound name without extension
             actionTypeId: '',
             extra: {
               prayerName: prayer.name,
@@ -168,7 +171,7 @@ class NotificationService {
             }
           });
 
-          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with sound: ${soundFile} (user selected: ${prayerSettings.sound})`);
+          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with native sound: ${nativeSoundName} (from user selection: ${prayerSettings.sound})`);
         } catch (error) {
           console.error(`Error scheduling notification for ${prayer.name}:`, error);
         }
@@ -176,7 +179,7 @@ class NotificationService {
 
       if (notifications.length > 0) {
         await LocalNotifications.schedule({ notifications });
-        console.log(`Successfully scheduled ${notifications.length} prayer notifications with dynamic sounds`);
+        console.log(`Successfully scheduled ${notifications.length} prayer notifications with user-selected sounds`);
       }
     } catch (error) {
       console.error('Error scheduling prayer notifications:', error);
@@ -224,8 +227,8 @@ class NotificationService {
       const t = getTranslation();
       const settings = this.getSettings();
       
-      // Use the Fajr sound setting for test notification
-      const testSoundFile = this.getSoundFile(settings.fajr.sound);
+      // Use the Fajr sound setting for test notification with native sound name
+      const testNativeSoundName = this.getNativeSoundName(settings.fajr.sound);
       
       await LocalNotifications.schedule({
         notifications: [
@@ -234,7 +237,7 @@ class NotificationService {
             body: t.testNotificationSent || 'This is a test notification',
             id: 999999,
             schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
-            sound: testSoundFile,
+            sound: testNativeSoundName, // Use native sound name
             actionTypeId: '',
             extra: {
               isTest: true
@@ -242,7 +245,7 @@ class NotificationService {
           }
         ]
       });
-      console.log(`Test notification scheduled with sound: ${testSoundFile}`);
+      console.log(`Test notification scheduled with native sound: ${testNativeSoundName} (from user selection: ${settings.fajr.sound})`);
     } catch (error) {
       console.error('Error sending test notification:', error);
     }
