@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { 
   ChevronRight,
@@ -9,7 +9,8 @@ import {
   Info,
   LogOut,
   User,
-  Languages
+  Moon,
+  Sun
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
@@ -25,7 +26,7 @@ const SettingsPage = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(getCurrentLanguage());
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const t = getTranslation();
 
   useEffect(() => {
@@ -72,6 +73,13 @@ const SettingsPage = () => {
     navigate('/settings/about');
   };
 
+  const handleThemeToggle = (checked: boolean) => {
+    const newTheme = checked ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem('app-theme', newTheme);
+    toast.success(checked ? "Dark mode enabled" : "Light mode enabled");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-lg mx-auto px-4 py-6 pb-24">
@@ -106,6 +114,33 @@ const SettingsPage = () => {
 
         {/* Settings Options */}
         <div className="space-y-3">
+          {/* Theme Toggle */}
+          <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center">
+                    {theme === "dark" ? (
+                      <Moon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    ) : (
+                      <Sun className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Dark Mode</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {theme === "dark" ? "Dark theme enabled" : "Light theme enabled"}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={theme === "dark"}
+                  onCheckedChange={handleThemeToggle}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* General Settings */}
           <Card 
             className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"

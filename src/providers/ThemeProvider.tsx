@@ -23,8 +23,8 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light", // Changed from "system" to "light"
-  storageKey = "prayer-ui-theme",
+  defaultTheme = "light",
+  storageKey = "app-theme", // Changed to app-theme as requested
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
