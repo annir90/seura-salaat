@@ -40,58 +40,64 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   
   console.log(`Current time: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTime} minutes)`);
   
+  // Filter out sunrise as it's not a prayer
+  const actualPrayers = prayers.filter(prayer => prayer.id !== 'sunrise');
+  
   // Debug: Log all prayer times
-  prayers.forEach(prayer => {
+  actualPrayers.forEach(prayer => {
     if (prayer.time && prayer.time !== "00:00") {
       const [hours, minutes] = prayer.time.split(":").map(Number);
-      let prayerTime = hours * 60 + minutes;
-      
-      // Handle prayers that cross midnight (like Isha)
-      if (prayer.id === 'isha' && hours < 6) {
-        prayerTime = prayerTime + (24 * 60); // Add 24 hours for next day
-      }
-      
+      const prayerTime = hours * 60 + minutes;
       console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'}`);
     }
   });
   
   // Find the next prayer that hasn't passed yet today
-  let nextPrayerIndex = prayers.findIndex(prayer => {
+  let nextPrayerIndex = -1;
+  
+  for (let i = 0; i < actualPrayers.length; i++) {
+    const prayer = actualPrayers[i];
     if (!prayer.time || prayer.time === "00:00") {
       console.log(`Skipping ${prayer.name} - invalid time: ${prayer.time}`);
-      return false;
+      continue;
     }
+    
     try {
       const [hours, minutes] = prayer.time.split(":").map(Number);
-      let prayerTime = hours * 60 + minutes;
+      const prayerTime = hours * 60 + minutes;
       
-      // Handle prayers that cross midnight (like Isha)
-      if (prayer.id === 'isha' && hours < 6) {
-        prayerTime = prayerTime + (24 * 60); // Add 24 hours for next day
+      // Check if this prayer is still upcoming today
+      if (prayerTime > currentTime) {
+        nextPrayerIndex = i;
+        console.log(`Next prayer found: ${prayer.name} at ${prayer.time}`);
+        break;
       }
-      
-      const isNext = prayerTime > currentTime;
-      console.log(`Checking ${prayer.name}: ${prayer.time} - ${isNext ? 'NEXT CANDIDATE' : 'ALREADY PASSED'}`);
-      return isNext;
     } catch (error) {
       console.error("Error parsing prayer time:", prayer.time, error);
-      return false;
     }
-  });
+  }
   
   // If no prayer found for today, next prayer is tomorrow's Fajr
   if (nextPrayerIndex === -1) {
-    nextPrayerIndex = 0; // Fajr is the first prayer
-    console.log('No more prayers today, next prayer is tomorrow\'s Fajr');
-  } else {
-    console.log(`Next prayer is: ${prayers[nextPrayerIndex].name} at ${prayers[nextPrayerIndex].time}`);
+    // Find Fajr in the actual prayers list
+    const fajrIndex = actualPrayers.findIndex(prayer => prayer.id === 'fajr');
+    if (fajrIndex !== -1) {
+      nextPrayerIndex = fajrIndex;
+      console.log('No more prayers today, next prayer is tomorrow\'s Fajr');
+    }
   }
   
-  // Mark the next prayer
-  return prayers.map((prayer, index) => ({
-    ...prayer,
-    isNext: index === nextPrayerIndex
-  }));
+  // Mark the next prayer in the original prayers array (including sunrise)
+  return prayers.map((prayer) => {
+    // Find this prayer in the actualPrayers array to get the correct index
+    const actualPrayerIndex = actualPrayers.findIndex(ap => ap.id === prayer.id);
+    const isNext = actualPrayerIndex === nextPrayerIndex && prayer.id !== 'sunrise';
+    
+    return {
+      ...prayer,
+      isNext
+    };
+  });
 };
 
 // Function to fetch prayer times from Aladhan API
