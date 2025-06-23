@@ -125,6 +125,14 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     { value: 15, label: "15 minutes before" }
   ];
 
+  console.log(`PrayerCard Debug - ${prayer.name}:`, {
+    prayerKey,
+    isNotificationEnabled,
+    hasPermission,
+    prayerSettings,
+    showNotificationBell
+  });
+
   return (
     <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-orange-500' : ''}`}>
       <CardContent className="p-4">
@@ -170,7 +178,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                     />
                   </div>
                   
-                  {isNotificationEnabled && hasPermission && prayerSettings && (
+                  {hasPermission && prayerSettings && (
                     <div className="space-y-4">
                       {/* Timing Selection */}
                       <div className="space-y-2">
@@ -183,6 +191,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                         <Select
                           value={prayerSettings.timing.toString()}
                           onValueChange={(value) => updatePrayerSetting('timing', parseInt(value))}
+                          disabled={!isNotificationEnabled}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -209,6 +218,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                           <Select
                             value={prayerSettings.sound}
                             onValueChange={(value) => updatePrayerSetting('sound', value)}
+                            disabled={!isNotificationEnabled}
                           >
                             <SelectTrigger className="flex-1">
                               <SelectValue />
@@ -226,6 +236,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                             size="icon"
                             onClick={() => testSound(prayerSettings.sound)}
                             className="shrink-0"
+                            disabled={!isNotificationEnabled}
                           >
                             <Volume2 className="h-4 w-4" />
                           </Button>
