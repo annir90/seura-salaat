@@ -103,9 +103,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   };
 
   const testSound = (soundId: string) => {
+    console.log(`Testing sound for ${prayer.name} with sound ID: ${soundId}`);
     const soundOption = soundOptions.find(s => s.id === soundId);
     if (soundOption) {
+      console.log(`Playing sound option:`, soundOption);
       playSound(soundOption);
+    } else {
+      console.error(`Sound option not found for ID: ${soundId}`);
     }
   };
 
