@@ -84,7 +84,7 @@ class NotificationService {
       'notification-beep': 'beep'
     };
     
-    const nativeSoundName = soundMap[soundId] || soundMap['adhan-traditional'];
+    const nativeSoundName = soundMap[soundId] || 'adhan'; // Default fallback
     console.log(`Mapping sound ID ${soundId} to native sound: ${nativeSoundName}`);
     return nativeSoundName;
   }
@@ -122,12 +122,14 @@ class NotificationService {
         return;
       }
 
-      // Cancel existing notifications
+      // Cancel existing notifications first
       await this.cancelAllNotifications();
 
       const settings = this.getSettings();
       const t = getTranslation();
       const notifications = [];
+
+      console.log('Current notification settings:', settings);
 
       for (const prayer of prayerTimes) {
         // Skip sunrise as it's not a prayer time for notifications
@@ -140,7 +142,14 @@ class NotificationService {
         }
 
         const prayerSettings = settings[prayerId];
-        if (!prayerSettings.enabled) continue;
+        
+        // CRITICAL FIX: Only schedule if notifications are enabled for this prayer
+        if (!prayerSettings.enabled) {
+          console.log(`Notifications disabled for ${prayer.name}, skipping`);
+          continue;
+        }
+
+        console.log(`Processing ${prayer.name} - enabled: ${prayerSettings.enabled}, sound: ${prayerSettings.sound}`);
 
         try {
           const [hours, minutes] = prayer.time.split(':').map(Number);
@@ -155,23 +164,26 @@ class NotificationService {
 
           const notificationId = parseInt(`${prayerId.charCodeAt(0)}${notificationTime.getHours()}${notificationTime.getMinutes()}`);
 
-          // Get the native sound name for the selected sound
+          // CRITICAL FIX: Get the correct native sound name for the selected sound
           const nativeSoundName = this.getNativeSoundName(prayerSettings.sound);
 
-          notifications.push({
+          const notification = {
             title: t.prayerReminder || 'Prayer Reminder',
             body: `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: nativeSoundName, // Use native sound name without extension
+            sound: nativeSoundName, // Use the correctly mapped native sound name
             actionTypeId: '',
             extra: {
               prayerName: prayer.name,
-              prayerId: prayerId
+              prayerId: prayerId,
+              selectedSound: prayerSettings.sound // For debugging
             }
-          });
+          };
 
-          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with native sound: ${nativeSoundName} (from user selection: ${prayerSettings.sound})`);
+          notifications.push(notification);
+
+          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with sound: ${nativeSoundName} (from user selection: ${prayerSettings.sound})`);
         } catch (error) {
           console.error(`Error scheduling notification for ${prayer.name}:`, error);
         }
@@ -179,7 +191,9 @@ class NotificationService {
 
       if (notifications.length > 0) {
         await LocalNotifications.schedule({ notifications });
-        console.log(`Successfully scheduled ${notifications.length} prayer notifications with user-selected sounds`);
+        console.log(`Successfully scheduled ${notifications.length} prayer notifications with correct sounds`);
+      } else {
+        console.log('No notifications scheduled - all prayers either disabled or times have passed');
       }
     } catch (error) {
       console.error('Error scheduling prayer notifications:', error);
@@ -240,7 +254,8 @@ class NotificationService {
             sound: testNativeSoundName, // Use native sound name
             actionTypeId: '',
             extra: {
-              isTest: true
+              isTest: true,
+              selectedSound: settings.fajr.sound // For debugging
             }
           }
         ]

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Bell, BellOff, Clock, Volume2 } from "lucide-react";
-import { PrayerTime } from "@/services/prayerTimeService";
+import { PrayerTime, getPrayerTimes } from "@/services/prayerTimeService";
 import { getTranslation } from "@/services/translationService";
 import { notificationService, PrayerNotificationSettings } from "@/services/notificationService";
 import { soundOptions } from "@/components/sound/soundOptions";
@@ -43,6 +43,17 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     return keyMap[prayerId] || null;
   };
 
+  const refreshNotifications = async () => {
+    try {
+      // Re-schedule all notifications with updated settings
+      const prayerTimes = await getPrayerTimes();
+      await notificationService.scheduleAllPrayerNotifications(prayerTimes);
+      console.log('Notifications refreshed with new settings');
+    } catch (error) {
+      console.error('Error refreshing notifications:', error);
+    }
+  };
+
   const toggleNotification = async () => {
     if (!hasPermission) {
       const granted = await notificationService.requestPermissions();
@@ -65,12 +76,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
     
-    if (!currentEnabled) {
-      await notificationService.cancelPrayerNotification(prayerKey);
-    }
+    // CRITICAL FIX: Re-schedule all notifications immediately when toggling
+    await refreshNotifications();
+    
+    console.log(`${prayer.name} notifications ${!currentEnabled ? 'enabled' : 'disabled'}`);
   };
 
-  const updatePrayerSetting = (key: keyof typeof settings[keyof PrayerNotificationSettings], value: any) => {
+  const updatePrayerSetting = async (key: keyof typeof settings[keyof PrayerNotificationSettings], value: any) => {
     const prayerKey = getPrayerSettingsKey(prayer.id);
     if (!prayerKey) return;
 
@@ -83,6 +95,11 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     };
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
+    
+    // CRITICAL FIX: Re-schedule notifications when settings change
+    await refreshNotifications();
+    
+    console.log(`Updated ${prayer.name} ${key} to:`, value);
   };
 
   const testSound = (soundId: string) => {
