@@ -125,14 +125,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     { value: 15, label: "15 minutes before" }
   ];
 
-  console.log(`PrayerCard Debug - ${prayer.name}:`, {
-    prayerKey,
-    isNotificationEnabled,
-    hasPermission,
-    prayerSettings,
-    showNotificationBell
-  });
-
   return (
     <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-orange-500' : ''}`}>
       <CardContent className="p-4">
@@ -178,7 +170,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                     />
                   </div>
                   
-                  {hasPermission && prayerSettings && (
+                  {prayerSettings && (
                     <div className="space-y-4">
                       {/* Timing Selection */}
                       <div className="space-y-2">
