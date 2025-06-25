@@ -66,16 +66,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       ...settings,
       [prayerKey]: {
         ...settings[prayerKey],
-        enabled: !currentEnabled,
-        // Ensure adhan sound is always used for notifications
-        sound: 'adhan-traditional'
+        enabled: !currentEnabled
       }
     };
     
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
     
-    // CRITICAL FIX: Re-schedule all notifications immediately when toggling
     await refreshNotifications();
     
     console.log(`${prayer.name} notifications ${!currentEnabled ? 'enabled' : 'disabled'}`);
@@ -89,15 +86,12 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       ...settings,
       [prayerKey]: {
         ...settings[prayerKey],
-        [key]: value,
-        // Always ensure adhan sound is used
-        sound: 'adhan-traditional'
+        [key]: value
       }
     };
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
     
-    // CRITICAL FIX: Re-schedule notifications when settings change
     await refreshNotifications();
     
     console.log(`Updated ${prayer.name} ${key} to:`, value);
@@ -185,6 +179,11 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                      
+                      {/* Sound info - Fixed to Adhan */}
+                      <div className="text-sm text-gray-600">
+                        <p>Notification sound: Adhan</p>
                       </div>
                     </div>
                   )}

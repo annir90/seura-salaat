@@ -10,11 +10,9 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
       iconColor: "#488AFF",
-      // Remove default sound to let dynamic sound selection work
+      sound: "adhan", // Fixed sound for all notifications
     },
   },
-  // Remove the server configuration for native builds
-  // The server config is only needed for live reload during development
 };
 
 export default config;

@@ -6,7 +6,6 @@ import { getTranslation } from './translationService';
 export interface NotificationSettings {
   enabled: boolean;
   timing: number; // minutes before prayer
-  sound: string;
 }
 
 export interface PrayerNotificationSettings {
@@ -18,11 +17,11 @@ export interface PrayerNotificationSettings {
 }
 
 const DEFAULT_SETTINGS: PrayerNotificationSettings = {
-  fajr: { enabled: true, timing: 10, sound: 'adhan-traditional' },
-  dhuhr: { enabled: true, timing: 10, sound: 'adhan-traditional' },
-  asr: { enabled: true, timing: 10, sound: 'adhan-traditional' },
-  maghrib: { enabled: true, timing: 10, sound: 'adhan-traditional' },
-  isha: { enabled: true, timing: 10, sound: 'adhan-traditional' }
+  fajr: { enabled: true, timing: 10 },
+  dhuhr: { enabled: true, timing: 10 },
+  asr: { enabled: true, timing: 10 },
+  maghrib: { enabled: true, timing: 10 },
+  isha: { enabled: true, timing: 10 }
 };
 
 class NotificationService {
@@ -52,16 +51,7 @@ class NotificationService {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const parsedSettings = JSON.parse(stored);
-        // Ensure all prayers use adhan-traditional sound
-        const settingsWithAdhan = { ...DEFAULT_SETTINGS };
-        Object.keys(parsedSettings).forEach((key) => {
-          settingsWithAdhan[key as keyof PrayerNotificationSettings] = {
-            ...parsedSettings[key],
-            sound: 'adhan-traditional' // Force adhan sound
-          };
-        });
-        return settingsWithAdhan;
+        return JSON.parse(stored);
       }
       return DEFAULT_SETTINGS;
     } catch (error) {
@@ -72,16 +62,8 @@ class NotificationService {
 
   saveSettings(settings: PrayerNotificationSettings): void {
     try {
-      // Ensure all settings use adhan-traditional sound before saving
-      const settingsWithAdhan = { ...settings };
-      Object.keys(settingsWithAdhan).forEach((key) => {
-        settingsWithAdhan[key as keyof PrayerNotificationSettings] = {
-          ...settingsWithAdhan[key as keyof PrayerNotificationSettings],
-          sound: 'adhan-traditional'
-        };
-      });
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settingsWithAdhan));
-      console.log('Saved notification settings with adhan sound:', settingsWithAdhan);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+      console.log('Saved notification settings:', settings);
     } catch (error) {
       console.error('Error saving notification settings:', error);
     }
@@ -89,24 +71,8 @@ class NotificationService {
 
   updatePrayerSettings(prayerId: keyof PrayerNotificationSettings, settings: NotificationSettings): void {
     const currentSettings = this.getSettings();
-    currentSettings[prayerId] = {
-      ...settings,
-      sound: 'adhan-traditional' // Always use adhan sound
-    };
+    currentSettings[prayerId] = settings;
     this.saveSettings(currentSettings);
-  }
-
-  private getNativeSoundName(soundId: string): string {
-    // Map sound IDs to native resource names (without extension)
-    const soundMap: Record<string, string> = {
-      'adhan-traditional': 'adhan',
-      'adhan-soft': 'soft', 
-      'notification-beep': 'beep'
-    };
-    
-    const nativeSoundName = soundMap[soundId] || 'adhan'; // Default fallback
-    console.log(`Mapping sound ID ${soundId} to native sound: ${nativeSoundName}`);
-    return nativeSoundName;
   }
 
   private getPrayerIdFromName(prayerName: string): keyof PrayerNotificationSettings | null {
@@ -163,13 +129,12 @@ class NotificationService {
 
         const prayerSettings = settings[prayerId];
         
-        // CRITICAL FIX: Only schedule if notifications are enabled for this prayer
         if (!prayerSettings.enabled) {
           console.log(`Notifications disabled for ${prayer.name}, skipping`);
           continue;
         }
 
-        console.log(`Processing ${prayer.name} - enabled: ${prayerSettings.enabled}, using adhan sound`);
+        console.log(`Processing ${prayer.name} - enabled: ${prayerSettings.enabled}, using fixed adhan sound`);
 
         try {
           const [hours, minutes] = prayer.time.split(':').map(Number);
@@ -184,26 +149,22 @@ class NotificationService {
 
           const notificationId = parseInt(`${prayerId.charCodeAt(0)}${notificationTime.getHours()}${notificationTime.getMinutes()}`);
 
-          // Always use adhan sound for notifications
-          const nativeSoundName = this.getNativeSoundName('adhan-traditional');
-
           const notification = {
             title: t.prayerReminder || 'Prayer Reminder',
             body: `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: nativeSoundName, // Always use adhan sound
+            sound: 'adhan', // Fixed sound for all notifications
             actionTypeId: '',
             extra: {
               prayerName: prayer.name,
-              prayerId: prayerId,
-              selectedSound: 'adhan-traditional' // Always adhan
+              prayerId: prayerId
             }
           };
 
           notifications.push(notification);
 
-          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with adhan sound`);
+          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with fixed adhan sound`);
         } catch (error) {
           console.error(`Error scheduling notification for ${prayer.name}:`, error);
         }
@@ -211,7 +172,7 @@ class NotificationService {
 
       if (notifications.length > 0) {
         await LocalNotifications.schedule({ notifications });
-        console.log(`Successfully scheduled ${notifications.length} prayer notifications with adhan sound`);
+        console.log(`Successfully scheduled ${notifications.length} prayer notifications with fixed adhan sound`);
       } else {
         console.log('No notifications scheduled - all prayers either disabled or times have passed');
       }
@@ -260,9 +221,6 @@ class NotificationService {
 
       const t = getTranslation();
       
-      // Always use adhan sound for test notifications
-      const testNativeSoundName = this.getNativeSoundName('adhan-traditional');
-      
       await LocalNotifications.schedule({
         notifications: [
           {
@@ -270,16 +228,15 @@ class NotificationService {
             body: t.testNotificationSent || 'This is a test notification',
             id: 999999,
             schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
-            sound: testNativeSoundName, // Always use adhan sound
+            sound: 'adhan', // Fixed sound for all notifications
             actionTypeId: '',
             extra: {
-              isTest: true,
-              selectedSound: 'adhan-traditional' // Always adhan
+              isTest: true
             }
           }
         ]
       });
-      console.log(`Test notification scheduled with adhan sound`);
+      console.log(`Test notification scheduled with fixed adhan sound`);
     } catch (error) {
       console.error('Error sending test notification:', error);
     }

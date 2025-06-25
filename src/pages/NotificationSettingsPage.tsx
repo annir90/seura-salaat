@@ -4,18 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Bell, Clock, Volume2 } from "lucide-react";
+import { ArrowLeft, Bell, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { notificationService, PrayerNotificationSettings, NotificationSettings } from "@/services/notificationService";
 import { getTranslation } from "@/services/translationService";
-import { soundOptions } from "@/components/sound/soundOptions";
-import { useSoundPlayer } from "@/components/sound/useSoundPlayer";
 
 const NotificationSettingsPage = () => {
   const navigate = useNavigate();
   const t = getTranslation();
-  const { playSound, playingSound } = useSoundPlayer();
   const [settings, setSettings] = useState<PrayerNotificationSettings>(notificationService.getSettings());
   const [hasPermission, setHasPermission] = useState(false);
 
@@ -52,13 +49,6 @@ const NotificationSettingsPage = () => {
     // If disabling notifications, cancel pending ones for this prayer
     if (key === 'enabled' && !value) {
       notificationService.cancelPrayerNotification(prayerId);
-    }
-  };
-
-  const testSound = (soundId: string) => {
-    const soundOption = soundOptions.find(s => s.id === soundId);
-    if (soundOption) {
-      playSound(soundOption);
     }
   };
 
@@ -163,39 +153,9 @@ const NotificationSettingsPage = () => {
                     </div>
                   </div>
 
-                  {/* Sound Selection */}
-                  <div className="flex items-center gap-3">
-                    <Volume2 className="h-4 w-4 text-gray-500" />
-                    <div className="flex-1">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                        {t.notificationSound || "Notification Sound"}
-                      </label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={settings[prayer.id].sound}
-                          onValueChange={(value) => updatePrayerSetting(prayer.id, 'sound', value)}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {soundOptions.map((option) => (
-                              <SelectItem key={option.id} value={option.id}>
-                                {option.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => testSound(settings[prayer.id].sound)}
-                          className="shrink-0"
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                  {/* Fixed Sound Info */}
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <p>Notification sound: Adhan (fixed)</p>
                   </div>
                 </CardContent>
               )}
