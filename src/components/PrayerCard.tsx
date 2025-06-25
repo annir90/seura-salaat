@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { Bell, BellOff, Clock, Volume2 } from "lucide-react";
+import { Bell, BellOff, Clock } from "lucide-react";
 import { PrayerTime, getPrayerTimes } from "@/services/prayerTimeService";
 import { getTranslation } from "@/services/translationService";
 import { notificationService, PrayerNotificationSettings } from "@/services/notificationService";
-import { soundOptions } from "@/components/sound/soundOptions";
-import { useSoundPlayer } from "@/components/sound/useSoundPlayer";
 import { useState, useEffect } from "react";
 
 interface PrayerCardProps {
@@ -19,7 +17,6 @@ interface PrayerCardProps {
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const t = getTranslation();
-  const { playSound } = useSoundPlayer();
   const [settings, setSettings] = useState<PrayerNotificationSettings>(notificationService.getSettings());
   const [hasPermission, setHasPermission] = useState(false);
 
@@ -100,17 +97,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     await refreshNotifications();
     
     console.log(`Updated ${prayer.name} ${key} to:`, value);
-  };
-
-  const testSound = (soundId: string) => {
-    console.log(`Testing sound for ${prayer.name} with sound ID: ${soundId}`);
-    const soundOption = soundOptions.find(s => s.id === soundId);
-    if (soundOption) {
-      console.log(`Playing sound option:`, soundOption);
-      playSound(soundOption);
-    } else {
-      console.error(`Sound option not found for ID: ${soundId}`);
-    }
   };
 
   const prayerKey = getPrayerSettingsKey(prayer.id);
@@ -196,43 +182,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-
-                      {/* Sound Selection */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Volume2 className="h-4 w-4 text-gray-500" />
-                          <label className="text-sm font-medium">
-                            {t.notificationSound || "Notification Sound"}
-                          </label>
-                        </div>
-                        <div className="flex gap-2">
-                          <Select
-                            value={prayerSettings.sound}
-                            onValueChange={(value) => updatePrayerSetting('sound', value)}
-                            disabled={!isNotificationEnabled}
-                          >
-                            <SelectTrigger className="flex-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {soundOptions.map((option) => (
-                                <SelectItem key={option.id} value={option.id}>
-                                  {option.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => testSound(prayerSettings.sound)}
-                            className="shrink-0"
-                            disabled={!isNotificationEnabled}
-                          >
-                            <Volume2 className="h-4 w-4" />
-                          </Button>
-                        </div>
                       </div>
                     </div>
                   )}

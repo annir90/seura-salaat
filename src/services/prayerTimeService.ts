@@ -93,6 +93,8 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
     const actualPrayerIndex = actualPrayers.findIndex(ap => ap.id === prayer.id);
     const isNext = actualPrayerIndex === nextPrayerIndex && prayer.id !== 'sunrise';
     
+    console.log(`Prayer ${prayer.name} - actualPrayerIndex: ${actualPrayerIndex}, nextPrayerIndex: ${nextPrayerIndex}, isNext: ${isNext}`);
+    
     return {
       ...prayer,
       isNext
