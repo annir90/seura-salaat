@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -72,8 +71,9 @@ export default {
 				}
 			},
 			fontFamily: {
-				quran: ['Amiri Quran', 'Traditional Arabic', 'Al Bayan', 'serif'],
-				arabic: ['Amiri Quran', 'Traditional Arabic', 'Al Bayan', 'serif'],
+				quran: ['Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', 'serif'],
+				arabic: ['Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', 'serif'],
+				uthmani: ['KFGQPC Uthman Taha Naskh', 'Amiri Quran', 'Noto Naskh Arabic', 'serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

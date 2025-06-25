@@ -1,6 +1,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -131,7 +132,48 @@
   @apply bg-prayer-light text-prayer-primary text-xs font-semibold px-2.5 py-0.5 rounded-full;
 }
 
-/* Quran verse styling */
+/* Clean Quran verse styling - Authentic and flowing */
+.quran-verse-clean {
+  font-family: 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', serif;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: bidi-override;
+  word-spacing: 0.15em;
+  letter-spacing: 0.02em;
+  line-height: 2.5;
+  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  color: hsl(var(--foreground));
+}
+
+.verse-number-inline {
+  display: inline;
+  font-size: 0.7em;
+  color: #9b87f5;
+  font-family: 'Amiri Quran', 'Traditional Arabic', serif;
+  font-weight: 400;
+  margin: 0 0.2em;
+  vertical-align: baseline;
+}
+
+.verse-container {
+  padding: 1.5rem 0;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+}
+
+.verse-container:hover {
+  background: rgba(155, 135, 245, 0.02);
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+}
+
+/* Old styling to keep for backward compatibility */
 .quran-verse {
   font-family: 'Amiri Quran', 'Traditional Arabic', 'Al Bayan', serif;
   direction: rtl;
@@ -196,17 +238,4 @@
     #161b26 75%, 
     #1a1f2c 100%
   );
-}
-
-.verse-container {
-  padding: 1.5rem 2rem;
-  margin-bottom: 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(155, 135, 245, 0.1);
-  transition: all 0.2s ease;
-}
-
-.verse-container:hover {
-  border-color: rgba(155, 135, 245, 0.2);
-  box-shadow: 0 4px 12px rgba(155, 135, 245, 0.08);
 }

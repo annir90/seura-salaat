@@ -272,7 +272,7 @@ const QuranPage = () => {
         </div>
       ) : null}
 
-      {/* Reading Mode - Full Screen Quran View with Complete Surah */}
+      {/* Reading Mode - Clean immersive Quran layout */}
       {readingMode && !loading && selectedSurah && allAyahs.length > 0 && (
         <div className="fixed inset-0 bg-background z-50 flex flex-col">
           {/* Minimal Header */}
@@ -304,21 +304,24 @@ const QuranPage = () => {
             </button>
           </div>
           
-          {/* Complete Surah Content - Updated with new styling */}
-          <div ref={contentRef} className="flex-1 overflow-auto">
-            <div className="max-w-5xl mx-auto p-4 md:p-8 lg:p-12">
-              {/* Surah Header */}
-              <div className="text-center mb-8 p-6 rounded-xl bg-gradient-to-r from-prayer-primary/5 to-prayer-primary/10 border border-prayer-primary/20">
-                <h1 className="text-2xl md:text-3xl font-bold text-prayer-primary mb-2">
-                  {getSurahName(parseInt(selectedSurah))}
+          {/* Clean Quran Content */}
+          <div ref={contentRef} className="flex-1 overflow-auto bg-gradient-to-b from-background to-background/95">
+            <div className="max-w-4xl mx-auto px-6 py-8 md:px-12 md:py-12">
+              {/* Surah Header - Minimal and elegant */}
+              <div className="text-center mb-12 pb-8 border-b border-prayer-primary/20">
+                <h1 dir="rtl" className="font-arabic text-4xl md:text-5xl text-prayer-primary mb-4">
+                  {surahs.find(s => s.number === parseInt(selectedSurah))?.name}
                 </h1>
-                <p className="text-muted-foreground">
+                <h2 className="text-xl md:text-2xl font-medium text-foreground mb-2">
+                  {surahs.find(s => s.number === parseInt(selectedSurah))?.englishName}
+                </h2>
+                <p className="text-muted-foreground text-sm">
                   {allAyahs.length} {t.verses}
                 </p>
               </div>
 
-              {/* Verses */}
-              <div className="space-y-4">
+              {/* Verses - Clean flowing layout */}
+              <div className="space-y-0">
                 {allAyahs.map((ayah) => (
                   <QuranVerse 
                     key={ayah.number}
@@ -329,19 +332,19 @@ const QuranPage = () => {
               </div>
               
               {/* End of Surah indicator */}
-              <div className="text-center text-muted-foreground py-12 mt-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-prayer-primary/10 rounded-full mb-6">
-                  <BookOpen className="h-10 w-10 text-prayer-primary" />
+              <div className="text-center py-16 mt-12 border-t border-prayer-primary/20">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-prayer-primary/10 rounded-full mb-4">
+                  <BookOpen className="h-8 w-8 text-prayer-primary" />
                 </div>
-                <p className="text-xl font-medium mb-2">{t.endOfSurah}</p>
-                <p className="text-base text-muted-foreground">
-                  {getSurahName(parseInt(selectedSurah))} - {allAyahs.length} {t.verses}
+                <p className="text-lg font-medium mb-2 text-prayer-primary">{t.endOfSurah}</p>
+                <p className="text-sm text-muted-foreground">
+                  {getSurahName(parseInt(selectedSurah))}
                 </p>
               </div>
             </div>
           </div>
           
-          {/* Save bookmark button - moved up higher */}
+          {/* Save bookmark button */}
           {readingMode && (
             <div className="fixed right-4 bottom-24 z-30">
               <button 

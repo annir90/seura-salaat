@@ -8,7 +8,7 @@ interface QuranVerseProps {
 }
 
 const QuranVerse = ({ ayah, showTranslation }: QuranVerseProps) => {
-  // Convert Arabic-Indic numerals to decorative circle
+  // Format verse number in Arabic-Indic numerals with decorative styling
   const formatVerseNumber = (number: number) => {
     return number.toString();
   };
@@ -16,24 +16,24 @@ const QuranVerse = ({ ayah, showTranslation }: QuranVerseProps) => {
   return (
     <div 
       id={`ayah-${ayah.numberInSurah}`}
-      className="verse-container mushaf-background"
+      className="verse-container"
     >
-      {/* Arabic Verse */}
-      <div className="flex items-start gap-4 mb-4">
-        <div className="verse-number">
-          {formatVerseNumber(ayah.numberInSurah)}
-        </div>
+      {/* Arabic Verse - Clean flowing layout */}
+      <div className="flex items-start gap-3 mb-6">
         <div className="flex-1">
-          <p className="quran-verse text-2xl md:text-3xl text-foreground leading-loose">
+          <p className="quran-verse-clean text-3xl md:text-4xl lg:text-5xl text-foreground leading-relaxed">
             {ayah.text}
+            <span className="verse-number-inline mr-2">
+              ﴿{formatVerseNumber(ayah.numberInSurah)}﴾
+            </span>
           </p>
         </div>
       </div>
       
-      {/* Translation */}
+      {/* Translation - Clean and minimal */}
       {showTranslation && ayah.translation && (
-        <div className="mt-4 pt-4 border-t border-dashed border-muted-foreground/30">
-          <p className="text-muted-foreground text-base md:text-lg leading-relaxed text-left">
+        <div className="mt-4 mb-8">
+          <p className="text-muted-foreground text-base md:text-lg leading-relaxed text-left max-w-4xl">
             <span className="text-sm font-medium text-prayer-primary mr-2">
               {ayah.numberInSurah}.
             </span>
