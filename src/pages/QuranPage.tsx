@@ -314,8 +314,8 @@ const QuranPage = () => {
                 </p>
               </div>
 
-              {/* Verses - Clean flowing mushaf layout */}
-              <div className="space-y-2">
+              {/* Verses - Continuous flowing mushaf layout */}
+              <div className="quran-text-container">
                 {allAyahs.map((ayah) => (
                   <QuranVerse 
                     key={ayah.number}
