@@ -2,11 +2,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { Bell, BellOff } from "lucide-react";
+import { Bell, BellOff, Clock } from "lucide-react";
 import { PrayerTime, getPrayerTimes } from "@/services/prayerTimeService";
 import { notificationService, PrayerNotificationSettings } from "@/services/notificationService";
+import { getTranslation } from "@/services/translationService";
 import { useState, useEffect } from "react";
 
 interface PrayerCardProps {
@@ -14,6 +16,7 @@ interface PrayerCardProps {
 }
 
 const PrayerCard = ({ prayer }: PrayerCardProps) => {
+  const t = getTranslation();
   const [settings, setSettings] = useState<PrayerNotificationSettings>(notificationService.getSettings());
   const [hasPermission, setHasPermission] = useState(false);
 
@@ -63,7 +66,9 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
       ...settings,
       [prayerKey]: {
         ...settings[prayerKey],
-        enabled: !currentEnabled
+        enabled: !currentEnabled,
+        // Ensure adhan sound is always used for notifications
+        sound: 'adhan-traditional'
       }
     };
     
@@ -76,11 +81,39 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     console.log(`${prayer.name} notifications ${!currentEnabled ? 'enabled' : 'disabled'}`);
   };
 
+  const updatePrayerSetting = async (key: keyof typeof settings[keyof PrayerNotificationSettings], value: any) => {
+    const prayerKey = getPrayerSettingsKey(prayer.id);
+    if (!prayerKey) return;
+
+    const newSettings = {
+      ...settings,
+      [prayerKey]: {
+        ...settings[prayerKey],
+        [key]: value,
+        // Always ensure adhan sound is used
+        sound: 'adhan-traditional'
+      }
+    };
+    setSettings(newSettings);
+    notificationService.saveSettings(newSettings);
+    
+    // CRITICAL FIX: Re-schedule notifications when settings change
+    await refreshNotifications();
+    
+    console.log(`Updated ${prayer.name} ${key} to:`, value);
+  };
+
   const prayerKey = getPrayerSettingsKey(prayer.id);
   const isNotificationEnabled = prayerKey ? settings[prayerKey].enabled : false;
+  const prayerSettings = prayerKey ? settings[prayerKey] : null;
   
   // Don't show notification bell for sunrise since it's not a prayer time
   const showNotificationBell = prayer.id !== 'sunrise';
+
+  const timingOptions = [
+    { value: 10, label: "10 minutes before" },
+    { value: 15, label: "15 minutes before" }
+  ];
 
   return (
     <Card className={`mb-4 ${prayer.isNext ? 'border-l-4 border-l-orange-500' : ''}`}>
@@ -126,6 +159,35 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                       onCheckedChange={toggleNotification}
                     />
                   </div>
+                  
+                  {prayerSettings && isNotificationEnabled && hasPermission && (
+                    <div className="space-y-4">
+                      {/* Timing Selection */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <label className="text-sm font-medium">
+                            {t.notificationTiming || "Notification Timing"}
+                          </label>
+                        </div>
+                        <Select
+                          value={prayerSettings.timing.toString()}
+                          onValueChange={(value) => updatePrayerSetting('timing', parseInt(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timingOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value.toString()}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
                   
                   {!hasPermission && (
                     <div className="text-sm text-gray-600">
