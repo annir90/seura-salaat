@@ -295,21 +295,15 @@ const QuranPage = () => {
               </p>
             </div>
             
-            <button 
-              onClick={toggleTranslation}
-              className="p-2 rounded-full hover:bg-muted"
-              title={showTranslation ? "Hide translation" : "Show translation"}
-            >
-              <Languages size={18} className="text-prayer-primary" />
-            </button>
+            <div className="w-10"></div>
           </div>
           
-          {/* Clean Quran Content */}
-          <div ref={contentRef} className="flex-1 overflow-auto bg-gradient-to-b from-background to-background/95">
-            <div className="max-w-4xl mx-auto px-6 py-8 md:px-12 md:py-12">
+          {/* Clean Quran Content with Mushaf styling */}
+          <div ref={contentRef} className="flex-1 overflow-auto mushaf-background">
+            <div className="max-w-5xl mx-auto px-6 py-8 md:px-12 md:py-12">
               {/* Surah Header - Minimal and elegant */}
               <div className="text-center mb-12 pb-8 border-b border-prayer-primary/20">
-                <h1 dir="rtl" className="font-arabic text-4xl md:text-5xl text-prayer-primary mb-4">
+                <h1 dir="rtl" className="font-uthmani text-4xl md:text-5xl text-prayer-primary mb-4">
                   {surahs.find(s => s.number === parseInt(selectedSurah))?.name}
                 </h1>
                 <h2 className="text-xl md:text-2xl font-medium text-foreground mb-2">
@@ -320,13 +314,12 @@ const QuranPage = () => {
                 </p>
               </div>
 
-              {/* Verses - Clean flowing layout */}
-              <div className="space-y-0">
+              {/* Verses - Clean flowing mushaf layout */}
+              <div className="space-y-2">
                 {allAyahs.map((ayah) => (
                   <QuranVerse 
                     key={ayah.number}
                     ayah={ayah}
-                    showTranslation={showTranslation}
                   />
                 ))}
               </div>

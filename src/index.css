@@ -132,6 +132,51 @@
   @apply bg-prayer-light text-prayer-primary text-xs font-semibold px-2.5 py-0.5 rounded-full;
 }
 
+/* Enhanced Mushaf-style Quran verse styling */
+.quran-verse-mushaf {
+  font-family: 'KFGQPC Uthman Taha Naskh', 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', serif;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: bidi-override;
+  word-spacing: 0.1em;
+  letter-spacing: 0.01em;
+  line-height: 2.8;
+  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1, "calt" 1, "ss01" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  color: hsl(var(--foreground));
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.verse-number-decorative {
+  display: inline;
+  font-size: 0.6em;
+  color: #9b87f5;
+  font-family: 'Amiri Quran', 'Traditional Arabic', serif;
+  font-weight: 500;
+  margin: 0 0.3em;
+  vertical-align: baseline;
+  text-shadow: none;
+  opacity: 0.8;
+}
+
+.verse-container {
+  padding: 1rem 0;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  position: relative;
+}
+
+.verse-container:hover {
+  background: rgba(155, 135, 245, 0.03);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+}
+
 /* Clean Quran verse styling - Authentic and flowing */
 .quran-verse-clean {
   font-family: 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', serif;
@@ -157,20 +202,6 @@
   font-weight: 400;
   margin: 0 0.2em;
   vertical-align: baseline;
-}
-
-.verse-container {
-  padding: 1.5rem 0;
-  margin-bottom: 0.5rem;
-  transition: all 0.2s ease;
-  border: none;
-  background: transparent;
-}
-
-.verse-container:hover {
-  background: rgba(155, 135, 245, 0.02);
-  border-radius: 8px;
-  padding: 1.5rem 1rem;
 }
 
 /* Old styling to keep for backward compatibility */
