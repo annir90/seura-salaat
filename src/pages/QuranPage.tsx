@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getTranslation } from "@/services/translationService";
+import QuranVerse from "@/components/QuranVerse";
 
 const QuranPage = () => {
   const [surahs, setSurahs] = useState<Surah[]>([]);
@@ -303,48 +304,37 @@ const QuranPage = () => {
             </button>
           </div>
           
-          {/* Complete Surah Content */}
-          <div ref={contentRef} className="flex-1 overflow-auto quran-content-area">
-            <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-8 lg:p-12">
-              {allAyahs.map((ayah) => (
-                <div 
-                  key={ayah.number} 
-                  id={`ayah-${ayah.numberInSurah}`}
-                  className="p-4 md:p-6 bg-card border rounded-lg"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="bg-prayer-primary/10 text-prayer-primary px-3 py-1 rounded-full font-medium">
-                      {ayah.numberInSurah}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {/* Arabic Text */}
-                    <div>
-                      <p dir="rtl" className="text-right text-2xl font-arabic leading-loose">
-                        {ayah.text}
-                      </p>
-                    </div>
-                    
-                    {/* Translation Text - conditionally rendered */}
-                    {showTranslation && ayah.translation && (
-                      <div className="pt-3 border-t border-dashed border-muted">
-                        <p className="text-muted-foreground text-base leading-relaxed">
-                          {ayah.translation}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+          {/* Complete Surah Content - Updated with new styling */}
+          <div ref={contentRef} className="flex-1 overflow-auto">
+            <div className="max-w-5xl mx-auto p-4 md:p-8 lg:p-12">
+              {/* Surah Header */}
+              <div className="text-center mb-8 p-6 rounded-xl bg-gradient-to-r from-prayer-primary/5 to-prayer-primary/10 border border-prayer-primary/20">
+                <h1 className="text-2xl md:text-3xl font-bold text-prayer-primary mb-2">
+                  {getSurahName(parseInt(selectedSurah))}
+                </h1>
+                <p className="text-muted-foreground">
+                  {allAyahs.length} {t.verses}
+                </p>
+              </div>
+
+              {/* Verses */}
+              <div className="space-y-4">
+                {allAyahs.map((ayah) => (
+                  <QuranVerse 
+                    key={ayah.number}
+                    ayah={ayah}
+                    showTranslation={showTranslation}
+                  />
+                ))}
+              </div>
               
               {/* End of Surah indicator */}
-              <div className="text-center text-muted-foreground py-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-prayer-primary/10 rounded-full mb-4">
-                  <BookOpen className="h-8 w-8 text-prayer-primary" />
+              <div className="text-center text-muted-foreground py-12 mt-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-prayer-primary/10 rounded-full mb-6">
+                  <BookOpen className="h-10 w-10 text-prayer-primary" />
                 </div>
-                <p className="text-lg font-medium">{t.endOfSurah}</p>
-                <p className="text-sm">
+                <p className="text-xl font-medium mb-2">{t.endOfSurah}</p>
+                <p className="text-base text-muted-foreground">
                   {getSurahName(parseInt(selectedSurah))} - {allAyahs.length} {t.verses}
                 </p>
               </div>

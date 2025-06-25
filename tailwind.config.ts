@@ -71,6 +71,10 @@ export default {
 					accent: '#D6BCFA'
 				}
 			},
+			fontFamily: {
+				quran: ['Amiri Quran', 'Traditional Arabic', 'Al Bayan', 'serif'],
+				arabic: ['Amiri Quran', 'Traditional Arabic', 'Al Bayan', 'serif'],
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
