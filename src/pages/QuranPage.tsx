@@ -311,13 +311,6 @@ const QuranPage = () => {
                     </p>
                   </div>
                 )}
-                
-                {/* Surah name in Arabic */}
-                <div className="mb-6">
-                  <h1 dir="rtl" className="surah-title-arabic">
-                    سُورَةُ {surahs.find(s => s.number === parseInt(selectedSurah))?.name}
-                  </h1>
-                </div>
               </div>
 
               {/* Main Quran Text - Continuous Flow */}
