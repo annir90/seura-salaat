@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, Languages, ArrowLeft, Save } from "lucide-react";
+import { Loader2, BookOpen, ArrowLeft, Save } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -272,11 +272,11 @@ const QuranPage = () => {
         </div>
       ) : null}
 
-      {/* Reading Mode - Clean immersive Quran layout */}
+      {/* Reading Mode - Traditional Mushaf layout */}
       {readingMode && !loading && selectedSurah && allAyahs.length > 0 && (
-        <div className="fixed inset-0 bg-background z-50 flex flex-col">
+        <div className="fixed inset-0 bg-mushaf-page z-50 flex flex-col">
           {/* Minimal Header */}
-          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
+          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-mushaf-page/95 backdrop-blur-sm">
             <Button 
               variant="ghost" 
               className="flex items-center gap-2" 
@@ -298,34 +298,42 @@ const QuranPage = () => {
             <div className="w-10"></div>
           </div>
           
-          {/* Clean Quran Content with Mushaf styling */}
-          <div ref={contentRef} className="flex-1 overflow-auto mushaf-background">
-            <div className="max-w-5xl mx-auto px-6 py-8 md:px-12 md:py-12">
-              {/* Surah Header - Minimal and elegant */}
-              <div className="text-center mb-12 pb-8 border-b border-prayer-primary/20">
-                <h1 dir="rtl" className="font-uthmani text-4xl md:text-5xl text-prayer-primary mb-4">
-                  {surahs.find(s => s.number === parseInt(selectedSurah))?.name}
-                </h1>
-                <h2 className="text-xl md:text-2xl font-medium text-foreground mb-2">
-                  {surahs.find(s => s.number === parseInt(selectedSurah))?.englishName}
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  {allAyahs.length} {t.verses}
-                </p>
+          {/* Traditional Mushaf Content */}
+          <div ref={contentRef} className="flex-1 overflow-auto">
+            <div className="max-w-4xl mx-auto px-8 py-12">
+              {/* Surah Header with Bismillah */}
+              <div className="text-center mb-16">
+                {/* Bismillah - shown for all surahs except At-Tawbah */}
+                {parseInt(selectedSurah) !== 9 && (
+                  <div className="mb-8">
+                    <p dir="rtl" className="bismillah-text">
+                      بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                    </p>
+                  </div>
+                )}
+                
+                {/* Surah name in Arabic */}
+                <div className="mb-6">
+                  <h1 dir="rtl" className="surah-title-arabic">
+                    سُورَةُ {surahs.find(s => s.number === parseInt(selectedSurah))?.name}
+                  </h1>
+                </div>
               </div>
 
-              {/* Verses - Continuous flowing mushaf layout */}
-              <div className="quran-text-container">
-                {allAyahs.map((ayah) => (
-                  <QuranVerse 
-                    key={ayah.number}
-                    ayah={ayah}
-                  />
-                ))}
+              {/* Main Quran Text - Continuous Flow */}
+              <div className="mushaf-text-container">
+                <p dir="rtl" className="quran-mushaf-text">
+                  {allAyahs.map((ayah) => (
+                    <QuranVerse 
+                      key={ayah.number}
+                      ayah={ayah}
+                    />
+                  ))}
+                </p>
               </div>
               
-              {/* End of Surah indicator */}
-              <div className="text-center py-16 mt-12 border-t border-prayer-primary/20">
+              {/* End of Surah marker */}
+              <div className="text-center py-16 mt-12">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-prayer-primary/10 rounded-full mb-4">
                   <BookOpen className="h-8 w-8 text-prayer-primary" />
                 </div>

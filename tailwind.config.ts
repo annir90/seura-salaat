@@ -68,12 +68,14 @@ export default {
 					dark: '#1A1F2C',
 					light: '#E5DEFF',
 					accent: '#D6BCFA'
-				}
+				},
+				'mushaf-page': '#fdfcf8'
 			},
 			fontFamily: {
-				quran: ['Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', 'serif'],
-				arabic: ['Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', 'serif'],
-				uthmani: ['KFGQPC Uthman Taha Naskh', 'Amiri Quran', 'Noto Naskh Arabic', 'serif'],
+				quran: ['Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', 'serif'],
+				arabic: ['Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', 'serif'],
+				uthmani: ['KFGQPC Uthman Taha Naskh', 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', 'serif'],
+				mushaf: ['Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', 'serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

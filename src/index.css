@@ -1,7 +1,7 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran:wght@400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -120,6 +120,141 @@
   }
 }
 
+/* Traditional Mushaf Page Background */
+.bg-mushaf-page {
+  background: linear-gradient(135deg, 
+    #fdfcf8 0%, 
+    #f9f7f1 25%, 
+    #fdfcf8 50%, 
+    #f7f5ef 75%, 
+    #fdfcf8 100%
+  );
+}
+
+.dark .bg-mushaf-page {
+  background: linear-gradient(135deg, 
+    #1a1f2c 0%, 
+    #1e2330 25%, 
+    #1a1f2c 50%, 
+    #161b26 75%, 
+    #1a1f2c 100%
+  );
+}
+
+/* Bismillah Styling */
+.bismillah-text {
+  font-family: 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: #9b87f5;
+  text-align: center;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Surah Title Styling */
+.surah-title-arabic {
+  font-family: 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: #7E69AB;
+  text-align: center;
+  line-height: 1.6;
+  letter-spacing: 0.03em;
+}
+
+/* Main Quran Text Container */
+.mushaf-text-container {
+  max-width: 100%;
+  margin: 0 auto;
+  direction: rtl;
+  text-align: justify;
+}
+
+/* Continuous Mushaf Text Styling */
+.quran-mushaf-text {
+  font-family: 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  font-size: 1.875rem;
+  line-height: 2.4;
+  color: hsl(var(--foreground));
+  text-align: justify;
+  word-spacing: 0.1em;
+  letter-spacing: 0.02em;
+  direction: rtl;
+  unicode-bidi: bidi-override;
+  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .quran-mushaf-text {
+    font-size: 2.125rem;
+    line-height: 2.6;
+  }
+  
+  .bismillah-text {
+    font-size: 2rem;
+  }
+  
+  .surah-title-arabic {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quran-mushaf-text {
+    font-size: 2.25rem;
+    line-height: 2.8;
+  }
+  
+  .bismillah-text {
+    font-size: 2.25rem;
+  }
+  
+  .surah-title-arabic {
+    font-size: 2.75rem;
+  }
+}
+
+/* Individual Verse Styling */
+.quran-verse-text {
+  display: inline;
+  font-family: 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', serif;
+}
+
+/* Verse Number Circle Styling */
+.verse-number-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: #9b87f5;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 0 0.25rem;
+  font-family: 'Poppins', sans-serif;
+  direction: ltr;
+  vertical-align: baseline;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .verse-number-circle {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Legacy styles for backward compatibility */
 .prayer-card {
   @apply bg-card text-card-foreground rounded-2xl shadow-md p-4 transition-all hover:shadow-lg border border-border;
 }
@@ -132,7 +267,7 @@
   @apply bg-prayer-light text-prayer-primary text-xs font-semibold px-2.5 py-0.5 rounded-full;
 }
 
-/* Continuous flowing Quran verse styling - no breaks or margins */
+/* Old Quran verse styling for compatibility */
 .quran-verse-mushaf {
   font-family: 'KFGQPC Uthman Taha Naskh', 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', serif;
   direction: rtl;
@@ -152,18 +287,6 @@
   display: inline;
 }
 
-@media (min-width: 768px) {
-  .quran-verse-mushaf {
-    font-size: 2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .quran-verse-mushaf {
-    font-size: 2.25rem;
-  }
-}
-
 .verse-number-decorative {
   display: inline;
   font-size: 0.6em;
@@ -174,105 +297,4 @@
   vertical-align: baseline;
   text-shadow: none;
   opacity: 0.8;
-}
-
-/* Clean Quran verse styling - Authentic and flowing */
-.quran-verse-clean {
-  font-family: 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', serif;
-  direction: rtl;
-  text-align: right;
-  unicode-bidi: bidi-override;
-  word-spacing: 0.15em;
-  letter-spacing: 0.02em;
-  line-height: 2.5;
-  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1, "calt" 1;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-weight: 400;
-  color: hsl(var(--foreground));
-}
-
-.verse-number-inline {
-  display: inline;
-  font-size: 0.7em;
-  color: #9b87f5;
-  font-family: 'Amiri Quran', 'Traditional Arabic', serif;
-  font-weight: 400;
-  margin: 0 0.2em;
-  vertical-align: baseline;
-}
-
-/* Old styling to keep for backward compatibility */
-.quran-verse {
-  font-family: 'Amiri Quran', 'Traditional Arabic', 'Al Bayan', serif;
-  direction: rtl;
-  text-align: right;
-  unicode-bidi: bidi-override;
-  word-spacing: 0.2em;
-  letter-spacing: 0.05em;
-  line-height: 2.2;
-  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.verse-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0 0.5rem;
-  flex-shrink: 0;
-  background: rgba(155, 135, 245, 0.1);
-  color: #9b87f5;
-  font-family: 'Poppins', sans-serif;
-  direction: ltr;
-}
-
-.mushaf-background {
-  background: linear-gradient(135deg, 
-    #fdfcf8 0%, 
-    #f9f7f1 25%, 
-    #fdfcf8 50%, 
-    #f7f5ef 75%, 
-    #fdfcf8 100%
-  );
-  position: relative;
-}
-
-.mushaf-background::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(155, 135, 245, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(155, 135, 245, 0.02) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.dark .mushaf-background {
-  background: linear-gradient(135deg, 
-    #1a1f2c 0%, 
-    #1e2330 25%, 
-    #1a1f2c 50%, 
-    #161b26 75%, 
-    #1a1f2c 100%
-  );
-}
-
-/* Continuous text container for verses */
-.quran-text-container {
-  direction: rtl;
-  text-align: right;
-  line-height: 2.2;
 }

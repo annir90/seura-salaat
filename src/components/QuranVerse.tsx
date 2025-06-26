@@ -16,13 +16,11 @@ const QuranVerse = ({ ayah }: QuranVerseProps) => {
   return (
     <span 
       id={`ayah-${ayah.numberInSurah}`}
-      className="inline"
+      className="quran-verse-text"
     >
-      <span className="quran-verse-mushaf">
-        {ayah.text}
-        <span className="verse-number-decorative">
-          ﴿{formatVerseNumber(ayah.numberInSurah)}﴾
-        </span>
+      {ayah.text}
+      <span className="verse-number-circle">
+        {formatVerseNumber(ayah.numberInSurah)}
       </span>
       {' '}
     </span>
