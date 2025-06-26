@@ -53,12 +53,6 @@ const QuranPage = () => {
         setAllAyahs(ayahsData);
         setReadingMode(true);
         
-        const surahName = surahs.find(s => s.number === surahNumber)?.englishName || '';
-        toast({
-          title: `Surah ${surahName} loaded`,
-          description: `Successfully loaded all ${ayahsData.length} ${t.verses}`,
-        });
-
         // Scroll to bookmarked verse if it's in this surah
         if (bookmark && bookmark.surahNumber === surahNumber) {
           setTimeout(() => {
@@ -275,11 +269,11 @@ const QuranPage = () => {
       {/* Reading Mode - Traditional Mushaf layout */}
       {readingMode && !loading && selectedSurah && allAyahs.length > 0 && (
         <div className="fixed inset-0 bg-mushaf-page z-50 flex flex-col">
-          {/* Minimal Header */}
-          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-mushaf-page/95 backdrop-blur-sm">
+          {/* Improved Header with better dark mode visibility */}
+          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm border-border">
             <Button 
               variant="ghost" 
-              className="flex items-center gap-2" 
+              className="flex items-center gap-2 text-foreground hover:bg-muted" 
               onClick={exitReadingMode}
             >
               <ArrowLeft size={16} />
@@ -287,7 +281,7 @@ const QuranPage = () => {
             </Button>
             
             <div className="text-center flex-1">
-              <h2 className="text-lg font-medium">
+              <h2 className="text-lg font-medium text-foreground">
                 {getSurahName(parseInt(selectedSurah))}
               </h2>
               <p className="text-sm text-muted-foreground">
