@@ -13,12 +13,36 @@ const QuranVerse = ({ ayah }: QuranVerseProps) => {
     return number.toString().split('').map(digit => arabicNumbers[parseInt(digit)]).join('');
   };
 
+  // Remove Bismillah from the first verse of each Surah (except Surah At-Tawbah which is Surah 9)
+  const getCleanedText = (text: string, verseNumber: number, surahNumber: number) => {
+    // If it's the first verse and not Surah At-Tawbah (9), remove Bismillah
+    if (verseNumber === 1 && surahNumber !== 9) {
+      // Remove the common Bismillah text patterns
+      const bismillahPatterns = [
+        'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+        'بسم الله الرحمن الرحيم',
+        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
+      ];
+      
+      let cleanedText = text;
+      bismillahPatterns.forEach(pattern => {
+        cleanedText = cleanedText.replace(pattern, '').trim();
+      });
+      
+      return cleanedText;
+    }
+    
+    return text;
+  };
+
+  const cleanedText = getCleanedText(ayah.text, ayah.numberInSurah, ayah.surah);
+
   return (
     <span 
       id={`ayah-${ayah.numberInSurah}`}
       className="quran-verse-text"
     >
-      {ayah.text}
+      {cleanedText}
       <span className="verse-number-circle">
         {formatVerseNumber(ayah.numberInSurah)}
       </span>
