@@ -269,11 +269,11 @@ const QuranPage = () => {
       {/* Reading Mode - Traditional Mushaf layout */}
       {readingMode && !loading && selectedSurah && allAyahs.length > 0 && (
         <div className="fixed inset-0 bg-mushaf-page z-50 flex flex-col">
-          {/* Improved Header with better dark mode visibility */}
-          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm border-border">
+          {/* Enhanced Header with strong dark mode visibility */}
+          <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background/98 backdrop-blur-md border-border shadow-sm">
             <Button 
               variant="ghost" 
-              className="flex items-center gap-2 text-foreground hover:bg-muted" 
+              className="flex items-center gap-2 text-foreground hover:bg-muted font-medium" 
               onClick={exitReadingMode}
             >
               <ArrowLeft size={16} />
@@ -281,10 +281,10 @@ const QuranPage = () => {
             </Button>
             
             <div className="text-center flex-1">
-              <h2 className="text-lg font-medium text-foreground">
+              <h2 className="text-lg font-bold text-foreground">
                 {getSurahName(parseInt(selectedSurah))}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-medium">
                 {allAyahs.length} {t.verses}
               </p>
             </div>
