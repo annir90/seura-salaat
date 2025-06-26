@@ -35,7 +35,7 @@ const NotificationSettingsPage = () => {
     }
   };
 
-  const updatePrayerSetting = (prayerId: keyof PrayerNotificationSettings, key: keyof NotificationSettings, value: any) => {
+  const updatePrayerSetting = async (prayerId: keyof PrayerNotificationSettings, key: keyof NotificationSettings, value: any) => {
     const newSettings = {
       ...settings,
       [prayerId]: {
@@ -45,6 +45,20 @@ const NotificationSettingsPage = () => {
     };
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
+    
+    // Store individual prayer timing in localStorage for persistence
+    if (key === 'timing') {
+      localStorage.setItem(`prayer-timing-${prayerId}`, value.toString());
+      console.log(`Saved ${prayerId} timing: ${value} minutes before prayer`);
+    }
+    
+    // Re-schedule notifications with new settings
+    try {
+      await notificationService.refreshNotifications();
+      console.log('Notifications refreshed with new settings');
+    } catch (error) {
+      console.error('Error refreshing notifications:', error);
+    }
     
     // If disabling notifications, cancel pending ones for this prayer
     if (key === 'enabled' && !value) {
@@ -57,7 +71,10 @@ const NotificationSettingsPage = () => {
     { value: 5, label: "5 minutes before" },
     { value: 10, label: "10 minutes before" },
     { value: 15, label: "15 minutes before" },
-    { value: 30, label: "30 minutes before" }
+    { value: 20, label: "20 minutes before" },
+    { value: 30, label: "30 minutes before" },
+    { value: 45, label: "45 minutes before" },
+    { value: 60, label: "1 hour before" }
   ];
 
   const prayers = [
@@ -86,7 +103,7 @@ const NotificationSettingsPage = () => {
               {t.notifications || "Notifications"}
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t.manageNotificationSettings || "Manage prayer notification settings"}
+              {t.manageNotificationSettings || "Customize prayer notification timing"}
             </p>
           </div>
         </div>
@@ -117,7 +134,10 @@ const NotificationSettingsPage = () => {
             <Card key={prayer.id} className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center justify-between">
-                  {prayer.name}
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    {prayer.name}
+                  </div>
                   <Switch
                     checked={settings[prayer.id].enabled}
                     onCheckedChange={(checked) => updatePrayerSetting(prayer.id, 'enabled', checked)}
@@ -132,8 +152,8 @@ const NotificationSettingsPage = () => {
                   <div className="flex items-center gap-3">
                     <Clock className="h-4 w-4 text-gray-500" />
                     <div className="flex-1">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
-                        {t.notificationTiming || "Notification Timing"}
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
+                        {t.notificationTiming || "Notify me"}
                       </label>
                       <Select
                         value={settings[prayer.id].timing.toString()}
@@ -153,9 +173,19 @@ const NotificationSettingsPage = () => {
                     </div>
                   </div>
 
-                  {/* Fixed Sound Info */}
+                  {/* Current Setting Display */}
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {settings[prayer.id].timing === 0 
+                        ? `You'll be notified exactly at ${prayer.name} time`
+                        : `You'll be notified ${settings[prayer.id].timing} minutes before ${prayer.name}`
+                      }
+                    </p>
+                  </div>
+
+                  {/* Sound Info */}
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    <p>Notification sound: Adhan (fixed)</p>
+                    <p>📢 Notification sound: Traditional Adhan</p>
                   </div>
                 </CardContent>
               )}
@@ -163,7 +193,7 @@ const NotificationSettingsPage = () => {
           ))}
         </div>
 
-        {/* Test All Notifications Button */}
+        {/* Test Notification Button */}
         {hasPermission && (
           <Card className="mt-6 shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
             <CardContent className="p-4">
@@ -180,6 +210,15 @@ const NotificationSettingsPage = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Info Card */}
+        <Card className="mt-4 shadow-sm border-0 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              💡 Your notification settings are automatically saved and will work even after restarting the app.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

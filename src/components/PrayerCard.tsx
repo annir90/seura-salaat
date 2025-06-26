@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Bell, BellOff, Clock } from "lucide-react";
-import { PrayerTime, getPrayerTimes } from "@/services/prayerTimeService";
+import { PrayerTime } from "@/services/prayerTimeService";
 import { notificationService, PrayerNotificationSettings } from "@/services/notificationService";
 import { getTranslation } from "@/services/translationService";
 import { useState, useEffect } from "react";
@@ -40,17 +40,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     return keyMap[prayerId] || null;
   };
 
-  const refreshNotifications = async () => {
-    try {
-      // Re-schedule all notifications with updated settings
-      const prayerTimes = await getPrayerTimes();
-      await notificationService.scheduleAllPrayerNotifications(prayerTimes);
-      console.log('Notifications refreshed with new settings');
-    } catch (error) {
-      console.error('Error refreshing notifications:', error);
-    }
-  };
-
   const toggleNotification = async () => {
     if (!hasPermission) {
       const granted = await notificationService.requestPermissions();
@@ -73,7 +62,8 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
     
-    await refreshNotifications();
+    // Use the new refresh method
+    await notificationService.refreshNotifications();
     
     console.log(`${prayer.name} notifications ${!currentEnabled ? 'enabled' : 'disabled'}`);
   };
@@ -92,7 +82,13 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
     setSettings(newSettings);
     notificationService.saveSettings(newSettings);
     
-    await refreshNotifications();
+    // Store individual timing in localStorage for persistence
+    if (key === 'timing') {
+      localStorage.setItem(`prayer-timing-${prayerKey}`, value.toString());
+    }
+    
+    // Use the new refresh method
+    await notificationService.refreshNotifications();
     
     console.log(`Updated ${prayer.name} ${key} to:`, value);
   };
@@ -105,8 +101,12 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const showNotificationBell = prayer.id !== 'sunrise';
 
   const timingOptions = [
+    { value: 0, label: "At prayer time" },
+    { value: 5, label: "5 minutes before" },
     { value: 10, label: "10 minutes before" },
-    { value: 15, label: "15 minutes before" }
+    { value: 15, label: "15 minutes before" },
+    { value: 20, label: "20 minutes before" },
+    { value: 30, label: "30 minutes before" }
   ];
 
   return (
@@ -181,9 +181,17 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                         </Select>
                       </div>
                       
-                      {/* Sound info - Fixed to Adhan */}
+                      {/* Current setting display */}
+                      <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-xs text-gray-600 dark:text-gray-400">
+                        {prayerSettings.timing === 0 
+                          ? `You'll be notified exactly at ${prayer.name} time`
+                          : `You'll be notified ${prayerSettings.timing} minutes before ${prayer.name}`
+                        }
+                      </div>
+                      
+                      {/* Sound info */}
                       <div className="text-sm text-gray-600">
-                        <p>Notification sound: Adhan</p>
+                        <p>Notification sound: Traditional Adhan</p>
                       </div>
                     </div>
                   )}

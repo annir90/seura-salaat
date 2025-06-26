@@ -12,7 +12,8 @@ import {
   User,
   Moon,
   Sun,
-  Heart
+  Heart,
+  Bell
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
@@ -70,6 +71,10 @@ const SettingsPage = () => {
 
   const handleLanguageNavigation = () => {
     navigate('/settings/language');
+  };
+
+  const handleNotificationNavigation = () => {
+    navigate('/settings/notifications');
   };
 
   const handleAboutNavigation = () => {
@@ -145,6 +150,27 @@ const SettingsPage = () => {
                   checked={theme === "dark"}
                   onCheckedChange={handleThemeToggle}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notification Settings */}
+          <Card 
+            className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleNotificationNavigation}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center">
+                    <Bell className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Prayer Notifications</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Customize notification timing</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
               </div>
             </CardContent>
           </Card>

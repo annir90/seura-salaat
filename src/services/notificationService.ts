@@ -1,6 +1,6 @@
 
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { PrayerTime } from './prayerTimeService';
+import { PrayerTime, getPrayerTimes } from './prayerTimeService';
 import { getTranslation } from './translationService';
 
 export interface NotificationSettings {
@@ -50,10 +50,19 @@ class NotificationService {
   getSettings(): PrayerNotificationSettings {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      return DEFAULT_SETTINGS;
+      let settings = stored ? JSON.parse(stored) : DEFAULT_SETTINGS;
+      
+      // Load individual prayer timings from localStorage for precise control
+      const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
+      prayers.forEach(prayer => {
+        const storedTiming = localStorage.getItem(`prayer-timing-${prayer}`);
+        if (storedTiming !== null) {
+          settings[prayer].timing = parseInt(storedTiming);
+          console.log(`Loaded ${prayer} timing from localStorage: ${storedTiming} minutes`);
+        }
+      });
+      
+      return settings;
     } catch (error) {
       console.error('Error loading notification settings:', error);
       return DEFAULT_SETTINGS;
@@ -63,7 +72,13 @@ class NotificationService {
   saveSettings(settings: PrayerNotificationSettings): void {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
-      console.log('Saved notification settings:', settings);
+      
+      // Also save individual prayer timings for precise control
+      Object.entries(settings).forEach(([prayer, setting]) => {
+        localStorage.setItem(`prayer-timing-${prayer}`, setting.timing.toString());
+      });
+      
+      console.log('Saved notification settings with individual timings:', settings);
     } catch (error) {
       console.error('Error saving notification settings:', error);
     }
@@ -115,7 +130,7 @@ class NotificationService {
       const t = getTranslation();
       const notifications = [];
 
-      console.log('Current notification settings:', settings);
+      console.log('Scheduling notifications with precise timing settings:', settings);
 
       for (const prayer of prayerTimes) {
         // Skip sunrise as it's not a prayer time for notifications
@@ -134,37 +149,42 @@ class NotificationService {
           continue;
         }
 
-        console.log(`Processing ${prayer.name} - enabled: ${prayerSettings.enabled}, using fixed adhan sound`);
+        console.log(`Processing ${prayer.name} - enabled: ${prayerSettings.enabled}, timing: ${prayerSettings.timing} minutes before`);
 
         try {
           const [hours, minutes] = prayer.time.split(':').map(Number);
           const notificationTime = new Date();
           notificationTime.setHours(hours, minutes - prayerSettings.timing, 0, 0);
 
-          // If the notification time has passed for today, skip it
+          // If the notification time has passed for today, schedule for tomorrow
           if (notificationTime <= new Date()) {
-            console.log(`Notification time for ${prayer.name} has passed, skipping`);
-            continue;
+            notificationTime.setDate(notificationTime.getDate() + 1);
+            console.log(`Notification time for ${prayer.name} has passed, scheduling for tomorrow`);
           }
 
           const notificationId = parseInt(`${prayerId.charCodeAt(0)}${notificationTime.getHours()}${notificationTime.getMinutes()}`);
 
+          const notificationBody = prayerSettings.timing === 0 
+            ? `Time for ${prayer.name} prayer`
+            : `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`;
+
           const notification = {
             title: t.prayerReminder || 'Prayer Reminder',
-            body: `${prayer.name} ${t.in || 'in'} ${prayerSettings.timing} ${t.minutes || 'minutes'}`,
+            body: notificationBody,
             id: notificationId,
             schedule: { at: notificationTime },
-            sound: 'adhan', // Fixed sound for all notifications
+            sound: 'adhan',
             actionTypeId: '',
             extra: {
               prayerName: prayer.name,
-              prayerId: prayerId
+              prayerId: prayerId,
+              timing: prayerSettings.timing
             }
           };
 
           notifications.push(notification);
 
-          console.log(`Scheduled notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} with fixed adhan sound`);
+          console.log(`Scheduled precise notification for ${prayer.name} at ${notificationTime.toLocaleTimeString()} (${prayerSettings.timing} minutes before prayer)`);
         } catch (error) {
           console.error(`Error scheduling notification for ${prayer.name}:`, error);
         }
@@ -172,12 +192,23 @@ class NotificationService {
 
       if (notifications.length > 0) {
         await LocalNotifications.schedule({ notifications });
-        console.log(`Successfully scheduled ${notifications.length} prayer notifications with fixed adhan sound`);
+        console.log(`Successfully scheduled ${notifications.length} precise prayer notifications`);
       } else {
         console.log('No notifications scheduled - all prayers either disabled or times have passed');
       }
     } catch (error) {
       console.error('Error scheduling prayer notifications:', error);
+    }
+  }
+
+  // New method to refresh notifications after settings change
+  async refreshNotifications(): Promise<void> {
+    try {
+      const prayerTimes = await getPrayerTimes();
+      await this.scheduleAllPrayerNotifications(prayerTimes);
+      console.log('Notifications refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing notifications:', error);
     }
   }
 
@@ -225,10 +256,10 @@ class NotificationService {
         notifications: [
           {
             title: t.prayerReminder || 'Prayer Reminder',
-            body: t.testNotificationSent || 'This is a test notification',
+            body: t.testNotificationSent || 'This is a test notification with adhan sound',
             id: 999999,
             schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
-            sound: 'adhan', // Fixed sound for all notifications
+            sound: 'adhan',
             actionTypeId: '',
             extra: {
               isTest: true
@@ -236,7 +267,7 @@ class NotificationService {
           }
         ]
       });
-      console.log(`Test notification scheduled with fixed adhan sound`);
+      console.log(`Test notification scheduled with adhan sound`);
     } catch (error) {
       console.error('Error sending test notification:', error);
     }
