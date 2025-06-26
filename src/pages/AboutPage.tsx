@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Heart, Mail, Info, Globe } from "lucide-react";
+import { ArrowLeft, Mail, Info, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const AboutPage = () => {
@@ -50,17 +50,6 @@ const AboutPage = () => {
                   Our goal is to promote Islamic education, preserve cultural identity, and provide support 
                   for the Albanian-speaking Muslims in Finland.
                 </p>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <Heart className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">PrayConnect Purpose</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    PrayConnect is designed to help Muslims maintain their daily prayers with accurate prayer times, 
-                    Qibla direction, and spiritual tools. We strive to make Islamic practices more accessible in the digital age.
-                  </p>
-                </div>
               </div>
             </div>
           </CardContent>
