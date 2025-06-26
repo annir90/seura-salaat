@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { 
   ChevronRight,
@@ -10,7 +11,8 @@ import {
   LogOut,
   User,
   Moon,
-  Sun
+  Sun,
+  Heart
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
@@ -26,6 +28,7 @@ const SettingsPage = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(getCurrentLanguage());
+  const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const t = getTranslation();
 
@@ -78,6 +81,11 @@ const SettingsPage = () => {
     setTheme(newTheme);
     localStorage.setItem('app-theme', newTheme);
     toast.success(checked ? "Dark mode enabled" : "Light mode enabled");
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
   };
 
   return (
@@ -161,6 +169,79 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Support the Mosque */}
+          <Dialog open={isDonateModalOpen} onOpenChange={setIsDonateModalOpen}>
+            <DialogTrigger asChild>
+              <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                        <Heart className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">Support the Mosque</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Help us serve the community</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-green-600" />
+                  Support the Mosque
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your donations help us maintain the mosque and serve the Muslim community better.
+                </p>
+                
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bank IBAN:</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-sm bg-white dark:bg-gray-700 p-2 rounded border flex-1">
+                        FI70 8000 3710 0641 37
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard("FI70 8000 3710 0641 37")}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Receiver:</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-sm bg-white dark:bg-gray-700 p-2 rounded border flex-1">
+                        Albaanien Islami Kulttuuri Keskus ry
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard("Albaanien Islami Kulttuuri Keskus ry")}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  May Allah reward your generosity
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* About */}
           <Card 
