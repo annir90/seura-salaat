@@ -301,18 +301,6 @@ const QuranPage = () => {
           {/* Traditional Mushaf Content */}
           <div ref={contentRef} className="flex-1 overflow-auto">
             <div className="max-w-4xl mx-auto px-8 py-12">
-              {/* Surah Header with Bismillah */}
-              <div className="text-center mb-16">
-                {/* Bismillah - shown for all surahs except At-Tawbah */}
-                {parseInt(selectedSurah) !== 9 && (
-                  <div className="mb-8">
-                    <p dir="rtl" className="bismillah-text">
-                      بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-                    </p>
-                  </div>
-                )}
-              </div>
-
               {/* Main Quran Text - Continuous Flow */}
               <div className="mushaf-text-container">
                 <p dir="rtl" className="quran-mushaf-text">
