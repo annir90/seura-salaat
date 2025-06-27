@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,8 +52,7 @@ const WelcomePage = () => {
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">PrayConnect</h1>
-            <p className="text-muted-foreground">Your Islamic companion app</p>
+            <h1 className="text-3xl font-bold text-foreground">Seura Salaat</h1>
           </div>
         </div>
 
