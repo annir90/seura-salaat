@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,7 +90,7 @@ const SettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-lg mx-auto px-4 py-6 pb-24">
+      <div className="max-w-lg mx-auto px-4 py-6 pb-4">
         {/* Header */}
         <div className="text-left mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -290,7 +289,7 @@ const SettingsPage = () => {
         </div>
 
         {/* App Version */}
-        <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-8">
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4 pb-2">
           <p className="font-medium">Seurasalaat v 1.0</p>
         </div>
       </div>
