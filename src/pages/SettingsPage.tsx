@@ -290,8 +290,8 @@ const SettingsPage = () => {
         </div>
 
         {/* App Version */}
-        <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-8 pb-2">
-          <p className="font-medium">Seurasalaat</p>
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-8">
+          <p className="font-medium">Seurasalaat v 1.0</p>
         </div>
       </div>
     </div>
