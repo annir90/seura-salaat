@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,12 +100,8 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   const showNotificationBell = prayer.id !== 'sunrise';
 
   const timingOptions = [
-    { value: 0, label: "At prayer time" },
-    { value: 5, label: "5 minutes before" },
     { value: 10, label: "10 minutes before" },
-    { value: 15, label: "15 minutes before" },
-    { value: 20, label: "20 minutes before" },
-    { value: 30, label: "30 minutes before" }
+    { value: 15, label: "15 minutes before" }
   ];
 
   return (
@@ -183,10 +178,7 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                       
                       {/* Current setting display */}
                       <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-xs text-gray-600 dark:text-gray-400">
-                        {prayerSettings.timing === 0 
-                          ? `You'll be notified exactly at ${prayer.name} time`
-                          : `You'll be notified ${prayerSettings.timing} minutes before ${prayer.name}`
-                        }
+                        You'll be notified {prayerSettings.timing} minutes before {prayer.name}
                       </div>
                       
                       {/* Sound info */}
