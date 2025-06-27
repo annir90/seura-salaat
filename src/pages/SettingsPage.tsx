@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,8 @@ import {
   User,
   Moon,
   Sun,
-  Heart
+  Heart,
+  Shield
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
@@ -276,8 +278,8 @@ const SettingsPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                    <Info className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">Privacy Policy</h3>
