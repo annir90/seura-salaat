@@ -11,6 +11,7 @@ import CalendarPage from './pages/CalendarPage';
 import SettingsPage from './pages/SettingsPage';
 import LanguageSettingsPage from './pages/LanguageSettingsPage';
 import AboutPage from './pages/AboutPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import NotFound from './pages/NotFound';
 import WelcomePage from './pages/WelcomePage';
 import { Toaster } from "@/components/ui/toaster"
@@ -34,6 +35,7 @@ function App() {
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="settings/language" element={<LanguageSettingsPage />} />
                 <Route path="settings/about" element={<AboutPage />} />
+                <Route path="settings/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

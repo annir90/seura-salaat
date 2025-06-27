@@ -76,6 +76,10 @@ const SettingsPage = () => {
     navigate('/settings/about');
   };
 
+  const handlePrivacyNavigation = () => {
+    navigate('/settings/privacy');
+  };
+
   const handleThemeToggle = (checked: boolean) => {
     const newTheme = checked ? "dark" : "light";
     setTheme(newTheme);
@@ -257,6 +261,27 @@ const SettingsPage = () => {
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.about}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{t.knowAboutApp}</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacy Policy */}
+          <Card 
+            className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handlePrivacyNavigation}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                    <Info className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Privacy Policy</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">How we protect your data</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
