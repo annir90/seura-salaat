@@ -1,3 +1,4 @@
+
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -43,12 +44,21 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   // Filter out sunrise as it's not a prayer
   const actualPrayers = prayers.filter(prayer => prayer.id !== 'sunrise');
   
-  // Debug: Log all prayer times
+  // Debug: Log all prayer times with proper midnight handling
   actualPrayers.forEach(prayer => {
     if (prayer.time && prayer.time !== "00:00") {
       const [hours, minutes] = prayer.time.split(":").map(Number);
-      const prayerTime = hours * 60 + minutes;
-      console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'}`);
+      let prayerTime = hours * 60 + minutes;
+      
+      // Handle prayers that cross midnight (like Isha)
+      // If prayer time is very early (00:xx to 05:xx) and current time is late (after 18:00),
+      // treat it as next day's prayer
+      if (hours >= 0 && hours < 6 && now.getHours() >= 18) {
+        prayerTime += 24 * 60; // Add 24 hours in minutes
+        console.log(`${prayer.name}: ${prayer.time} (adjusted to ${prayerTime} minutes for next day) - FUTURE`);
+      } else {
+        console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'}`);
+      }
     }
   });
   
@@ -64,9 +74,16 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
     
     try {
       const [hours, minutes] = prayer.time.split(":").map(Number);
-      const prayerTime = hours * 60 + minutes;
+      let prayerTime = hours * 60 + minutes;
       
-      // Check if this prayer is still upcoming today
+      // Handle prayers that cross midnight (like Isha)
+      // If prayer time is very early (00:xx to 05:xx) and current time is late (after 18:00),
+      // treat it as next day's prayer
+      if (hours >= 0 && hours < 6 && now.getHours() >= 18) {
+        prayerTime += 24 * 60; // Add 24 hours in minutes
+      }
+      
+      // Check if this prayer is still upcoming today or tomorrow
       if (prayerTime > currentTime) {
         nextPrayerIndex = i;
         console.log(`Next prayer found: ${prayer.name} at ${prayer.time}`);
