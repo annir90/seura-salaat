@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,8 @@ import {
   Moon,
   Sun,
   Heart,
-  Shield
+  Shield,
+  ExternalLink
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { 
@@ -92,6 +92,10 @@ const SettingsPage = () => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard!");
+  };
+
+  const handlePrivacyPolicyClick = () => {
+    window.open('https://annir90.github.io/seura-salaat/privacy-policy.html', '_blank');
   };
 
   return (
@@ -270,10 +274,10 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          {/* Privacy Policy */}
+          {/* Privacy Policy - External Link */}
           <Card 
             className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
-            onClick={handlePrivacyNavigation}
+            onClick={handlePrivacyPolicyClick}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -286,7 +290,7 @@ const SettingsPage = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">How we protect your data</p>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ExternalLink className="h-5 w-5 text-gray-400" />
               </div>
             </CardContent>
           </Card>
