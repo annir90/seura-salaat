@@ -33,6 +33,10 @@ export interface Translation {
   theme: string;
   light: string;
   dark: string;
+  darkMode: string;
+  lightMode: string;
+  darkThemeEnabled: string;
+  lightThemeEnabled: string;
   locationSettings: string;
   autoDetectLocation: string;
   autoDetectLocationDesc: string;
@@ -66,6 +70,19 @@ export interface Translation {
   shareAppDesc: string;
   shareAppButton: string;
   qrCode: string;
+  
+  // Support the mosque section
+  supportTheMosque: string;
+  helpUsServeTheCommunity: string;
+  supportMosqueDescription: string;
+  bankIban: string;
+  receiver: string;
+  mayAllahRewardYourGenerosity: string;
+  copy: string;
+  
+  // Privacy policy
+  privacyPolicy: string;
+  howWeProtectYourData: string;
   
   // Quran page
   selectSurahToRead: string;
@@ -165,6 +182,10 @@ const englishTranslations: Translation = {
   theme: "Theme",
   light: "Light",
   dark: "Dark",
+  darkMode: "Dark Mode",
+  lightMode: "Light Mode",
+  darkThemeEnabled: "Dark theme enabled",
+  lightThemeEnabled: "Light theme enabled",
   locationSettings: "Location Settings",
   autoDetectLocation: "Auto-detect Location",
   autoDetectLocationDesc: "Automatically detect your current location",
@@ -198,6 +219,19 @@ const englishTranslations: Translation = {
   shareAppDesc: "Help others discover Seura Prayer! Share this app with your friends and family.",
   shareAppButton: "Share App",
   qrCode: "QR Code",
+  
+  // Support the mosque section
+  supportTheMosque: "Support the Mosque",
+  helpUsServeTheCommunity: "Help us serve the community",
+  supportMosqueDescription: "Your donations help us maintain the mosque and serve the Muslim community better.",
+  bankIban: "Bank IBAN:",
+  receiver: "Receiver:",
+  mayAllahRewardYourGenerosity: "May Allah reward your generosity",
+  copy: "Copy",
+  
+  // Privacy policy
+  privacyPolicy: "Privacy Policy",
+  howWeProtectYourData: "How we protect your data",
   
   // Quran page
   selectSurahToRead: "Select a Surah to begin reading",
@@ -297,6 +331,10 @@ const finnishTranslations: Translation = {
   theme: "Teema",
   light: "Vaalea",
   dark: "Tumma",
+  darkMode: "Tumma tila",
+  lightMode: "Vaalea tila",
+  darkThemeEnabled: "Tumma teema käytössä",
+  lightThemeEnabled: "Vaalea teema käytössä",
   locationSettings: "Sijaintiasetukset",
   autoDetectLocation: "Tunnista sijainti automaattisesti",
   autoDetectLocationDesc: "Tunnista nykyinen sijaintisi automaattisesti",
@@ -330,6 +368,19 @@ const finnishTranslations: Translation = {
   shareAppDesc: "Auta muita löytämään Seura Prayer! Jaa tämä sovellus ystävillesi ja perheellesi.",
   shareAppButton: "Jaa sovellus",
   qrCode: "QR-koodi",
+  
+  // Support the mosque section
+  supportTheMosque: "Tue moskeijaa",
+  helpUsServeTheCommunity: "Auta meitä palvelemaan yhteisöä",
+  supportMosqueDescription: "Lahjoituksesi auttavat meitä ylläpitämään moskeijaa ja palvelemaan muslimi-yhteisöä paremmin.",
+  bankIban: "Pankin IBAN:",
+  receiver: "Vastaanottaja:",
+  mayAllahRewardYourGenerosity: "Allah palkitkoon anteliaisuutesi",
+  copy: "Kopioi",
+  
+  // Privacy policy
+  privacyPolicy: "Tietosuojakäytäntö",
+  howWeProtectYourData: "Kuinka suojaamme tietojasi",
   
   // Quran page
   selectSurahToRead: "Valitse suura aloittaaksesi lukemisen",
@@ -429,6 +480,10 @@ const albanianTranslations: Translation = {
   theme: "Tema",
   light: "E çelët",
   dark: "E errët",
+  darkMode: "Modaliteti i errët",
+  lightMode: "Modaliteti i çelët",
+  darkThemeEnabled: "Tema e errët e aktivizuar",
+  lightThemeEnabled: "Tema e çelët e aktivizuar",
   locationSettings: "Cilësimet e Vendndodhjes",
   autoDetectLocation: "Zbulo vendndodhjen automatikisht",
   autoDetectLocationDesc: "Zbulo automatikisht vendndodhjen tuaj aktuale",
@@ -462,6 +517,19 @@ const albanianTranslations: Translation = {
   shareAppDesc: "Ndihmoni të tjerët të zbulojnë Seura Prayer! Ndani këtë aplikacion me miqtë dhe familjen tuaj.",
   shareAppButton: "Ndani Aplikacionin",
   qrCode: "Kodi QR",
+  
+  // Support the mosque section
+  supportTheMosque: "Mbështetni Xhaminë",
+  helpUsServeTheCommunity: "Ndihmoni për të shërbyer komunitetit",
+  supportMosqueDescription: "Donacionet tuaja na ndihmojnë të mirëmbajmë xhaminë dhe të shërbejmë më mirë komunitetit musliman.",
+  bankIban: "IBAN i Bankës:",
+  receiver: "Pranuesi:",
+  mayAllahRewardYourGenerosity: "All-llahu ju shpërbleftë për bujari tuaj",
+  copy: "Kopjo",
+  
+  // Privacy policy
+  privacyPolicy: "Politika e Privatësisë",
+  howWeProtectYourData: "Si i mbrojmë të dhënat tuaja",
   
   // Quran page
   selectSurahToRead: "Zgjidhni një sure për të filluar leximin",
@@ -502,7 +570,7 @@ const albanianTranslations: Translation = {
   vibrationEnabled: "Dridhja u aktivizua",
   vibrationDisabled: "Dridhja u çaktivizua",
   on: "On",
-  off: "Off",
+  off: "Off",  
   commonDhikr: "Dhikri i Përgjithshëm",
   subhanAllah: "Subhan Allah (Lavdi Allahut)",
   alhamdulillah: "Alhamdulillah (Falënderimi i Allahut)",

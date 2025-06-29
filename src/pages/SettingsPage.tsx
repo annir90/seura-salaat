@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,7 +87,7 @@ const SettingsPage = () => {
     const newTheme = checked ? "dark" : "light";
     setTheme(newTheme);
     localStorage.setItem('app-theme', newTheme);
-    toast.success(checked ? "Dark mode enabled" : "Light mode enabled");
+    toast.success(checked ? t.darkThemeEnabled : t.lightThemeEnabled);
   };
 
   const copyToClipboard = (text: string) => {
@@ -145,9 +146,9 @@ const SettingsPage = () => {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Dark Mode</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.darkMode}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {theme === "dark" ? "Dark theme enabled" : "Light theme enabled"}
+                      {theme === "dark" ? t.darkThemeEnabled : t.lightThemeEnabled}
                     </p>
                   </div>
                 </div>
@@ -191,8 +192,8 @@ const SettingsPage = () => {
                         <Heart className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900 dark:text-gray-100">Support the Mosque</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Help us serve the community</p>
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.supportTheMosque}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t.helpUsServeTheCommunity}</p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -204,17 +205,17 @@ const SettingsPage = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-green-600" />
-                  Support the Mosque
+                  {t.supportTheMosque}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Your donations help us maintain the mosque and serve the Muslim community better.
+                  {t.supportMosqueDescription}
                 </p>
                 
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bank IBAN:</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.bankIban}</label>
                     <div className="flex items-center gap-2 mt-1">
                       <code className="text-sm bg-white dark:bg-gray-700 p-2 rounded border flex-1">
                         FI70 8000 3710 0641 37
@@ -224,13 +225,13 @@ const SettingsPage = () => {
                         size="sm"
                         onClick={() => copyToClipboard("FI70 8000 3710 0641 37")}
                       >
-                        Copy
+                        {t.copy}
                       </Button>
                     </div>
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Receiver:</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.receiver}</label>
                     <div className="flex items-center gap-2 mt-1">
                       <code className="text-sm bg-white dark:bg-gray-700 p-2 rounded border flex-1">
                         Albaanien Islami Kulttuuri Keskus ry
@@ -240,14 +241,14 @@ const SettingsPage = () => {
                         size="sm"
                         onClick={() => copyToClipboard("Albaanien Islami Kulttuuri Keskus ry")}
                       >
-                        Copy
+                        {t.copy}
                       </Button>
                     </div>
                   </div>
                 </div>
                 
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  May Allah reward your generosity
+                  {t.mayAllahRewardYourGenerosity}
                 </p>
               </div>
             </DialogContent>
@@ -286,8 +287,8 @@ const SettingsPage = () => {
                     <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Privacy Policy</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">How we protect your data</p>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{t.privacyPolicy}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.howWeProtectYourData}</p>
                   </div>
                 </div>
                 <ExternalLink className="h-5 w-5 text-gray-400" />
