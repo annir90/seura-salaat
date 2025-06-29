@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -174,16 +175,6 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                      
-                      {/* Current setting display */}
-                      <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-xs text-gray-600 dark:text-gray-400">
-                        You'll be notified {prayerSettings.timing} minutes before {prayer.name}
-                      </div>
-                      
-                      {/* Sound info */}
-                      <div className="text-sm text-gray-600">
-                        <p>Notification sound: Traditional Adhan</p>
                       </div>
                     </div>
                   )}
