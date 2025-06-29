@@ -1,4 +1,3 @@
-
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -94,13 +93,12 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
     }
   }
   
-  // If no prayer found for today, next prayer is tomorrow's Fajr
+  // If no prayer found for today, check if we should fallback to the last prayer (Isha)
   if (nextPrayerIndex === -1) {
-    // Find Fajr in the actual prayers list
-    const fajrIndex = actualPrayers.findIndex(prayer => prayer.id === 'fajr');
-    if (fajrIndex !== -1) {
-      nextPrayerIndex = fajrIndex;
-      console.log('No more prayers today, next prayer is tomorrow\'s Fajr');
+    // If all prayers have passed, mark the last one (Isha) as next
+    if (actualPrayers.length > 0) {
+      nextPrayerIndex = actualPrayers.length - 1;
+      console.log('All prayers have passed, marking last prayer as next:', actualPrayers[nextPrayerIndex].name);
     }
   }
   
