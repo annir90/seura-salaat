@@ -21,6 +21,26 @@ const QuranPage = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const t = getTranslation();
 
+  // Hide/show bottom navbar based on reading mode
+  useEffect(() => {
+    const bottomNavbar = document.querySelector('.fixed.bottom-0');
+    if (bottomNavbar) {
+      if (readingMode) {
+        (bottomNavbar as HTMLElement).style.display = 'none';
+      } else {
+        (bottomNavbar as HTMLElement).style.display = 'block';
+      }
+    }
+
+    // Cleanup: ensure navbar is visible when component unmounts
+    return () => {
+      const bottomNavbar = document.querySelector('.fixed.bottom-0');
+      if (bottomNavbar) {
+        (bottomNavbar as HTMLElement).style.display = 'block';
+      }
+    };
+  }, [readingMode]);
+
   useEffect(() => {
     const loadSurahs = async () => {
       setLoading(true);
@@ -322,7 +342,7 @@ const QuranPage = () => {
           
           {/* Save bookmark button */}
           {readingMode && (
-            <div className="fixed right-4 bottom-24 z-30">
+            <div className="fixed right-4 bottom-8 z-30">
               <button 
                 className={`p-3 bg-prayer-primary text-white rounded-full shadow-lg hover:bg-prayer-primary/90 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleSaveBookmark}
