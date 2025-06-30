@@ -1,16 +1,19 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { fetchSurahs, fetchSurah, Surah, Ayah } from "@/services/quranService";
 import { saveBookmark, getBookmark, VerseBookmark } from "@/services/bookmarkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, BookOpen, ArrowLeft, Save } from "lucide-react";
+import { Loader2, BookOpen, ArrowLeft, Save, Search } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { getTranslation } from "@/services/translationService";
 import QuranVerse from "@/components/QuranVerse";
 
 const QuranPage = () => {
   const [surahs, setSurahs] = useState<Surah[]>([]);
+  const [filteredSurahs, setFilteredSurahs] = useState<Surah[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [allAyahs, setAllAyahs] = useState<Ayah[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState<string>("");
@@ -46,6 +49,7 @@ const QuranPage = () => {
       setLoading(true);
       const surahsData = await fetchSurahs();
       setSurahs(surahsData);
+      setFilteredSurahs(surahsData);
       
       // Load saved bookmark
       const savedBookmark = getBookmark();
@@ -56,6 +60,21 @@ const QuranPage = () => {
     
     loadSurahs();
   }, []);
+
+  // Filter surahs based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredSurahs(surahs);
+    } else {
+      const filtered = surahs.filter(surah => 
+        surah.englishName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        surah.englishNameTranslation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        surah.number.toString().includes(searchQuery) ||
+        surah.name.includes(searchQuery)
+      );
+      setFilteredSurahs(filtered);
+    }
+  }, [searchQuery, surahs]);
 
   // Load complete surah when selectedSurah changes
   useEffect(() => {
@@ -183,11 +202,6 @@ const QuranPage = () => {
     setSelectedSurah(surahNumber.toString());
   };
 
-  // Handle surah selection from dropdown
-  const handleSurahSelect = (value: string) => {
-    setSelectedSurah(value);
-  };
-
   return (
     <div className="flex flex-col pb-20">
       {/* Selection View - Only shown when not in reading mode */}
@@ -199,25 +213,16 @@ const QuranPage = () => {
           <h1 className="text-2xl font-bold mb-4">{t.quran}</h1>
           <p className="text-muted-foreground mb-6">{t.selectSurahToRead}</p>
           
-          {/* Surah Selection Dropdown */}
-          <div className="w-full max-w-md mb-6">
-            <Select value={selectedSurah} onValueChange={handleSurahSelect}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a Surah" />
-              </SelectTrigger>
-              <SelectContent>
-                {surahs.map((surah) => (
-                  <SelectItem key={surah.number} value={surah.number.toString()}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{surah.number}. {surah.englishName}</span>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {surah.numberOfAyahs} {t.verses}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Search Input */}
+          <div className="w-full max-w-md mb-6 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Search surahs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
           
           {/* Show last read bookmark */}
@@ -250,37 +255,43 @@ const QuranPage = () => {
             </div>
           ) : (
             <div className="space-y-3 w-full">
-              {surahs.map((surah) => (
-                <div
-                  key={surah.number}
-                  onClick={() => handleSurahClick(surah.number)}
-                  className="group bg-card hover:bg-muted/50 border border-border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] hover:border-prayer-primary/30 flex items-center gap-4"
-                >
-                  <div className="bg-prayer-primary/15 text-prayer-primary px-3 py-2 rounded-full text-sm font-bold min-w-[50px] text-center">
-                    {surah.number}
-                  </div>
-                  
-                  <div className="flex-1 text-left">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-bold text-lg text-foreground group-hover:text-prayer-primary transition-colors">
-                        {surah.englishName}
-                      </h3>
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {surah.numberOfAyahs} {t.verses}
-                      </span>
+              {filteredSurahs.length > 0 ? (
+                filteredSurahs.map((surah) => (
+                  <div
+                    key={surah.number}
+                    onClick={() => handleSurahClick(surah.number)}
+                    className="group bg-card hover:bg-muted/50 border border-border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] hover:border-prayer-primary/30 flex items-center gap-4"
+                  >
+                    <div className="bg-prayer-primary/15 text-prayer-primary px-3 py-2 rounded-full text-sm font-bold min-w-[50px] text-center">
+                      {surah.number}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {surah.englishNameTranslation}
-                    </p>
+                    
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-bold text-lg text-foreground group-hover:text-prayer-primary transition-colors">
+                          {surah.englishName}
+                        </h3>
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                          {surah.numberOfAyahs} {t.verses}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {surah.englishNameTranslation}
+                      </p>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p dir="rtl" className="font-arabic text-xl text-prayer-primary/80">
+                        {surah.name}
+                      </p>
+                    </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <p dir="rtl" className="font-arabic text-xl text-prayer-primary/80">
-                      {surah.name}
-                    </p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No surahs found matching your search.</p>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
