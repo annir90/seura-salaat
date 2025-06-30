@@ -13,7 +13,7 @@ const AboutPage = () => {
   const features = [
     {
       icon: Clock,
-      title: t.prayerTimes,
+      title: "Prayer Times",
       description: "Accurate prayer times based on your location"
     },
     {
@@ -37,7 +37,7 @@ const AboutPage = () => {
           onClick={() => navigate('/settings')}
         >
           <ArrowLeft size={20} />
-          {t.back}
+          Back
         </Button>
         <h1 className="text-lg font-semibold">{t.about}</h1>
         <div className="w-16"></div>
@@ -59,7 +59,7 @@ const AboutPage = () => {
 
         {/* Features */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold">{t.features}</h3>
+          <h3 className="text-xl font-semibold">Features</h3>
           <div className="grid gap-4">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
@@ -83,8 +83,8 @@ const AboutPage = () => {
         {/* Version Info */}
         <div className="bg-muted/50 rounded-lg p-4 space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">{t.version}</span>
-            <span className="font-medium">seurasalaat</span>
+            <span className="text-muted-foreground">Version</span>
+            <span className="font-medium">1.0.0</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Developer</span>
