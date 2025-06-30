@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Check } from "lucide-react";
@@ -46,6 +46,11 @@ const LanguageSettingsPage = () => {
     }, 1000);
   };
 
+  const getCurrentLanguageDisplay = () => {
+    const current = languages.find(l => l.code === currentLanguage);
+    return current ? `${current.flag} ${current.name}` : 'Select language';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-lg mx-auto px-4 py-6 pb-24">
@@ -71,26 +76,38 @@ const LanguageSettingsPage = () => {
 
         <Card className="shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
           <CardContent className="p-6">
-            <RadioGroup
-              value={currentLanguage}
-              onValueChange={handleLanguageChange}
-              className="space-y-4"
-            >
-              {languages.map((language) => (
-                <div key={language.code} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <RadioGroupItem value={language.code} id={language.code} />
-                  <Label htmlFor={language.code} className="flex items-center gap-3 cursor-pointer flex-1">
-                    <span className="text-2xl">{language.flag}</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {language.name}
-                    </span>
-                  </Label>
-                  {currentLanguage === language.code && (
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  )}
-                </div>
-              ))}
-            </RadioGroup>
+            <div className="space-y-4">
+              <Label htmlFor="language-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Select Language
+              </Label>
+              <Select
+                value={currentLanguage}
+                onValueChange={handleLanguageChange}
+              >
+                <SelectTrigger className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                  <SelectValue placeholder={getCurrentLanguageDisplay()}>
+                    {getCurrentLanguageDisplay()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                  {languages.map((language) => (
+                    <SelectItem 
+                      key={language.code} 
+                      value={language.code}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{language.flag}</span>
+                        <span className="font-medium">{language.name}</span>
+                        {currentLanguage === language.code && (
+                          <Check className="h-4 w-4 text-green-600 dark:text-green-400 ml-auto" />
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
       </div>
