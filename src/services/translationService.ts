@@ -1,3 +1,4 @@
+
 export interface Translation {
   // Navigation
   home: string;
@@ -6,14 +7,10 @@ export interface Translation {
   quran: string;
   settings: string;
   
-  // Common navigation
-  back: string;
-  
   // Home page
   prayerSchedule: string;
   jumaaPrayer: string;
   prayerTime: string;
-  prayerTimes: string;
   joinUsText: string;
   next: string;
   
@@ -145,10 +142,6 @@ export interface Translation {
   logOutFromApp: string;
   appVersion: string;
   
-  // About page
-  features: string;
-  version: string;
-  
   // Common
   loading: string;
   error: string;
@@ -163,14 +156,10 @@ const englishTranslations: Translation = {
   quran: "Quran",
   settings: "Settings",
   
-  // Common navigation
-  back: "Back",
-  
   // Home page
   prayerSchedule: "Prayer Schedule",
   jumaaPrayer: "Jumaa Prayer",
   prayerTime: "Prayer time",
-  prayerTimes: "Prayer Times",
   joinUsText: "Join us for Friday prayer (Salat al-Jumaa) at the mosque. Remember to arrive early for the khutbah.",
   next: "Next",
   
@@ -302,10 +291,6 @@ const englishTranslations: Translation = {
   logOutFromApp: "Log out from app",
   appVersion: "PrayConnect v1.0",
   
-  // About page
-  features: "Features",
-  version: "Version",
-  
   // Common
   loading: "Loading...",
   error: "Error",
@@ -320,14 +305,10 @@ const finnishTranslations: Translation = {
   quran: "Koraani", 
   settings: "Asetukset",
   
-  // Common navigation
-  back: "Takaisin",
-  
   // Home page
   prayerSchedule: "Rukousaikataulu",
   jumaaPrayer: "Jumaa-rukous",
   prayerTime: "Rukousaika",
-  prayerTimes: "Rukousajat",
   joinUsText: "Liity meihin perjantain rukouksessa (Salat al-Jumaa) moskeijassa. Muista saapua ajoissa khutbaa varten.",
   next: "Seuraava",
   
@@ -459,10 +440,6 @@ const finnishTranslations: Translation = {
   logOutFromApp: "Kirjaudu ulos sovelluksesta",
   appVersion: "PrayConnect v1.0",
   
-  // About page
-  features: "Ominaisuudet",
-  version: "Versio",
-  
   // Common
   loading: "Ladataan...",
   error: "Virhe",
@@ -477,14 +454,10 @@ const albanianTranslations: Translation = {
   quran: "Kuran", 
   settings: "Cilësimet",
   
-  // Common navigation
-  back: "Kthehu",
-  
   // Home page
   prayerSchedule: "Orari i Namazit",
   jumaaPrayer: "Namazi i Xhumasë",
   prayerTime: "Koha e namazit",
-  prayerTimes: "Kohët e namazit",
   joinUsText: "Bashkohuni me ne për namazin e xhumasë në xhami. Kujtoni të mbërrini herët për hutbenë.",
   next: "Tjetër",
   
@@ -615,10 +588,6 @@ const albanianTranslations: Translation = {
   logOut: "Dalje",
   logOutFromApp: "Dilni nga aplikacioni",
   appVersion: "PrayConnect v1.0",
-  
-  // About page
-  features: "Veçoritë",
-  version: "Versioni",
   
   // Common
   loading: "Duke u ngarkuar...",
