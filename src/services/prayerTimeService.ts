@@ -1,15 +1,3 @@
-
-export interface PrayerTime {
-  id: string;
-  name: string;
-  time: string;
-  isNext: boolean;
-}
-
-// Cache for prayer times to avoid repeated API calls
-let cachedPrayerTimes: PrayerTime[] = [];
-let lastFetchDate: string = '';
-
 const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -57,72 +45,4 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
       isNext
     };
   });
-};
-
-export const getPrayerTimes = async (date?: Date): Promise<PrayerTime[]> => {
-  const targetDate = date || new Date();
-  const dateString = targetDate.toDateString();
-  
-  console.log(`getPrayerTimes called for date: ${dateString}`);
-  
-  // Return cached times if same date, but update next prayer status
-  if (cachedPrayerTimes.length > 0 && lastFetchDate === dateString) {
-    console.log('Returning cached prayer times with updated next prayer status');
-    return determineNextPrayer(cachedPrayerTimes);
-  }
-
-  try {
-    // Import the rabita service to fetch prayer times
-    const { fetchRabitaPrayerTimes } = await import('./rabitaService');
-    const times = await fetchRabitaPrayerTimes();
-    
-    if (times.length > 0) {
-      cachedPrayerTimes = times;
-      lastFetchDate = dateString;
-      console.log(`Cached prayer times for ${dateString}`);
-      return determineNextPrayer(times);
-    }
-    
-    // Fallback to default times if API fails
-    console.log('Using fallback prayer times');
-    const fallbackTimes: PrayerTime[] = [
-      { id: 'fajr', name: 'Fajr', time: '05:30', isNext: false },
-      { id: 'sunrise', name: 'Sunrise', time: '07:00', isNext: false },
-      { id: 'dhuhr', name: 'Dhuhr', time: '12:30', isNext: false },
-      { id: 'asr', name: 'Asr', time: '15:30', isNext: false },
-      { id: 'maghrib', name: 'Maghrib', time: '18:00', isNext: false },
-      { id: 'isha', name: 'Isha', time: '19:30', isNext: false }
-    ];
-    
-    return determineNextPrayer(fallbackTimes);
-  } catch (error) {
-    console.error('Error fetching prayer times:', error);
-    
-    // Return fallback times
-    const fallbackTimes: PrayerTime[] = [
-      { id: 'fajr', name: 'Fajr', time: '05:30', isNext: false },
-      { id: 'sunrise', name: 'Sunrise', time: '07:00', isNext: false },
-      { id: 'dhuhr', name: 'Dhuhr', time: '12:30', isNext: false },
-      { id: 'asr', name: 'Asr', time: '15:30', isNext: false },
-      { id: 'maghrib', name: 'Maghrib', time: '18:00', isNext: false },
-      { id: 'isha', name: 'Isha', time: '19:30', isNext: false }
-    ];
-    
-    return determineNextPrayer(fallbackTimes);
-  }
-};
-
-export const getDateForHeader = (): string => {
-  const now = new Date();
-  return now.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-export const getQiblaDirection = async (): Promise<number> => {
-  // Return direction to Mecca from Helsinki, Finland (approximately 145 degrees)
-  return 145;
 };
