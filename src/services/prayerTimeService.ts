@@ -1,3 +1,4 @@
+
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -38,7 +39,7 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
   
-  console.log(Current time: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTime} minutes));
+  console.log(`Current time: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTime} minutes)`);
   
   // Filter out sunrise as it's not a prayer
   const actualPrayers = prayers.filter(prayer => prayer.id !== 'sunrise');
@@ -54,9 +55,9 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
       // treat it as next day's prayer
       if (hours >= 0 && hours < 6 && now.getHours() >= 18) {
         prayerTime += 24 * 60; // Add 24 hours in minutes
-        console.log(${prayer.name}: ${prayer.time} (adjusted to ${prayerTime} minutes for next day) - FUTURE);
+        console.log(`${prayer.name}: ${prayer.time} (adjusted to ${prayerTime} minutes for next day) - FUTURE`);
       } else {
-        console.log(${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'});
+        console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > currentTime ? 'FUTURE' : 'PAST'}`);
       }
     }
   });
@@ -67,7 +68,7 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   for (let i = 0; i < actualPrayers.length; i++) {
     const prayer = actualPrayers[i];
     if (!prayer.time || prayer.time === "00:00") {
-      console.log(Skipping ${prayer.name} - invalid time: ${prayer.time});
+      console.log(`Skipping ${prayer.name} - invalid time: ${prayer.time}`);
       continue;
     }
     
@@ -85,7 +86,7 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
       // Check if this prayer is still upcoming today or tomorrow
       if (prayerTime > currentTime) {
         nextPrayerIndex = i;
-        console.log(Next prayer found: ${prayer.name} at ${prayer.time});
+        console.log(`Next prayer found: ${prayer.name} at ${prayer.time}`);
         break;
       }
     } catch (error) {
@@ -108,7 +109,7 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
     const actualPrayerIndex = actualPrayers.findIndex(ap => ap.id === prayer.id);
     const isNext = actualPrayerIndex === nextPrayerIndex && prayer.id !== 'sunrise';
     
-    console.log(Prayer ${prayer.name} - actualPrayerIndex: ${actualPrayerIndex}, nextPrayerIndex: ${nextPrayerIndex}, isNext: ${isNext});
+    console.log(`Prayer ${prayer.name} - actualPrayerIndex: ${actualPrayerIndex}, nextPrayerIndex: ${nextPrayerIndex}, isNext: ${isNext}`);
     
     return {
       ...prayer,
@@ -123,10 +124,10 @@ const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
     const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
     console.log("Fetching prayer times for date:", dateString);
     
-    const response = await fetch(https://api.aladhan.com/v1/timingsByCity/${dateString}?city=Espoo&country=Finland&method=3);
+    const response = await fetch(`https://api.aladhan.com/v1/timingsByCity/${dateString}?city=Espoo&country=Finland&method=3`);
     
     if (!response.ok) {
-      throw new Error(API request failed: ${response.status});
+      throw new Error(`API request failed: ${response.status}`);
     }
     
     const data = await response.json(); 
@@ -274,7 +275,7 @@ export const getQiblaDirection = () => {
     const y = Math.sin(longKaaba - longEspoo);
     const x = Math.cos(latEspoo) * Math.tan(latKaaba) - Math.sin(latEspoo) * Math.cos(longKaaba - longEspoo);
     
-    let qiblaDirection = Math.atan2(y, x) * (180 / 180);
+    let qiblaDirection = Math.atan2(y, x) * (180 / Math.PI);
     qiblaDirection = (qiblaDirection + 360) % 360;
     
     const roundedDirection = Math.round(qiblaDirection);
