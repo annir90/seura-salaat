@@ -3,6 +3,7 @@ import { getPrayerTimes, getDateForHeader, PrayerTime } from "@/services/prayerT
 import PrayerCard from "@/components/PrayerCard";
 import { Loader2, CalendarDays, Clock } from "lucide-react";
 import { getTranslation } from "@/services/translationService";
+import { formatTranslatedDate } from "@/utils/dateUtils";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState("");
@@ -140,14 +141,9 @@ const Index = () => {
       
       setPrayerTimes(finalTimes);
       
-      // Set normal date instead of formatted date from service
-      const normalDate = now.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      setCurrentDate(normalDate);
+      // Use translated date instead of English date
+      const translatedDate = formatTranslatedDate(now);
+      setCurrentDate(translatedDate);
     } catch (error) {
       console.error("Error loading prayer times:", error);
     } finally {

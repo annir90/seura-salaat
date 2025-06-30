@@ -1,4 +1,3 @@
-
 export interface Translation {
   // Navigation
   home: string;
@@ -141,6 +140,31 @@ export interface Translation {
   logOut: string;
   logOutFromApp: string;
   appVersion: string;
+  
+  // Date translations
+  weekdays: {
+    sunday: string;
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+  };
+  months: {
+    january: string;
+    february: string;
+    march: string;
+    april: string;
+    may: string;
+    june: string;
+    july: string;
+    august: string;
+    september: string;
+    october: string;
+    november: string;
+    december: string;
+  };
   
   // Common
   loading: string;
@@ -291,6 +315,31 @@ const englishTranslations: Translation = {
   logOutFromApp: "Log out from app",
   appVersion: "PrayConnect v1.0",
   
+  // Date translations
+  weekdays: {
+    sunday: "Sunday",
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday"
+  },
+  months: {
+    january: "January",
+    february: "February",
+    march: "March",
+    april: "April",
+    may: "May",
+    june: "June",
+    july: "July",
+    august: "August",
+    september: "September",
+    october: "October",
+    november: "November",
+    december: "December"
+  },
+  
   // Common
   loading: "Loading...",
   error: "Error",
@@ -391,7 +440,7 @@ const finnishTranslations: Translation = {
   // Calendar page
   prayerCalendar: "Rukouskalenteri",
   chooseDayPrompt: "Valitse päivä jonka haluat tietää!",
-  selectDatePrompt: "Valitse päivämäärä kalenterista yllä nähdäksesi kyseisen päivän rukousajat.",
+  selectDatePrompt: "Valitse päivämäärä kalendariista yllä nähdäksesi kyseisen päivän rukousajat.",
   prayerTimesFor: "Rukousajat",
   noPrayerTimes: "Rukousaikoja ei ole saatavilla tälle päivälle.",
   
@@ -439,6 +488,31 @@ const finnishTranslations: Translation = {
   logOut: "Kirjaudu ulos",
   logOutFromApp: "Kirjaudu ulos sovelluksesta",
   appVersion: "PrayConnect v1.0",
+  
+  // Date translations
+  weekdays: {
+    sunday: "Sunnuntai",
+    monday: "Maanantai",
+    tuesday: "Tiistai",
+    wednesday: "Keskiviikko",
+    thursday: "Torstai",
+    friday: "Perjantai",
+    saturday: "Lauantai"
+  },
+  months: {
+    january: "Tammikuu",
+    february: "Helmikuu",
+    march: "Maaliskuu",
+    april: "Huhtikuu",
+    may: "Toukokuu",
+    june: "Kesäkuu",
+    july: "Heinäkuu",
+    august: "Elokuu",
+    september: "Syyskuu",
+    october: "Lokakuu",
+    november: "Marraskuu",
+    december: "Joulukuu"
+  },
   
   // Common
   loading: "Ladataan...",
@@ -589,12 +663,38 @@ const albanianTranslations: Translation = {
   logOutFromApp: "Dilni nga aplikacioni",
   appVersion: "PrayConnect v1.0",
   
+  // Date translations
+  weekdays: {
+    sunday: "E diel",
+    monday: "E hënë",
+    tuesday: "E martë",
+    wednesday: "E mërkurë",
+    thursday: "E enjte",
+    friday: "E premte",
+    saturday: "E shtunë"
+  },
+  months: {
+    january: "Janar",
+    february: "Shkurt",
+    march: "Mars",
+    april: "Prill",
+    may: "Maj",
+    june: "Qershor",
+    july: "Korrik",
+    august: "Gusht",
+    september: "Shtator",
+    october: "Tetor",
+    november: "Nëntor",
+    december: "Dhjetor"
+  },
+  
   // Common
   loading: "Duke u ngarkuar...",
   error: "Gabim",
   success: "Sukses"
 };
 
+// ... keep existing code (language type, translations record, functions)
 export type LanguageCode = 'en' | 'fi' | 'sq';
 
 const translations: Record<LanguageCode, Translation> = {
