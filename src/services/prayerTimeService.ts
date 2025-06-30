@@ -12,46 +12,51 @@ let lastFetchDate: string = '';
 
 const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+  
+  console.log(`Current time: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTimeInMinutes} minutes from midnight)`);
 
-  console.log(`Current time: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTime} minutes)`);
-
-  // Ignore sunrise
+  // Filter out sunrise as it's not a prayer time
   const actualPrayers = prayers.filter(prayer => prayer.id !== 'sunrise');
-
-  // Track next prayer index
-  let nextPrayerIndex = -1;
-
-  actualPrayers.forEach((prayer, i) => {
-    if (prayer.time && prayer.time !== "00:00") {
-      const [hours, minutes] = prayer.time.split(":").map(Number);
-      let prayerTime = hours * 60 + minutes;
-
-      // Handle after-midnight Isha
-      if (hours >= 0 && hours < 6 && now.getHours() >= 18) {
-        prayerTime += 24 * 60;
-      }
-
-      const adjustedCurrentTime = now.getHours() >= 18 ? currentTime + 24 * 60 : currentTime;
-
-      if (prayerTime > adjustedCurrentTime && nextPrayerIndex === -1) {
-        nextPrayerIndex = i;
-        console.log(`Next prayer found: ${prayer.name} at ${prayer.time}`);
-      }
-
-      console.log(`${prayer.name}: ${prayer.time} (${prayerTime} minutes) - ${prayerTime > adjustedCurrentTime ? 'FUTURE' : 'PAST'}`);
-    }
+  
+  // Convert prayer times to minutes and find next prayer
+  const prayerTimesWithMinutes = actualPrayers.map(prayer => {
+    const [hours, minutes] = prayer.time.split(':').map(Number);
+    const timeInMinutes = hours * 60 + minutes;
+    
+    console.log(`${prayer.name}: ${prayer.time} (${timeInMinutes} minutes from midnight)`);
+    
+    return {
+      ...prayer,
+      timeInMinutes
+    };
   });
 
-  // Fallback: all prayers passed, mark last one (usually Isha)
-  if (nextPrayerIndex === -1 && actualPrayers.length > 0) {
-    nextPrayerIndex = actualPrayers.length - 1;
-    console.log(`All prayers passed, setting next to: ${actualPrayers[nextPrayerIndex].name}`);
+  // Find the next prayer that hasn't passed yet
+  let nextPrayerIndex = -1;
+  
+  for (let i = 0; i < prayerTimesWithMinutes.length; i++) {
+    const prayerTime = prayerTimesWithMinutes[i].timeInMinutes;
+    
+    if (prayerTime > currentTimeInMinutes) {
+      nextPrayerIndex = i;
+      console.log(`Next prayer found: ${prayerTimesWithMinutes[i].name} at ${prayerTimesWithMinutes[i].time}`);
+      break;
+    }
+  }
+  
+  // If no prayer found for today (all prayers have passed), the next prayer is tomorrow's Fajr
+  if (nextPrayerIndex === -1) {
+    nextPrayerIndex = 0; // Fajr is always first
+    console.log(`All prayers passed for today, next prayer is tomorrow's Fajr`);
   }
 
-  return prayers.map((prayer) => {
-    const actualPrayerIndex = actualPrayers.findIndex((p) => p.id === prayer.id);
+  // Return the prayers with updated isNext status
+  return prayers.map((prayer, index) => {
+    // Find the index of this prayer in the actual prayers array (excluding sunrise)
+    const actualPrayerIndex = actualPrayers.findIndex(p => p.id === prayer.id);
     const isNext = actualPrayerIndex === nextPrayerIndex && prayer.id !== 'sunrise';
+    
     return {
       ...prayer,
       isNext
