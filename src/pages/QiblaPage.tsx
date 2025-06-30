@@ -8,8 +8,8 @@ import { getTranslation } from "@/services/translationService";
 
 const QiblaPage = () => {
   const [direction, setDirection] = useState<number>(145); // Default direction
-  const [compassHeading, setCompassHeading] = useState(0);
-  const [deviceOrientation, setDeviceOrientation] = useState(0);
+  const [compassHeading, setCompassHeading] = useState<number>(0);
+  const [deviceOrientation, setDeviceOrientation] = useState<number>(0);
   const t = getTranslation();
   
   useEffect(() => {
@@ -77,7 +77,7 @@ const QiblaPage = () => {
   };
 
   // Calculate the accurate Qibla direction relative to device orientation
-  const qiblaDirection = direction - compassHeading;
+  const qiblaDirection = Number(direction) - Number(compassHeading);
   
   return (
     <div className="flex flex-col items-center">
