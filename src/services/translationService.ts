@@ -723,7 +723,7 @@ export const getTranslation = (): Translation => {
   return translations[getCurrentLanguage()];
 };
 
-export const t = (key: keyof Translation): string => {
+export const t = (key: keyof Translation): Translation[keyof Translation] => {
   return getTranslation()[key];
 };
 
