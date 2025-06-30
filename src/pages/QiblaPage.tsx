@@ -7,10 +7,24 @@ import { toast } from "sonner";
 import { getTranslation } from "@/services/translationService";
 
 const QiblaPage = () => {
-  const [direction, setDirection] = useState(getQiblaDirection());
+  const [direction, setDirection] = useState<number>(145); // Default direction
   const [compassHeading, setCompassHeading] = useState(0);
   const [deviceOrientation, setDeviceOrientation] = useState(0);
   const t = getTranslation();
+  
+  useEffect(() => {
+    // Fetch Qibla direction
+    const fetchDirection = async () => {
+      try {
+        const qiblaDir = await getQiblaDirection();
+        setDirection(qiblaDir);
+      } catch (error) {
+        console.error('Error fetching Qibla direction:', error);
+      }
+    };
+    
+    fetchDirection();
+  }, []);
   
   useEffect(() => {
     // Request device orientation permission for iOS
