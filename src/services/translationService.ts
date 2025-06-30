@@ -360,7 +360,7 @@ const finnishTranslations: Translation = {
   testNotificationSent: "Testi-ilmoitus lähetetty",
   sendTestNotification: "Lähetä testi-ilmoitus",
   prayerReminder: "Rukousmuistutus",
-  in: "om",
+  in: "sisään",
   minutes: "minuuttia",
   
   // Share app section
@@ -384,7 +384,7 @@ const finnishTranslations: Translation = {
   
   // Quran page
   selectSurahToRead: "Valitse suura aloittaaksesi lukemisen",
-  continueReading: "Vazhdoni Leximin",
+  continueReading: "Jatka lukemista",
   endOfSurah: "Suuran loppu",
   verses: "säettä",
   
@@ -398,7 +398,7 @@ const finnishTranslations: Translation = {
   // Qibla page
   qiblaFinder: "Qibla-etsijä",
   qiblaDirection: "Qibla-suunta",
-  deviceHeading: "Drejtimi pajisjes",
+  deviceHeading: "Laitteen suunta",
   calibrateCompass: "Kalibroi kompassi",
   compassCalibrated: "Kompassi kalibroitu onnistuneesti",
   qiblaInstructions: "Pidä laitetta tasaisena ja kaukana magneettisista häiriöistä. Salli sijaintipääsy tarkkaa Qibla-suuntaa varten.",
