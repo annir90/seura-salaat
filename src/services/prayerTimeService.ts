@@ -1,3 +1,4 @@
+
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -43,7 +44,7 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
   // Filter out sunrise as it's not a prayer
   const actualPrayers = prayers.filter(prayer => prayer.id !== 'sunrise');
   
-  // Convert all prayer times to minutes and handle midnight crossing
+  // Convert all prayer times to minutes for comparison
   const prayerTimesWithMinutes = actualPrayers.map(prayer => {
     if (!prayer.time || prayer.time === "00:00") {
       return { ...prayer, timeInMinutes: -1 };
@@ -52,44 +53,52 @@ const determineNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
     const [hours, minutes] = prayer.time.split(":").map(Number);
     let prayerTime = hours * 60 + minutes;
     
-    // Handle prayers that cross midnight (like Isha and next day's Fajr)
-    // If prayer time is very early (00:xx to 05:xx), treat it as next day
-    if (hours >= 0 && hours < 6) {
+    // For prayers after midnight (like Isha at 00:17), we need to handle them carefully
+    // If it's early morning (00:xx to 05:xx) and current time is after 18:00, 
+    // treat it as next day by adding 24 hours
+    if (hours >= 0 && hours < 6 && currentTime >= 18 * 60) {
       prayerTime += 24 * 60; // Add 24 hours in minutes
+      console.log(`Prayer ${prayer.name}: ${prayer.time} treated as next day (${prayerTime} minutes)`);
+    } else {
+      console.log(`Prayer ${prayer.name}: ${prayer.time} (${prayerTime} minutes)`);
     }
     
     return { ...prayer, timeInMinutes: prayerTime };
   });
   
-  // Debug: Log all prayer times
-  prayerTimesWithMinutes.forEach(prayer => {
-    if (prayer.timeInMinutes > 0) {
-      const isAfterMidnight = prayer.timeInMinutes > 24 * 60;
-      console.log(`${prayer.name}: ${prayer.time} (${prayer.timeInMinutes} minutes)${isAfterMidnight ? ' [next day]' : ''} - ${prayer.timeInMinutes > currentTime ? 'FUTURE' : 'PAST'}`);
-    }
+  // Sort prayers by time to find the next one
+  const sortedPrayers = prayerTimesWithMinutes
+    .filter(prayer => prayer.timeInMinutes > 0)
+    .sort((a, b) => a.timeInMinutes - b.timeInMinutes);
+  
+  // Debug: Log all prayer times with their status
+  sortedPrayers.forEach(prayer => {
+    const isAfterMidnight = prayer.timeInMinutes > 24 * 60;
+    const isPast = prayer.timeInMinutes <= currentTime;
+    console.log(`${prayer.name}: ${prayer.time} (${prayer.timeInMinutes} minutes)${isAfterMidnight ? ' [next day]' : ''} - ${isPast ? 'PAST' : 'FUTURE'}`);
   });
   
   // Find the next prayer that hasn't passed yet
   let nextPrayerIndex = -1;
+  let nextPrayer = null;
   
-  for (let i = 0; i < prayerTimesWithMinutes.length; i++) {
-    const prayer = prayerTimesWithMinutes[i];
-    if (prayer.timeInMinutes <= 0) {
-      console.log(`Skipping ${prayer.name} - invalid time: ${prayer.time}`);
-      continue;
-    }
+  // First, look for today's remaining prayers
+  for (let i = 0; i < sortedPrayers.length; i++) {
+    const prayer = sortedPrayers[i];
     
     // Check if this prayer is still upcoming
     if (prayer.timeInMinutes > currentTime) {
-      nextPrayerIndex = i;
-      console.log(`Next prayer found: ${prayer.name} at ${prayer.time}`);
+      // Find the index in the original actualPrayers array
+      nextPrayerIndex = actualPrayers.findIndex(ap => ap.id === prayer.id);
+      nextPrayer = prayer;
+      console.log(`Next prayer found: ${prayer.name} at ${prayer.time} (index: ${nextPrayerIndex})`);
       break;
     }
   }
   
   // If no prayer found for today, the first prayer (Fajr) of tomorrow is next
   if (nextPrayerIndex === -1) {
-    nextPrayerIndex = 0; // Fajr is always first in actualPrayers
+    nextPrayerIndex = actualPrayers.findIndex(prayer => prayer.id === 'fajr');
     console.log('All prayers have passed today, next prayer is tomorrow\'s Fajr');
   }
   
