@@ -103,46 +103,15 @@ const Index = () => {
   
   const [currentHadith, setCurrentHadith] = useState(0);
   
-  // Load prayer times with automatic transition logic
+  // Load prayer times
   const loadPrayerTimes = async () => {
     try {
       setLoading(true);
       const times = await getPrayerTimes();
-      
-      // Find the actual next prayer with proper sequence including Isha
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      
-      let nextPrayerIndex = -1;
-      
-      // Check each prayer time to find the next one
-      for (let i = 0; i < times.length; i++) {
-        const prayer = times[i];
-        if (prayer.id === 'sunrise') continue; // Skip sunrise for next prayer logic
-        
-        const [hours, minutes] = prayer.time.split(":").map(Number);
-        const prayerTime = hours * 60 + minutes;
-        
-        if (prayerTime > currentTime) {
-          nextPrayerIndex = i;
-          break;
-        }
-      }
-      
-      // If no prayer found for today, next prayer is tomorrow's Fajr
-      if (nextPrayerIndex === -1) {
-        nextPrayerIndex = times.findIndex(prayer => prayer.id === 'fajr');
-      }
-      
-      const finalTimes = times.map((prayer, index) => ({
-        ...prayer,
-        isNext: index === nextPrayerIndex && prayer.id !== 'sunrise'
-      }));
-      
-      setPrayerTimes(finalTimes);
+      setPrayerTimes(times);
       
       // Use translated date instead of English date
-      const translatedDate = formatTranslatedDate(now);
+      const translatedDate = formatTranslatedDate(new Date());
       setCurrentDate(translatedDate);
     } catch (error) {
       console.error("Error loading prayer times:", error);
@@ -156,9 +125,8 @@ const Index = () => {
     loadPrayerTimes();
   }, []);
   
-  // Enhanced update for automatic prayer timing with 10-second delay
+  // Update prayer times every 10 seconds
   useEffect(() => {
-    // Update prayer times every 10 seconds for precise timing
     const interval = setInterval(() => {
       loadPrayerTimes();
     }, 10000);
