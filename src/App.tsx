@@ -8,6 +8,7 @@ import Index from './pages/Index';
 import QiblaPage from './pages/QiblaPage';
 import QuranPage from './pages/QuranPage';
 import CalendarPage from './pages/CalendarPage';
+import MonthlyPrayerTimesPage from './pages/MonthlyPrayerTimesPage';
 import SettingsPage from './pages/SettingsPage';
 import LanguageSettingsPage from './pages/LanguageSettingsPage';
 import AboutPage from './pages/AboutPage';
@@ -32,6 +33,7 @@ function App() {
                 <Route path="qibla" element={<QiblaPage />} />
                 <Route path="quran" element={<QuranPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
+                <Route path="monthly-prayer-times" element={<MonthlyPrayerTimesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="settings/language" element={<LanguageSettingsPage />} />
                 <Route path="settings/about" element={<AboutPage />} />
