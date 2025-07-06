@@ -105,14 +105,19 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   ];
 
   return (
-    <Card className="mb-4">
+    <Card className={`mb-4 relative overflow-hidden ${prayer.isNext ? 'border-orange-500/30' : ''}`}>
+      {prayer.isNext && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 animate-pulse-gentle"></div>
+      )}
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div>
                 <h3 className="font-semibold text-lg">{prayer.name}</h3>
-                <p className="text-prayer-primary font-semibold text-lg">{prayer.time}</p>
+                <p className={`font-semibold text-lg ${prayer.isNext ? 'text-orange-500' : 'text-prayer-primary'}`}>
+                  {prayer.time}
+                </p>
               </div>
             </div>
           </div>
