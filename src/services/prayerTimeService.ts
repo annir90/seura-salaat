@@ -1,3 +1,4 @@
+
 import { getSelectedLocation } from "./locationService";
 import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
@@ -9,6 +10,7 @@ export interface PrayerTime {
   id: string;
   name: string;
   time: string;
+  isNext?: boolean;
 }
 
 // Helper function to format time as HH:MM with null checks
