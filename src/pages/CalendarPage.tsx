@@ -33,8 +33,21 @@ const CalendarPage = () => {
   const todayMonth = today.getMonth();
   const todayYear = today.getFullYear();
 
-  // Finnish weekday abbreviations
-  const finnishWeekdays = ['Su', 'Ma', 'Ti', 'Ke', 'To', 'Pe', 'La'];
+  // Get weekday abbreviations based on current language
+  const getWeekdayAbbr = (dayIndex: number): string => {
+    const weekdays = [
+      t.weekdays.sunday,
+      t.weekdays.monday,
+      t.weekdays.tuesday,
+      t.weekdays.wednesday,
+      t.weekdays.thursday,
+      t.weekdays.friday,
+      t.weekdays.saturday
+    ];
+    
+    // Return first 2-3 characters as abbreviation
+    return weekdays[dayIndex].substring(0, 2);
+  };
 
   useEffect(() => {
     const loadMonthlyTimes = async () => {
@@ -62,7 +75,7 @@ const CalendarPage = () => {
           times.push({
             date,
             dayNumber: day,
-            weekdayFi: finnishWeekdays[date.getDay()],
+            weekdayFi: getWeekdayAbbr(date.getDay()),
             prayers
           });
         } catch (error) {
@@ -75,7 +88,7 @@ const CalendarPage = () => {
     };
 
     loadMonthlyTimes();
-  }, []);
+  }, [t]);
 
   // Calculate Imsak (approximately 10 minutes before Fajr)
   const calculateImsak = (fajrTime: string): string => {
@@ -102,7 +115,7 @@ const CalendarPage = () => {
       <div className="container mx-auto p-4">
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-prayer-primary mr-3" />
-          <div className="text-lg text-muted-foreground">Loading prayer times...</div>
+          <div className="text-lg text-muted-foreground">{t.loading}</div>
         </div>
       </div>
     );
@@ -114,7 +127,7 @@ const CalendarPage = () => {
         <CardHeader className="text-center bg-gradient-to-r from-prayer-primary/10 to-prayer-light/10 rounded-t-lg">
           <CardTitle className="flex items-center justify-center gap-2 text-2xl font-bold text-prayer-primary">
             <CalendarDays className="h-7 w-7" />
-            Prayer Times – July 2025 ({location.name})
+            {t.prayerTimesFor} – {t.months.july} 2025 ({location.name})
           </CardTitle>
         </CardHeader>
         
@@ -125,12 +138,12 @@ const CalendarPage = () => {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="font-bold text-center w-20 text-foreground">Day</TableHead>
                   <TableHead className="font-bold text-center min-w-[65px] text-foreground">Imsak</TableHead>
-                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">Fajr</TableHead>
-                  <TableHead className="font-bold text-center min-w-[70px] text-foreground">Sunrise</TableHead>
-                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">Dhuhr</TableHead>
-                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">Asr</TableHead>
-                  <TableHead className="font-bold text-center min-w-[70px] text-foreground">Maghrib</TableHead>
-                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">Isha'</TableHead>
+                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">{t.fajr}</TableHead>
+                  <TableHead className="font-bold text-center min-w-[70px] text-foreground">{t.sunrise}</TableHead>
+                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">{t.dhuhr}</TableHead>
+                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">{t.asr}</TableHead>
+                  <TableHead className="font-bold text-center min-w-[70px] text-foreground">{t.maghrib}</TableHead>
+                  <TableHead className="font-bold text-center min-w-[65px] text-foreground">{t.isha}</TableHead>
                 </TableRow>
               </TableHeader>
               
