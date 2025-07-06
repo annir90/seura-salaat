@@ -105,14 +105,23 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   ];
 
   return (
-    <Card className="mb-4">
+    <Card className={`mb-4 ${prayer.isNext ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div>
-                <h3 className="font-semibold text-lg">{prayer.name}</h3>
-                <p className="text-prayer-primary font-semibold text-lg">{prayer.time}</p>
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-semibold text-lg">{prayer.name}</h3>
+                  {prayer.isNext && (
+                    <span className="text-xs font-bold text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full">
+                      Next
+                    </span>
+                  )}
+                </div>
+                <p className={`font-semibold text-lg ${prayer.isNext ? 'text-orange-600 dark:text-orange-400' : 'text-prayer-primary'}`}>
+                  {prayer.time}
+                </p>
               </div>
             </div>
           </div>
