@@ -1,14 +1,14 @@
 import { getSelectedLocation } from "./locationService";
-import { fetchRabitaPrayerTimes } from "./rabitaService";
 import { toast } from "@/components/ui/use-toast";
 import { getTranslation } from "./translationService";
 import { notificationService } from "./notificationService";
 
-// Prayer time service using API for Espoo, Finland
+// Prayer time service using local JSON file
 export interface PrayerTime {
   id: string;
   name: string;
   time: string;
+  isNext?: boolean;
 }
 
 // Helper function to format time as HH:MM with null checks
@@ -32,46 +32,71 @@ let prayerTimesCache: {
   times: PrayerTime[];
 } | null = null;
 
-// Function to fetch prayer times from Aladhan API
-const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
+// Function to fetch prayer times from local JSON file
+const fetchPrayerTimesFromFile = async (date: Date): Promise<PrayerTime[]> => {
   try {
-    const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log("Fetching prayer times for date:", dateString);
+    const dayOfMonth = date.getDate();
+    console.log("Fetching prayer times for day:", dayOfMonth);
     
-    const response = await fetch(`https://api.aladhan.com/v1/timingsByCity/${dateString}?city=Espoo&country=Finland&method=3`);
+    const response = await fetch('/data/july-2025.json');
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`Failed to load JSON file: ${response.status}`);
     }
     
-    const data = await response.json(); 
-    console.log("API response received:", data);
+    const monthlyData = await response.json();
+    console.log("Loaded monthly data:", monthlyData);
     
-    if (data.code !== 200 || !data.data?.timings) {
-      throw new Error('Invalid API response');
+    // Find the data for the specific day
+    const dayData = monthlyData.find((day: any) => day.day === dayOfMonth);
+    
+    if (!dayData) {
+      throw new Error(`No data found for day ${dayOfMonth}`);
     }
     
-    const timings = data.data.timings;
-    console.log("Prayer timings from API:", timings);
+    console.log("Day data found:", dayData);
     
     const t = getTranslation();
     
-    // Map API response to our format with translations and null checks
-    const prayers = [
-      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr) },
-      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise) },
-      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr) },
-      { id: "asr", name: t.asr, time: formatTime(timings.Asr) },
-      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib) },
-      { id: "isha", name: t.isha, time: formatTime(timings.Isha) }
+    // Map JSON data to our format with translations
+    const prayers: PrayerTime[] = [
+      { id: "fajr", name: t.fajr, time: formatTime(dayData.fajr) },
+      { id: "sunrise", name: t.sunrise, time: formatTime(dayData.sunrise) },
+      { id: "dhuhr", name: t.dhuhr, time: formatTime(dayData.dhuhr) },
+      { id: "asr", name: t.asr, time: formatTime(dayData.asr) },
+      { id: "maghrib", name: t.maghrib, time: formatTime(dayData.maghrib) },
+      { id: "isha", name: t.isha, time: formatTime(dayData.isha) }
     ];
     
-    console.log("Processed prayers:", prayers);
+    // Determine which prayer is next based on current time
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeMinutes = currentHour * 60 + currentMinute;
+    
+    let nextPrayerFound = false;
+    
+    for (const prayer of prayers) {
+      const [prayerHour, prayerMinute] = prayer.time.split(':').map(Number);
+      const prayerTimeMinutes = prayerHour * 60 + prayerMinute;
+      
+      if (!nextPrayerFound && prayerTimeMinutes > currentTimeMinutes) {
+        prayer.isNext = true;
+        nextPrayerFound = true;
+      }
+    }
+    
+    // If no prayer is next today, mark Fajr as next (for tomorrow)
+    if (!nextPrayerFound && prayers.length > 0) {
+      prayers[0].isNext = true;
+    }
+    
+    console.log("Processed prayers with next prayer marked:", prayers);
     
     return prayers;
     
   } catch (error) {
-    console.error("Error fetching from Aladhan API:", error);
+    console.error("Error fetching from local JSON file:", error);
     throw error;
   }
 };
@@ -90,48 +115,29 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
   }
   
   try {
-    // Fetch from Aladhan API
-    const apiTimes = await fetchPrayerTimesFromAPI(date);
+    // Fetch from local JSON file
+    const localTimes = await fetchPrayerTimesFromFile(date);
     
     if (requestedDate === today) {
       prayerTimesCache = {
         date: today,
-        times: apiTimes
+        times: localTimes
       };
       
       // Schedule notifications for today's prayers
       try {
-        await notificationService.scheduleAllPrayerNotifications(apiTimes);
+        await notificationService.scheduleAllPrayerNotifications(localTimes);
       } catch (error) {
         console.error("Error scheduling notifications:", error);
       }
     }
     
-    return apiTimes;
+    return localTimes;
   } catch (error) {
     console.error("Error fetching prayer times:", error);
     
-    // Try Rabita.fi as fallback for today only
-    if (requestedDate === today) {
-      try {
-        console.log("Trying Rabita fallback");
-        const rabitaTimes = await fetchRabitaPrayerTimes();
-        if (rabitaTimes && rabitaTimes.length > 0) {
-          // Schedule notifications for fallback times too
-          try {
-            await notificationService.scheduleAllPrayerNotifications(rabitaTimes);
-          } catch (error) {
-            console.error("Error scheduling notifications for fallback times:", error);
-          }
-          return rabitaTimes;
-        }
-      } catch (rabitaError) {
-        console.error("Rabita fallback also failed:", rabitaError);
-      }
-    }
-    
-    // Return empty array if all methods fail
-    console.warn("All prayer time sources failed, returning empty array");
+    // Return empty array if file loading fails
+    console.warn("Local JSON file loading failed, returning empty array");
     return [];
   }
 };
