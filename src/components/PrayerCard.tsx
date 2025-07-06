@@ -105,11 +105,8 @@ const PrayerCard = ({ prayer }: PrayerCardProps) => {
   ];
 
   return (
-    <Card className="mb-4 relative">
+    <Card className="mb-4">
       <CardContent className="p-4">
-        {prayer.isNext && (
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-orange-500 rounded-r-full animate-pulse-gentle"></div>
-        )}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
