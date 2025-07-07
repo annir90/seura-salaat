@@ -34,23 +34,37 @@ let prayerTimesCache: {
   times: PrayerTime[];
 } | null = null;
 
-// Function to fetch prayer times from local JSON file
+// Helper function to generate monthly file name
+const getMonthlyFileName = (date: Date): string => {
+  const months = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${month}-${year}.json`;
+};
+
+// Function to fetch prayer times from monthly JSON files
 const fetchPrayerTimesFromJSON = async (date: Date): Promise<PrayerTime[]> => {
   try {
     const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log("Loading prayer times for date:", dateString);
+    const monthlyFileName = getMonthlyFileName(date);
     
-    const response = await fetch('/prayer-schedule.json');
+    console.log("Loading prayer times for date:", dateString);
+    console.log("Monthly file:", monthlyFileName);
+    
+    const response = await fetch(`/data/${monthlyFileName}`);
     if (!response.ok) {
-      throw new Error(`Failed to load prayer schedule: ${response.status}`);
+      throw new Error(`Failed to load prayer schedule: ${response.status} for file: ${monthlyFileName}`);
     }
     
     const schedule = await response.json();
-    console.log("Prayer schedule loaded:", schedule);
+    console.log("Monthly prayer schedule loaded for", monthlyFileName);
     
     const daySchedule = schedule[dateString];
     if (!daySchedule) {
-      throw new Error(`No prayer times found for date: ${dateString}`);
+      throw new Error(`No prayer times found for date: ${dateString} in ${monthlyFileName}`);
     }
     
     console.log("Prayer timings for today:", daySchedule);
