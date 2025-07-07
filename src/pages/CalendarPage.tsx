@@ -4,8 +4,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { getPrayerTimes, PrayerTime } from "@/services/prayerTimeService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Clock, Loader2, CalendarDays } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, Loader2, CalendarDays, Download } from "lucide-react";
 import { getTranslation } from "@/services/translationService";
+import { downloadPrayerTimesPDF } from "@/services/pdfService";
 
 const CalendarPage = () => {
   const [monthlyPrayerTimes, setMonthlyPrayerTimes] = useState<any[]>([]);
@@ -66,16 +68,42 @@ const CalendarPage = () => {
     });
   };
 
+  const handleDownloadPDF = async () => {
+    if (monthlyPrayerTimes.length === 0) {
+      return;
+    }
+    
+    try {
+      const monthYear = formatMonthYear(currentMonth);
+      await downloadPrayerTimesPDF(monthYear, monthlyPrayerTimes);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 text-foreground">{t.prayerCalendar}</h1>
       
       <Card className="bg-card text-card-foreground border border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-prayer-primary" />
-            Prayer Times - {formatMonthYear(currentMonth)}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-prayer-primary" />
+              Prayer Times - {formatMonthYear(currentMonth)}
+            </CardTitle>
+            {monthlyPrayerTimes.length > 0 && (
+              <Button
+                onClick={handleDownloadPDF}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download PDF
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
