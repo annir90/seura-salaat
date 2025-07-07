@@ -1,6 +1,6 @@
 
 import { getSelectedLocation } from "./locationService";
-import { fetchRabitaPrayerTimes } from "./rabitaService";
+// import { fetchRabitaPrayerTimes } from "./rabitaService"; // Removed: API-based fallback
 import { toast } from "@/components/ui/use-toast";
 import { getTranslation } from "./translationService";
 import { notificationService } from "./notificationService";
@@ -45,8 +45,8 @@ const getMonthlyFileName = (date: Date): string => {
   return `${month}-${year}.json`;
 };
 
-// Function to fetch prayer times from monthly JSON files
-const fetchPrayerTimesFromJSON = async (date: Date): Promise<PrayerTime[]> => {
+// Function to fetch prayer times from local monthly JSON files
+const fetchPrayerTimesFromFile = async (date: Date): Promise<PrayerTime[]> => {
   try {
     const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
     const monthlyFileName = getMonthlyFileName(date);
@@ -159,11 +159,11 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
   }
   
   try {
-    // Fetch from JSON schedule
-    const jsonTimes = await fetchPrayerTimesFromJSON(date);
+    // Fetch from local JSON file
+    const fileTimes = await fetchPrayerTimesFromFile(date);
     
     // Mark which prayer is next (only for today)
-    const timesWithNext = requestedDate === today ? markNextPrayer(jsonTimes) : jsonTimes;
+    const timesWithNext = requestedDate === today ? markNextPrayer(fileTimes) : fileTimes;
     
     if (requestedDate === today) {
       prayerTimesCache = {
@@ -181,32 +181,10 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
     
     return timesWithNext;
   } catch (error) {
-    console.error("Error loading prayer times from JSON:", error);
+    console.error("Error loading prayer times from local file:", error);
     
-    // Try Rabita.fi as fallback for today only
-    if (requestedDate === today) {
-      try {
-        console.log("Trying Rabita fallback");
-        const rabitaTimes = await fetchRabitaPrayerTimes();
-        if (rabitaTimes && rabitaTimes.length > 0) {
-          // Mark next prayer for fallback times too
-          const fallbackWithNext = markNextPrayer(rabitaTimes);
-          
-          // Schedule notifications for fallback times too
-          try {
-            await notificationService.scheduleAllPrayerNotifications(fallbackWithNext);
-          } catch (error) {
-            console.error("Error scheduling notifications for fallback times:", error);
-          }
-          return fallbackWithNext;
-        }
-      } catch (rabitaError) {
-        console.error("Rabita fallback also failed:", rabitaError);
-      }
-    }
-    
-    // Return empty array if all methods fail
-    console.warn("All prayer time sources failed, returning empty array");
+    // No fallback - return empty array if file loading fails
+    console.warn("Local file loading failed, returning empty array");
     return [];
   }
 };
