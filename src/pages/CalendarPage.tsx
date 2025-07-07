@@ -8,7 +8,7 @@ import { Clock, Loader2, CalendarDays } from "lucide-react";
 import { getTranslation } from "@/services/translationService";
 
 const CalendarPage = () => {
-  const [monthlyPrayerTimes, setMonthlyPrayerTimes] = useState<Record<string, any>>({});
+  const [monthlyPrayerTimes, setMonthlyPrayerTimes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const t = getTranslation();
@@ -39,10 +39,10 @@ const CalendarPage = () => {
         
         const schedule = await response.json();
         setMonthlyPrayerTimes(schedule);
-        console.log("Monthly prayer schedule loaded:", Object.keys(schedule).length, "days");
+        console.log("Monthly prayer schedule loaded:", schedule.length, "days");
       } catch (error) {
         console.error("Error loading monthly prayer times:", error);
-        setMonthlyPrayerTimes({});
+        setMonthlyPrayerTimes([]);
       } finally {
         setLoading(false);
       }
@@ -82,7 +82,7 @@ const CalendarPage = () => {
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-prayer-primary" />
             </div>
-          ) : Object.keys(monthlyPrayerTimes).length > 0 ? (
+          ) : monthlyPrayerTimes.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -97,19 +97,19 @@ const CalendarPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Object.entries(monthlyPrayerTimes)
-                    .sort(([a], [b]) => a.localeCompare(b))
-                    .map(([date, times]) => (
-                    <TableRow key={date}>
+                  {monthlyPrayerTimes
+                    .sort((a: any, b: any) => a.day - b.day)
+                    .map((dayData: any) => (
+                    <TableRow key={dayData.day}>
                       <TableCell className="font-medium">
-                        {formatDate(date)}
+                        {dayData.weekday} {dayData.day}
                       </TableCell>
-                      <TableCell>{times.fajr}</TableCell>
-                      <TableCell className="text-muted-foreground">{times.sunrise}</TableCell>
-                      <TableCell>{times.dhuhr}</TableCell>
-                      <TableCell>{times.asr}</TableCell>
-                      <TableCell>{times.maghrib}</TableCell>
-                      <TableCell>{times.isha}</TableCell>
+                      <TableCell>{dayData.fajr}</TableCell>
+                      <TableCell className="text-muted-foreground">{dayData.sunrise}</TableCell>
+                      <TableCell>{dayData.dhuhr}</TableCell>
+                      <TableCell>{dayData.asr}</TableCell>
+                      <TableCell>{dayData.maghrib}</TableCell>
+                      <TableCell>{dayData.isha}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

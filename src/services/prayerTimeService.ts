@@ -48,10 +48,10 @@ const getMonthlyFileName = (date: Date): string => {
 // Function to fetch prayer times from local monthly JSON files
 const fetchPrayerTimesFromFile = async (date: Date): Promise<PrayerTime[]> => {
   try {
-    const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const currentDay = date.getDate(); // Get day of month (1-31)
     const monthlyFileName = getMonthlyFileName(date);
     
-    console.log("Loading prayer times for date:", dateString);
+    console.log("Loading prayer times for day:", currentDay);
     console.log("Monthly file:", monthlyFileName);
     
     const response = await fetch(`/data/${monthlyFileName}`);
@@ -62,9 +62,10 @@ const fetchPrayerTimesFromFile = async (date: Date): Promise<PrayerTime[]> => {
     const schedule = await response.json();
     console.log("Monthly prayer schedule loaded for", monthlyFileName);
     
-    const daySchedule = schedule[dateString];
+    // Find the day in the array structure
+    const daySchedule = schedule.find((dayData: any) => dayData.day === currentDay);
     if (!daySchedule) {
-      throw new Error(`No prayer times found for date: ${dateString} in ${monthlyFileName}`);
+      throw new Error(`No prayer times found for day: ${currentDay} in ${monthlyFileName}`);
     }
     
     console.log("Prayer timings for today:", daySchedule);
