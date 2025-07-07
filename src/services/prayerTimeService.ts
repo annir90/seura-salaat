@@ -34,48 +34,101 @@ let prayerTimesCache: {
   times: PrayerTime[];
 } | null = null;
 
-// Function to fetch prayer times from Aladhan API
-const fetchPrayerTimesFromAPI = async (date: Date): Promise<PrayerTime[]> => {
+// Function to fetch prayer times from local JSON file
+const fetchPrayerTimesFromJSON = async (date: Date): Promise<PrayerTime[]> => {
   try {
     const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log("Fetching prayer times for date:", dateString);
+    console.log("Loading prayer times for date:", dateString);
     
-    const response = await fetch(`https://api.aladhan.com/v1/timingsByCity/${dateString}?city=Espoo&country=Finland&method=3`);
-    
+    const response = await fetch('/prayer-schedule.json');
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`Failed to load prayer schedule: ${response.status}`);
     }
     
-    const data = await response.json(); 
-    console.log("API response received:", data);
+    const schedule = await response.json();
+    console.log("Prayer schedule loaded:", schedule);
     
-    if (data.code !== 200 || !data.data?.timings) {
-      throw new Error('Invalid API response');
+    const daySchedule = schedule[dateString];
+    if (!daySchedule) {
+      throw new Error(`No prayer times found for date: ${dateString}`);
     }
     
-    const timings = data.data.timings;
-    console.log("Prayer timings from API:", timings);
+    console.log("Prayer timings for today:", daySchedule);
     
     const t = getTranslation();
     
-    // Map API response to our format with translations and null checks
+    // Map JSON data to our format with translations and null checks
     const prayers = [
-      { id: "fajr", name: t.fajr, time: formatTime(timings.Fajr) },
-      { id: "sunrise", name: t.sunrise, time: formatTime(timings.Sunrise) },
-      { id: "dhuhr", name: t.dhuhr, time: formatTime(timings.Dhuhr) },
-      { id: "asr", name: t.asr, time: formatTime(timings.Asr) },
-      { id: "maghrib", name: t.maghrib, time: formatTime(timings.Maghrib) },
-      { id: "isha", name: t.isha, time: formatTime(timings.Isha) }
-    ];
+      { id: "fajr", name: t.fajr, time: formatTime(daySchedule.fajr) },
+      { id: "sunrise", name: t.sunrise, time: formatTime(daySchedule.sunrise) },
+      { id: "dhuhr", name: t.dhuhr, time: formatTime(daySchedule.dhuhr) },
+      { id: "asr", name: t.asr, time: formatTime(daySchedule.asr) },
+      { id: "maghrib", name: t.maghrib, time: formatTime(daySchedule.maghrib) },
+      { id: "isha", name: t.isha, time: formatTime(daySchedule.isha) }
+    ].filter(prayer => prayer.time !== "00:00"); // Skip invalid times
     
     console.log("Processed prayers:", prayers);
     
     return prayers;
     
   } catch (error) {
-    console.error("Error fetching from Aladhan API:", error);
+    console.error("Error loading from JSON schedule:", error);
     throw error;
   }
+};
+
+// Helper function to convert time string to minutes since midnight
+const timeToMinutes = (timeStr: string): number => {
+  if (!timeStr || timeStr === "00:00") return -1;
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+// Function to determine which prayer is next
+const markNextPrayer = (prayers: PrayerTime[]): PrayerTime[] => {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  
+  console.log("Current time in minutes:", currentMinutes);
+  
+  // Find the next prayer time
+  let nextPrayerIndex = -1;
+  
+  for (let i = 0; i < prayers.length; i++) {
+    const prayerMinutes = timeToMinutes(prayers[i].time);
+    
+    // Skip sunrise as it's not a prayer
+    if (prayers[i].id === 'sunrise') continue;
+    if (prayerMinutes === -1) continue; // Skip invalid times
+    
+    // Handle Isha prayer (next day)
+    const adjustedPrayerMinutes = prayers[i].id === 'isha' && prayerMinutes < 60 
+      ? prayerMinutes + (24 * 60) // Add 24 hours for next day
+      : prayerMinutes;
+    
+    if (adjustedPrayerMinutes > currentMinutes) {
+      nextPrayerIndex = i;
+      break;
+    }
+  }
+  
+  // If no prayer found for today, Fajr is next (tomorrow)
+  if (nextPrayerIndex === -1) {
+    const fajrIndex = prayers.findIndex(p => p.id === 'fajr');
+    if (fajrIndex !== -1) {
+      nextPrayerIndex = fajrIndex;
+    }
+  }
+  
+  // Mark the next prayer
+  const updatedPrayers = prayers.map((prayer, index) => ({
+    ...prayer,
+    isNext: index === nextPrayerIndex
+  }));
+  
+  console.log("Next prayer marked:", updatedPrayers.find(p => p.isNext)?.name);
+  
+  return updatedPrayers;
 };
 
 // Function to calculate prayer times for a specific date
@@ -92,26 +145,29 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
   }
   
   try {
-    // Fetch from Aladhan API
-    const apiTimes = await fetchPrayerTimesFromAPI(date);
+    // Fetch from JSON schedule
+    const jsonTimes = await fetchPrayerTimesFromJSON(date);
+    
+    // Mark which prayer is next (only for today)
+    const timesWithNext = requestedDate === today ? markNextPrayer(jsonTimes) : jsonTimes;
     
     if (requestedDate === today) {
       prayerTimesCache = {
         date: today,
-        times: apiTimes
+        times: timesWithNext
       };
       
       // Schedule notifications for today's prayers
       try {
-        await notificationService.scheduleAllPrayerNotifications(apiTimes);
+        await notificationService.scheduleAllPrayerNotifications(timesWithNext);
       } catch (error) {
         console.error("Error scheduling notifications:", error);
       }
     }
     
-    return apiTimes;
+    return timesWithNext;
   } catch (error) {
-    console.error("Error fetching prayer times:", error);
+    console.error("Error loading prayer times from JSON:", error);
     
     // Try Rabita.fi as fallback for today only
     if (requestedDate === today) {
@@ -119,13 +175,16 @@ export const getPrayerTimes = async (date: Date = new Date()): Promise<PrayerTim
         console.log("Trying Rabita fallback");
         const rabitaTimes = await fetchRabitaPrayerTimes();
         if (rabitaTimes && rabitaTimes.length > 0) {
+          // Mark next prayer for fallback times too
+          const fallbackWithNext = markNextPrayer(rabitaTimes);
+          
           // Schedule notifications for fallback times too
           try {
-            await notificationService.scheduleAllPrayerNotifications(rabitaTimes);
+            await notificationService.scheduleAllPrayerNotifications(fallbackWithNext);
           } catch (error) {
             console.error("Error scheduling notifications for fallback times:", error);
           }
-          return rabitaTimes;
+          return fallbackWithNext;
         }
       } catch (rabitaError) {
         console.error("Rabita fallback also failed:", rabitaError);
