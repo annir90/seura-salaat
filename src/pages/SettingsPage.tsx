@@ -113,6 +113,11 @@ const SettingsPage = () => {
           </p>
         </div>
 
+        {/* Share App */}
+        <div className="mb-6">
+          <SocialShare />
+        </div>
+
         {/* User Profile Section */}
         <Card className="mb-6 shadow-sm border-0 bg-white dark:bg-gray-800 rounded-xl">
           <CardContent className="p-6">
@@ -182,10 +187,6 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          {/* Share App */}
-          <div className="mb-3">
-            <SocialShare />
-          </div>
 
           {/* Support the Mosque */}
           <Dialog open={isDonateModalOpen} onOpenChange={setIsDonateModalOpen}>
