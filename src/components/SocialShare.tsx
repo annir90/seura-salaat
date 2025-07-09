@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Share2, ExternalLink, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Share } from '@capacitor/share';
 import { getTranslation } from "@/services/translationService";
 
 const SocialShare = () => {
@@ -10,30 +11,28 @@ const SocialShare = () => {
   const [isSharing, setIsSharing] = useState(false);
 
   const shareData = {
-    title: "PrayConnect - Prayer Times App",
-    text: "Check out this amazing prayer times app! 🕌 Download PrayConnect for accurate prayer times and Islamic features.",
-    url: window.location.origin,
+    title: "Seura Salaat",
+    text: "Check out this beautiful prayer app!",
+    url: "https://play.google.com/store/apps/details?id=YOUR_PACKAGE_NAME",
+    dialogTitle: "Share Seura Salaat with your friends"
   };
 
   const handleNativeShare = async () => {
     setIsSharing(true);
     
     try {
-      // Check if native sharing is available
-      if (navigator.share) {
-        console.log("Native sharing available, attempting to share...");
-        await navigator.share(shareData);
-        toast.success("App shared successfully! 🎉");
-      } else {
-        console.log("Native sharing not available, falling back to copy URL");
-        // Fallback: copy URL to clipboard
-        await navigator.clipboard.writeText(shareData.url);
-        toast.success("App URL copied to clipboard! Share it with your friends! 📋");
-      }
+      // Use Capacitor Share plugin
+      await Share.share({
+        title: shareData.title,
+        text: shareData.text,
+        url: shareData.url,
+        dialogTitle: shareData.dialogTitle
+      });
+      toast.success("App shared successfully! 🎉");
     } catch (error) {
       console.error('Error sharing:', error);
       // Handle user cancellation gracefully
-      if (error.name === 'AbortError') {
+      if (error && error.message && error.message.includes('cancelled')) {
         console.log('Share cancelled by user');
         // Don't show error for user cancellation
       } else {

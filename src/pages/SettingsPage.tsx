@@ -25,6 +25,7 @@ import {
   LanguageCode 
 } from "@/services/translationService";
 import { useNavigate } from "react-router-dom";
+import SocialShare from "@/components/SocialShare";
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -180,6 +181,11 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Share App */}
+          <div className="mb-3">
+            <SocialShare />
+          </div>
 
           {/* Support the Mosque */}
           <Dialog open={isDonateModalOpen} onOpenChange={setIsDonateModalOpen}>

@@ -69,8 +69,7 @@ export const downloadPrayerTimesPDF = async (monthYear: string, prayerData: any[
     const result = await Filesystem.writeFile({
       path: fileName,
       data: base64Data,
-      directory: Directory.Documents,
-      encoding: Encoding.UTF8
+      directory: Directory.Documents
     });
     
     toast({
