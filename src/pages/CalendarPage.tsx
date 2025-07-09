@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Clock, Loader2, CalendarDays, Download } from "lucide-react";
 import { getTranslation } from "@/services/translationService";
-import { downloadPrayerTimesPDF } from "@/services/pdfService";
+import { downloadPrayerTimesText } from "@/services/pdfService";
 
 const CalendarPage = () => {
   const [monthlyPrayerTimes, setMonthlyPrayerTimes] = useState<any[]>([]);
@@ -68,16 +68,16 @@ const CalendarPage = () => {
     });
   };
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadText = async () => {
     if (monthlyPrayerTimes.length === 0) {
       return;
     }
     
     try {
       const monthYear = formatMonthYear(currentMonth);
-      await downloadPrayerTimesPDF(monthYear, monthlyPrayerTimes);
+      await downloadPrayerTimesText(monthYear, monthlyPrayerTimes);
     } catch (error) {
-      console.error('Error downloading PDF:', error);
+      console.error('Error downloading prayer times:', error);
     }
   };
 
@@ -94,13 +94,13 @@ const CalendarPage = () => {
             </CardTitle>
             {monthlyPrayerTimes.length > 0 && (
               <Button
-                onClick={handleDownloadPDF}
+                onClick={handleDownloadText}
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-2"
               >
                 <Download className="h-4 w-4" />
-                Download PDF
+                Download Prayer Times
               </Button>
             )}
           </div>

@@ -1,88 +1,43 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { toast } from "@/components/ui/use-toast";
 
-export const generatePrayerTimesPDF = async (monthYear: string, prayerData: any[]) => {
-  try {
-    const pdf = new jsPDF();
-    
-    // Add title
-    pdf.setFontSize(20);
-    pdf.text(`Prayer Times - ${monthYear}`, 20, 30);
-    
-    // Add table headers
-    pdf.setFontSize(12);
-    const headers = ['Date', 'Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-    let yPosition = 50;
-    
-    // Draw headers
-    headers.forEach((header, index) => {
-      pdf.text(header, 20 + (index * 25), yPosition);
-    });
-    
-    yPosition += 10;
-    
-    // Add prayer times data
-    prayerData.forEach((dayData) => {
-      const rowData = [
-        `${dayData.weekday} ${dayData.day}`,
-        dayData.fajr,
-        dayData.sunrise,
-        dayData.dhuhr,
-        dayData.asr,
-        dayData.maghrib,
-        dayData.isha
-      ];
-      
-      rowData.forEach((data, index) => {
-        pdf.text(data, 20 + (index * 25), yPosition);
-      });
-      
-      yPosition += 8;
-      
-      // Add new page if needed
-      if (yPosition > 270) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-    });
-    
-    return pdf;
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw error;
-  }
+export const generatePrayerTimesText = (monthYear: string, prayerData: any[]): string => {
+  let textContent = `Prayer Times - ${monthYear}\n`;
+  textContent += "=".repeat(50) + "\n\n";
+  
+  prayerData.forEach((dayData) => {
+    textContent += `Day: ${dayData.day}, Weekday: ${dayData.weekday}\n`;
+    textContent += `Imsak: ${dayData.imsak || 'N/A'}, Fajr: ${dayData.fajr}, Sunrise: ${dayData.sunrise}\n`;
+    textContent += `Dhuhr: ${dayData.dhuhr}, Asr: ${dayData.asr}, Maghrib: ${dayData.maghrib}, Isha: ${dayData.isha}\n`;
+    textContent += "-".repeat(40) + "\n";
+  });
+  
+  return textContent;
 };
 
-export const downloadPrayerTimesPDF = async (monthYear: string, prayerData: any[]) => {
+export const downloadPrayerTimesText = async (monthYear: string, prayerData: any[]) => {
   try {
-    const pdf = await generatePrayerTimesPDF(monthYear, prayerData);
-    const pdfOutput = pdf.output('datauristring');
-    
-    // Convert data URI to base64
-    const base64Data = pdfOutput.split(',')[1];
-    
-    const fileName = `prayer-times-${monthYear.toLowerCase().replace(' ', '-')}.pdf`;
+    const textContent = generatePrayerTimesText(monthYear, prayerData);
+    const fileName = `prayer-times-${monthYear.toLowerCase().replace(' ', '-')}.txt`;
     
     // Save to device using Capacitor Filesystem
     const result = await Filesystem.writeFile({
       path: fileName,
-      data: base64Data,
+      data: textContent,
       directory: Directory.Documents
     });
     
     toast({
-      title: "PDF Downloaded",
+      title: "Prayer Times Downloaded",
       description: `Prayer times saved as ${fileName}`,
     });
     
     return result;
   } catch (error) {
-    console.error('Error downloading PDF:', error);
+    console.error('Error downloading prayer times:', error);
     toast({
       title: "Download Failed",
-      description: "Unable to save PDF file",
+      description: "Unable to save prayer times file",
       variant: "destructive"
     });
     throw error;
