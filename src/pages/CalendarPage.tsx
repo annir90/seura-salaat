@@ -90,7 +90,7 @@ const CalendarPage = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-prayer-primary" />
-              Prayer Times - {formatMonthYear(currentMonth)}
+              {formatMonthYear(currentMonth)}
             </CardTitle>
             {monthlyPrayerTimes.length > 0 && (
               <Button
