@@ -20,25 +20,55 @@ export const downloadPrayerTimesText = async (monthYear: string, prayerData: any
     const textContent = generatePrayerTimesText(monthYear, prayerData);
     const fileName = `prayer-times-${monthYear.toLowerCase().replace(' ', '-')}.txt`;
     
-    // Save to device using Capacitor Filesystem
+    // Check if we have permission to write files
+    try {
+      const permissions = await Filesystem.checkPermissions();
+      if (permissions.publicStorage !== 'granted') {
+        const requestResult = await Filesystem.requestPermissions();
+        if (requestResult.publicStorage !== 'granted') {
+          toast({
+            title: "Permission Required",
+            description: "Storage permission is required to save files",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+    } catch (permError) {
+      console.warn('Permission check failed:', permError);
+      // Continue with file save attempt even if permission check fails
+    }
+    
+    // Save to user-accessible Documents directory
     const result = await Filesystem.writeFile({
       path: fileName,
       data: textContent,
-      directory: Directory.Data,
+      directory: Directory.Documents,
       encoding: Encoding.UTF8
     });
     
     toast({
       title: "Prayer Times Downloaded",
-      description: `Prayer times saved as ${fileName}`,
+      description: `Prayer times saved to Downloads/${fileName}`,
     });
     
     return result;
   } catch (error) {
     console.error('Error downloading prayer times:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = "Unable to save prayer times file";
+    if (error instanceof Error) {
+      if (error.message.includes('permission')) {
+        errorMessage = "Storage permission denied. Please enable storage access in app settings.";
+      } else if (error.message.includes('space')) {
+        errorMessage = "Insufficient storage space available.";
+      }
+    }
+    
     toast({
       title: "Download Failed",
-      description: "Unable to save prayer times file",
+      description: errorMessage,
       variant: "destructive"
     });
     throw error;

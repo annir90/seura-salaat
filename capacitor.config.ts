@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
       iconColor: "#488AFF",
       sound: "adhan", // Fixed sound for all notifications
     },
+    Filesystem: {
+      androidRequestPermissions: true,
+    },
   },
 };
 
