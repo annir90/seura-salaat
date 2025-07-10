@@ -1,4 +1,4 @@
-import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { toast } from "@/components/ui/use-toast";
 
 export const generatePrayerTimesText = (monthYear: string, prayerData: any[]): string => {
@@ -24,7 +24,8 @@ export const downloadPrayerTimesText = async (monthYear: string, prayerData: any
     const result = await Filesystem.writeFile({
       path: fileName,
       data: textContent,
-      directory: Directory.Documents
+      directory: Directory.Data,
+      encoding: Encoding.UTF8
     });
     
     toast({
